@@ -79,8 +79,9 @@ function App() {
             ) : (
               <Moon className="text-gray-700" />
             )}
-          </button>
+          </button>       
         </div>
+        <h3 className="text-lg font-semibold ">وزارة الخارجية الليبية</h3>   
       </div>
 
       {/* Main Content */}
