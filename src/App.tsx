@@ -62,6 +62,15 @@ function App() {
       {/* Topbar */}
       <div className="bg-red-800 dark:bg-red-950 dark:text-white text-white shadow-sm p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
+        <div className="flex flex-col items-end p-2">
+              <span className="font-semibold text-sm pr-4 text-gray-900 dark:text-white">
+                محمد أحمد
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 pr-4">
+                مسؤول
+              </span>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600"></div>
           <button
             className="text-white hover:text-gray-200 lg:hidden"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -79,9 +88,10 @@ function App() {
             ) : (
               <Moon className="text-gray-700" />
             )}
-          </button>       
+          </button>
+          
         </div>
-        <h3 className="text-lg font-semibold ">وزارة الخارجية الليبية</h3>   
+        <h3 className="text-lg font-semibold ">وزارة الخارجية الليبية</h3>
       </div>
 
       {/* Main Content */}
@@ -142,19 +152,7 @@ function App() {
               </div>
             ))}
           </nav>
-
-          {/* User Avatar */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-end space-x-3 space-x-reverse">
-            <div className="flex flex-col items-end p-2">
-              <span className="font-semibold text-sm pr-4 text-gray-900 dark:text-white">
-                محمد أحمد
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 pr-4">
-                مسؤول
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-          </div>
+      
         </div>
       </div>
 
