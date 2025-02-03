@@ -13,9 +13,105 @@ import {
   Linkedin,
   Sun,
   Moon,
-  Key,
 } from "lucide-react";
 
+// Theme Toggle Component
+const ThemeToggle = ({
+  theme,
+  toggleTheme,
+}: {
+  theme: string;
+  toggleTheme: () => void;
+}) => (
+  <button
+    onClick={toggleTheme}
+    className="p-2 rounded-lg hover:bg-red-700 dark:hover:bg-red-900 transition-colors"
+    aria-label="Toggle theme"
+  >
+    {theme === "dark" ? (
+      <Sun className="text-yellow-500" />
+    ) : (
+      <Moon className="text-gray-700" />
+    )}
+  </button>
+);
+
+// Sidebar Component
+const Sidebar = ({
+  isSidebarOpen,
+  setIsSidebarOpen,
+  sidebarItems,
+}: {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
+  sidebarItems: Array<{ key: number; icon: JSX.Element; label: string }>;
+}) => (
+  <div
+    className={`bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 flex flex-col ${
+      isSidebarOpen ? "w-64" : "w-20"
+    }`}
+  >
+    <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <button
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <Menu />
+      </button>
+      <h2
+        className={`text-xl font-bold transition-opacity text-gray-900 dark:text-white ${
+          isSidebarOpen ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        لوحة المعلومات
+      </h2>
+    </div>
+    <nav className="py-4 flex-1 text-gray-900 dark:text-white">
+      {sidebarItems.map((item) => (
+        <div
+          key={item.key}
+          className="flex items-center justify-end p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+        >
+          <span
+            className={`ml-3 transition-opacity ${
+              isSidebarOpen ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            {item.label}
+          </span>
+          <span className="mr-3 pl-3">{item.icon}</span>
+        </div>
+      ))}
+    </nav>
+  </div>
+);
+
+// Social Media Links Component
+const SocialMediaLinks = ({
+  socialMedia,
+}: {
+  socialMedia: Array<{
+    key: number;
+    icon: JSX.Element;
+    link: string;
+    label: string;
+  }>;
+}) => (
+  <div className="flex items-center space-x-4">
+    {socialMedia.map((social) => (
+      <a
+        key={social.key}
+        href={social.link}
+        className="text-white hover:text-gray-300 transition-colors"
+        aria-label={social.label}
+      >
+        {social.icon}
+      </a>
+    ))}
+  </div>
+);
+
+// App Component
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState("dark");
@@ -42,16 +138,16 @@ function App() {
 
   const sidebarItems = [
     { key: 0, icon: <LayoutGrid />, label: "لوحة التحكم" },
-    { Key: 1, icon: <Users />, label: "المستخدمون" },
+    { key: 1, icon: <Users />, label: "المستخدمون" },
     { key: 2, icon: <BarChart2 />, label: "التقارير" },
     { key: 3, icon: <Settings />, label: "الإعدادات" },
   ];
 
   const socialMedia = [
-    {key: 0, icon: <Twitter />, link: "#", label: "Twitter" },
-    {Key: 1, icon: <Facebook />, link: "#", label: "Facebook" },
-    {key: 2, icon: <Instagram />, link: "#", label: "Instagram" },
-    {key: 3, icon: <Linkedin />, link: "#", label: "LinkedIn" },
+    { key: 0, icon: <Twitter />, link: "#", label: "Twitter" },
+    { key: 1, icon: <Facebook />, link: "#", label: "Facebook" },
+    { key: 2, icon: <Instagram />, link: "#", label: "Instagram" },
+    { key: 3, icon: <Linkedin />, link: "#", label: "LinkedIn" },
   ];
 
   return (
@@ -63,15 +159,15 @@ function App() {
       {/* Topbar */}
       <div className="bg-red-800 dark:bg-red-950 dark:text-white text-white shadow-sm p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-        <div className="flex flex-col items-end p-2">
-              <span className="font-semibold text-sm pr-4 text-gray-900 dark:text-white">
-                محمد أحمد
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 pr-4">
-                مسؤول
-              </span>
-            </div>
-            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+          <div className="flex flex-col items-end p-2">
+            <span className="font-semibold text-sm pr-4 text-white">
+              محمد أحمد
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 pr-4">
+              مسؤول
+            </span>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-600"></div>
           <button
             className="text-white hover:text-gray-200 lg:hidden"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -79,18 +175,7 @@ function App() {
             <Menu />
           </button>
           <Bell />
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-red-700 dark:hover:bg-red-900 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? (
-              <Sun className="text-yellow-500" />
-            ) : (
-              <Moon className="text-gray-700" />
-            )}
-          </button>
-          
+          <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
         </div>
         <h3 className="text-lg font-semibold ">وزارة الخارجية الليبية</h3>
       </div>
@@ -113,65 +198,18 @@ function App() {
             </div>
           </div>
         </div>
-
         {/* Right Sidebar */}
-        <div
-          className={`bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 flex flex-col ${
-            isSidebarOpen ? "w-64" : "w-20"
-          }`}
-        >
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-gray-300"
-            >
-              <Menu />
-            </button>
-            <h2
-              className={`text-xl font-bold transition-opacity text-gray-900 dark:text-white ${
-                isSidebarOpen ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              لوحة المعلومات
-            </h2>
-          </div>
-
-          <nav className="py-4 flex-1 text-gray-900 dark:text-white">
-            {sidebarItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-end p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-              >
-                <span
-                  className={`ml-3 transition-opacity ${
-                    isSidebarOpen ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  {item.label}
-                </span>
-                <span className="mr-3 pl-3">{item.icon}</span>
-              </div>
-            ))}
-          </nav>
-      
-        </div>
+        <Sidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          sidebarItems={sidebarItems}
+        />
       </div>
 
       {/* Footer */}
       <footer className="shadow-md p-4 text-right bg-emerald-900 dark:bg-emerald-950 text-white">
         <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            {socialMedia.map((social, index) => (
-              <a
-                key={index}
-                href={social.link}
-                className="text-white hover:text-gray-300 transition-colors"
-                aria-label={social.label}
-              >
-                {social.icon}
-              </a>
-            ))}
-          </div>
+          <SocialMediaLinks socialMedia={socialMedia} />
           <div className="text-sm text-white">
             © 2024 لوحة المعلومات. جميع الحقوق محفوظة
           </div>
