@@ -13,6 +13,7 @@ import {
   Linkedin,
   Sun,
   Moon,
+  Key,
 } from "lucide-react";
 
 function App() {
@@ -40,17 +41,17 @@ function App() {
   };
 
   const sidebarItems = [
-    { icon: <LayoutGrid />, label: "لوحة التحكم" },
-    { icon: <Users />, label: "المستخدمون" },
-    { icon: <BarChart2 />, label: "التقارير" },
-    { icon: <Settings />, label: "الإعدادات" },
+    { key: 0, icon: <LayoutGrid />, label: "لوحة التحكم" },
+    { Key: 1, icon: <Users />, label: "المستخدمون" },
+    { key: 2, icon: <BarChart2 />, label: "التقارير" },
+    { key: 3, icon: <Settings />, label: "الإعدادات" },
   ];
 
   const socialMedia = [
-    { icon: <Twitter />, link: "#", label: "Twitter" },
-    { icon: <Facebook />, link: "#", label: "Facebook" },
-    { icon: <Instagram />, link: "#", label: "Instagram" },
-    { icon: <Linkedin />, link: "#", label: "LinkedIn" },
+    {key: 0, icon: <Twitter />, link: "#", label: "Twitter" },
+    {Key: 1, icon: <Facebook />, link: "#", label: "Facebook" },
+    {key: 2, icon: <Instagram />, link: "#", label: "Instagram" },
+    {key: 3, icon: <Linkedin />, link: "#", label: "LinkedIn" },
   ];
 
   return (
