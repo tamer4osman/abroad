@@ -7,10 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import {
-  LayoutGrid,
-  Users,
   BarChart2,
-  Settings,
   Menu,
   Bell,
   Twitter,
@@ -19,12 +16,39 @@ import {
   Linkedin,
   Sun,
   Moon,
-  BookUser,
-  Baby,
-  Frown,
   ChevronDown,
   ChevronUp,
+  Settings,
+  Handshake,
+  Home,
+  Book,
+  FileArchive,
+  FileText,
+  FileCheck,
 } from "lucide-react";
+import Dashboard from "./components/Dashboard";
+import RegisterCitizen from "./components/RegisterCitizen";
+import MarriageRegistration from "./components/MarriageRegistration";
+import BirthRegistration from "./components/BirthRegistration";
+import DivorceRegistration from "./components/DivorceRegistration";
+import DeathRegistration from "./components/DeathRegistration";
+import Reports from "./components/Reports";
+import SettingsComponet from "./components/SettingsComponent";
+import IssuePassport from "./components/IssuePassport";
+import TravelDocument from "./components/TravelDocument";
+import CompletedRequestsPassports from "./components/CompletedRequestsPassports";
+import NewRequestVisas from "./components/NewRequestVisas";
+import PendingRequestsVisas from "./components/PendingRequestsVisas";
+import CompletedRequestsVisas from "./components/CompletedRequestsVisas";
+import LocalAttestation from "./components/LocalAttestation";
+import InternationalAttestation from "./components/InternationalAttestation";
+import CourtProxy from "./components/CourtProxy";
+import BankProxy from "./components/BankProxy";
+import DivorceProxy from "./components/DivorceProxy";
+import RealEstateProxy from "./components/RealEstateProxy";
+import InheritanceProxy from "./components/InheritanceProxy";
+import DocumentCompletionProxy from "./components/DocumentCompletionProxy";
+import GeneralProxy from "./components/GeneralProxy";
 
 // Theme Toggle Component
 const ThemeToggle = ({
@@ -165,39 +189,6 @@ const SocialMediaLinks = ({
 );
 
 // Placeholder Components for Routes
-const Dashboard = () => (
-  <div className="p-4 md:p-6 w-full max-w-full mx-auto">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 w-full">
-      {["المبيعات", "المستخدمون", "الإيرادات"].map((title, index) => (
-        <div
-          key={index}
-          className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 md:p-6 rounded-lg shadow-md text-right w-full ring-2 ring-gray-200 dark:ring-gray-700"
-        >
-          <h3 className="text-lg font-semibold mb-4">{title}</h3>
-          <p className="text-3xl font-bold">1,234</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-
-const RegisterCitizen = () => (
-  <div className="p-4 text-right">تسجيل مواطن</div>
-);
-const MarriageRegistration = () => (
-  <div className="p-4 text-right">تسجيل واقعة الزواج</div>
-);
-const BirthRegistration = () => (
-  <div className="p-4 text-right">تسجيل واقعة الولادة</div>
-);
-const DivorceRegistration = () => (
-  <div className="p-4 text-right">تسجيل واقعة الطلاق</div>
-);
-const DeathRegistration = () => (
-  <div className="p-4 text-right">تسجيل واقعة الوفاة</div>
-);
-
 // App Component
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -223,10 +214,10 @@ function App() {
   };
 
   const sidebarItems = [
-    { key: 0, icon: <LayoutGrid />, label: "لوحة التحكم", path: "/" },
+    { key: 0, icon: <Home />, label: "لوحة التحكم", path: "/" },
     {
       key: 1,
-      icon: <BookUser />,
+      icon: <Book />,
       label: "السجل المدني",
       subItems: [
         { key: 11, label: "تسجيل مواطن", path: "/civil-registry/register-citizen" },
@@ -238,7 +229,7 @@ function App() {
     },
     {
       key: 2,
-      icon: <Users />,
+      icon: <FileArchive />,
       label: "الجوازات",
       subItems: [
         { key: 21, label: "اصدار جواز", path: "/passports/issue-passport" },
@@ -248,7 +239,7 @@ function App() {
     },
     {
       key: 3,
-      icon: <Users />,
+      icon: <FileCheck />,
       label: "التأشيرات",
       subItems: [
         { key: 31, label: "طلب جديد", path: "/visas/new-request" },
@@ -258,7 +249,7 @@ function App() {
     },
     {
       key: 4,
-      icon: <Baby />,
+      icon: <FileText />,
       label: "التصديقات",
       subItems: [
         { key: 41, label: "تصديق محلي", path: "/attestations/local" },
@@ -267,7 +258,7 @@ function App() {
     },
     {
       key: 5,
-      icon: <Frown />,
+      icon: <Handshake />,
       label: "التوكيلات",
       subItems: [
         { key: 51, label: "توكيل للمحاكم", path: "/proxies/court" },
@@ -332,8 +323,23 @@ function App() {
               <Route path="/civil-registry/divorce" element={<DivorceRegistration />} />
               <Route path="/civil-registry/death" element={<DeathRegistration />} />
               {/* Add more routes for other paths */}
-              <Route path="/reports" element={<div>التقارير</div>} />
-              <Route path="/settings" element={<div>الإعدادات</div>} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<SettingsComponet />} />
+              <Route path="/passports/issue-passport" element={<IssuePassport />} />
+              <Route path="/passports/travel-document" element={<TravelDocument />} />
+              <Route path="/passports/completed-requests" element={<CompletedRequestsPassports />} />
+              <Route path="/visas/new-request" element={<NewRequestVisas />} />
+              <Route path="/visas/pending-requests" element={<PendingRequestsVisas />} />
+              <Route path="/visas/completed-requests" element={<CompletedRequestsVisas />} />
+              <Route path="/attestations/local" element={<LocalAttestation />} />
+              <Route path="/attestations/international" element={<InternationalAttestation />} />
+              <Route path="/proxies/court" element={<CourtProxy />} />
+              <Route path="/proxies/bank" element={<BankProxy />} />
+              <Route path="/proxies/divorce" element={<DivorceProxy />} />
+              <Route path="/proxies/real-estate" element={<RealEstateProxy />} />
+              <Route path="/proxies/inheritance" element={<InheritanceProxy />} />
+              <Route path="/proxies/document-completion" element={<DocumentCompletionProxy />} />
+              <Route path="/proxies/general" element={<GeneralProxy />} />
             </Routes>
           </div>
           <Sidebar
