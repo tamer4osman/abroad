@@ -1,5 +1,6 @@
 // filepath: /abroad/abroad/src/components/Settings.tsx
 import React from 'react';
+import Embassies from './Embassies';
 
 const SettingsComponent: React.FC = () => {
   return (
@@ -7,6 +8,7 @@ const SettingsComponent: React.FC = () => {
       <h1>Settings</h1>
       <p>Manage your application settings here.</p>
       {/* Add more settings options as needed */}
+      <Embassies />
     </div>
   );
 };
