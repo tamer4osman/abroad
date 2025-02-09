@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react"; // Import lazy and Suspense
 import {
   BrowserRouter as Router,
   Routes,
@@ -26,29 +26,31 @@ import {
   FileText,
   FileCheck,
 } from "lucide-react";
-import Dashboard from "./components/Dashboard";
-import RegisterCitizen from "./components/RegisterCitizen";
-import MarriageRegistration from "./components/MarriageRegistration";
-import BirthRegistration from "./components/BirthRegistration";
-import DivorceRegistration from "./components/DivorceRegistration";
-import DeathRegistration from "./components/DeathRegistration";
-import Reports from "./components/Reports";
-import SettingsComponet from "./components/SettingsComponent";
-import IssuePassport from "./components/IssuePassport";
-import TravelDocument from "./components/TravelDocument";
-import CompletedRequestsPassports from "./components/CompletedRequestsPassports";
-import NewRequestVisas from "./components/NewRequestVisas";
-import PendingRequestsVisas from "./components/PendingRequestsVisas";
-import CompletedRequestsVisas from "./components/CompletedRequestsVisas";
-import LocalAttestation from "./components/LocalAttestation";
-import InternationalAttestation from "./components/InternationalAttestation";
-import CourtProxy from "./components/CourtProxy";
-import BankProxy from "./components/BankProxy";
-import DivorceProxy from "./components/DivorceProxy";
-import RealEstateProxy from "./components/RealEstateProxy";
-import InheritanceProxy from "./components/InheritanceProxy";
-import DocumentCompletionProxy from "./components/DocumentCompletionProxy";
-import GeneralProxy from "./components/GeneralProxy";
+
+// Lazy load components - Code Splitting
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const RegisterCitizen = lazy(() => import("./components/RegisterCitizen"));
+const MarriageRegistration = lazy(() => import("./components/MarriageRegistration"));
+const BirthRegistration = lazy(() => import("./components/BirthRegistration"));
+const DivorceRegistration = lazy(() => import("./components/DivorceRegistration"));
+const DeathRegistration = lazy(() => import("./components/DeathRegistration"));
+const Reports = lazy(() => import("./components/Reports"));
+const SettingsComponet = lazy(() => import("./components/SettingsComponent"));
+const IssuePassport = lazy(() => import("./components/IssuePassport"));
+const TravelDocument = lazy(() => import("./components/TravelDocument"));
+const CompletedRequestsPassports = lazy(() => import("./components/CompletedRequestsPassports"));
+const NewRequestVisas = lazy(() => import("./components/NewRequestVisas"));
+const PendingRequestsVisas = lazy(() => import("./components/PendingRequestsVisas"));
+const CompletedRequestsVisas = lazy(() => import("./components/CompletedRequestsVisas"));
+const LocalAttestation = lazy(() => import("./components/LocalAttestation"));
+const InternationalAttestation = lazy(() => import("./components/InternationalAttestation"));
+const CourtProxy = lazy(() => import("./components/CourtProxy"));
+const BankProxy = lazy(() => import("./components/BankProxy"));
+const DivorceProxy = lazy(() => import("./components/DivorceProxy"));
+const RealEstateProxy = lazy(() => import("./components/RealEstateProxy"));
+const InheritanceProxy = lazy(() => import("./components/InheritanceProxy"));
+const DocumentCompletionProxy = lazy(() => import("./components/DocumentCompletionProxy"));
+const GeneralProxy = lazy(() => import("./components/GeneralProxy"));
 
 // Theme Toggle Component
 const ThemeToggle = ({
@@ -134,16 +136,12 @@ const Sidebar = ({
               <span className="mr-3 pl-3">{item.icon}</span>
               {item.subItems && isSidebarOpen && (
                 <span className="ml-2">
-                  {activeSubmenu === item.key ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
+                  {activeSubmenu === item.key ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </span>
               )}
             </div>
 
-            {isSidebarOpen && item.subItems && activeSubmenu === item.key && (
+            {isSidebarOpen && item.subItems && activeSubmenu === item.key ? (
               <div className="pl-4 bg-gray-50 dark:bg-gray-700">
                 {item.subItems.map((subItem) => (
                   <div
@@ -155,7 +153,7 @@ const Sidebar = ({
                   </div>
                 ))}
               </div>
-            )}
+            ) : null}
           </div>
         ))}
       </nav>
@@ -196,14 +194,9 @@ function App() {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
-    } else {
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setTheme(isDark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", isDark);
-    }
+    const initialTheme = savedTheme ? savedTheme : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle("dark", initialTheme === "dark");
   }, []);
 
   const toggleTheme = () => {
@@ -315,32 +308,34 @@ function App() {
         {/* Main Content */}
         <div className="flex-1 flex bg-gray-50 dark:bg-gray-900">
           <div className="flex-1 overflow-y-auto">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/civil-registry/register-citizen" element={<RegisterCitizen />} />
-              <Route path="/civil-registry/marriage" element={<MarriageRegistration />} />
-              <Route path="/civil-registry/birth" element={<BirthRegistration />} />
-              <Route path="/civil-registry/divorce" element={<DivorceRegistration />} />
-              <Route path="/civil-registry/death" element={<DeathRegistration />} />
-              {/* Add more routes for other paths */}
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/settings" element={<SettingsComponet />} />
-              <Route path="/passports/issue-passport" element={<IssuePassport />} />
-              <Route path="/passports/travel-document" element={<TravelDocument />} />
-              <Route path="/passports/completed-requests" element={<CompletedRequestsPassports />} />
-              <Route path="/visas/new-request" element={<NewRequestVisas />} />
-              <Route path="/visas/pending-requests" element={<PendingRequestsVisas />} />
-              <Route path="/visas/completed-requests" element={<CompletedRequestsVisas />} />
-              <Route path="/attestations/local" element={<LocalAttestation />} />
-              <Route path="/attestations/international" element={<InternationalAttestation />} />
-              <Route path="/proxies/court" element={<CourtProxy />} />
-              <Route path="/proxies/bank" element={<BankProxy />} />
-              <Route path="/proxies/divorce" element={<DivorceProxy />} />
-              <Route path="/proxies/real-estate" element={<RealEstateProxy />} />
-              <Route path="/proxies/inheritance" element={<InheritanceProxy />} />
-              <Route path="/proxies/document-completion" element={<DocumentCompletionProxy />} />
-              <Route path="/proxies/general" element={<GeneralProxy />} />
-            </Routes>
+            <Suspense fallback={<div>Loading...</div>}> {/* Added Suspense for lazy loading */}
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/civil-registry/register-citizen" element={<RegisterCitizen />} />
+                <Route path="/civil-registry/marriage" element={<MarriageRegistration />} />
+                <Route path="/civil-registry/birth" element={<BirthRegistration />} />
+                <Route path="/civil-registry/divorce" element={<DivorceRegistration />} />
+                <Route path="/civil-registry/death" element={<DeathRegistration />} />
+                {/* Add more routes for other paths */}
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<SettingsComponet />} />
+                <Route path="/passports/issue-passport" element={<IssuePassport />} />
+                <Route path="/passports/travel-document" element={<TravelDocument />} />
+                <Route path="/passports/completed-requests" element={<CompletedRequestsPassports />} />
+                <Route path="/visas/new-request" element={<NewRequestVisas />} />
+                <Route path="/visas/pending-requests" element={<PendingRequestsVisas />} />
+                <Route path="/visas/completed-requests" element={<CompletedRequestsVisas />} />
+                <Route path="/attestations/local" element={<LocalAttestation />} />
+                <Route path="/attestations/international" element={<InternationalAttestation />} />
+                <Route path="/proxies/court" element={<CourtProxy />} />
+                <Route path="/proxies/bank" element={<BankProxy />} />
+                <Route path="/proxies/divorce" element={<DivorceProxy />} />
+                <Route path="/proxies/real-estate" element={<RealEstateProxy />} />
+                <Route path="/proxies/inheritance" element={<InheritanceProxy />} />
+                <Route path="/proxies/document-completion" element={<DocumentCompletionProxy />} />
+                <Route path="/proxies/general" element={<GeneralProxy />} />
+              </Routes>
+            </Suspense>
           </div>
           <Sidebar
             isSidebarOpen={isSidebarOpen}
