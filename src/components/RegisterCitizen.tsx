@@ -331,8 +331,15 @@ const RegisterCitizen: React.FC = () => {
             />
           </div>
           <div className="grid grid-cols-2 gap-4 mt-4">
-            <InputField
+          <InputField
               label="مكان الميلاد:"
+              id="birthPlace"
+              name="birthPlace"
+              value={formData.birthPlace}
+              onChange={(value) => handleChange("birthPlace", value)}
+            />
+            <InputField
+              label="الرقم الوطني:"
               id="birthPlace"
               name="birthPlace"
               value={formData.birthPlace}
@@ -346,6 +353,7 @@ const RegisterCitizen: React.FC = () => {
               onChange={(value) => handleChange("birthDate", value)}
               type="date"
             />
+            <br />
             <InputField
               label="مكان ميلاد الأب:"
               id="fatherBirthPlace"

@@ -71,7 +71,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
             className="border p-1  w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md"
             required={required}
         >
-            <option value="">اختر...</option>
+            <option value="">نوع المستند</option>
             {options.map((option) => (
                 <option key={option.value} value={option.value}>
                     {option.label}
@@ -210,9 +210,9 @@ const AddChildToPassport = () => {
 
     return (
         <div
-            dir="rtl"
-            className="container mx-auto p-4 bg-gray-100 dark:bg-gray-900 rounded-lg"
-        >
+      className="font-sans text-sm p-5 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      dir="rtl"
+    >
             <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
                 نموذج طلب إضافة مولود بجواز السفر
             </h1>
