@@ -279,7 +279,9 @@ const RegisterCitizen: React.FC = () => {
       className="font-sans text-sm p-5 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
       dir="rtl"
     >
-      <h1 className="text-center text-xl mb-5">نموذج تسجيل مواطن</h1>
+      <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-6">
+      نموذج تسجيل مواطن
+            </h1>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
         {/* Photo Upload */}
