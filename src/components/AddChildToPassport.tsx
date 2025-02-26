@@ -217,7 +217,7 @@ const AddChildToPassport = () => {
                 نموذج طلب إضافة مولود بجواز السفر
             </h1>
             <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Family Numbers */}
+                {/* Family information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InputField
                         label="رقم ورقة العائلة"
