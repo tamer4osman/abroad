@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Upload, File, XCircle } from "lucide-react";
 
+// --- Interfaces ---
 interface FormData {
   husbandName: string;
   husbandBirthDate: string;
@@ -65,6 +66,7 @@ const InputField: React.FC<InputFieldProps> = ({
   onChange,
   type = "text",
   placeholder,
+  required,
 }) => (
   <div>
     <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
@@ -78,6 +80,7 @@ const InputField: React.FC<InputFieldProps> = ({
       onChange={(e) => onChange(e.target.value)}
       className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
       placeholder={placeholder}
+      required={required}
     />
   </div>
 );
@@ -93,6 +96,485 @@ const Section: React.FC<SectionProps> = ({ title, children }) => (
     {children}
   </div>
 );
+
+const SelectField: React.FC<{
+  label: string;
+  id: string;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  required?: boolean;
+}> = ({ label, id, name, value, onChange, options, required }) => (
+  <div>
+    <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
+      {label}
+    </label>
+    <select
+      id={id}
+      name={name}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      required={required}
+    >
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+// --- Section Components ---
+const FamilyNumbersForm: React.FC<{
+  formData: FormData;
+  onChange: (name: string, value: string) => void;
+}> = ({ formData, onChange }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <InputField
+      label="رقم ورقة العائلة"
+      id="familyPaperNumber"
+      name="familyPaperNumber"
+      value={formData.familyPaperNumber}
+      onChange={(value) => onChange("familyPaperNumber", value)}
+    />
+    <InputField
+      label="رقم قيد العائلة"
+      id="familyRecordNumber"
+      name="familyRecordNumber"
+      value={formData.familyRecordNumber}
+      onChange={(value) => onChange("familyRecordNumber", value)}
+    />
+  </div>
+);
+
+const HusbandInfoForm: React.FC<{
+  formData: FormData;
+  onChange: (name: string, value: string) => void;
+}> = ({ formData, onChange }) => (
+  <Section title="بيانات الزوج">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="اسم الزوج واللقب:"
+        id="husbandName"
+        name="husbandName"
+        value={formData.husbandName}
+        onChange={(value) => onChange("husbandName", value)}
+        required
+      />
+      <InputField
+        label="الجنسية:"
+        id="husbandNationality"
+        name="husbandNationality"
+        value={formData.husbandNationality}
+        onChange={(value) => onChange("husbandNationality", value)}
+      />
+      <InputField
+        label="مكان الميلاد:"
+        id="husbandBirthPlace"
+        name="husbandBirthPlace"
+        value={formData.husbandBirthPlace}
+        onChange={(value) => onChange("husbandBirthPlace", value)}
+      />
+      <InputField
+        label="تاريخ الميلاد:"
+        id="husbandBirthDate"
+        name="husbandBirthDate"
+        value={formData.husbandBirthDate}
+        onChange={(value) => onChange("husbandBirthDate", value)}
+        type="date"
+      />
+      <InputField
+        label="رقم جواز السفر / البطاقة الشخصية:"
+        id="husbandPassportNumber"
+        name="husbandPassportNumber"
+        value={formData.husbandPassportNumber}
+        onChange={(value) => onChange("husbandPassportNumber", value)}
+      />
+      <InputField
+        label="جهة الإصدار:"
+        id="husbandPassportIssuePlace"
+        name="husbandPassportIssuePlace"
+        value={formData.husbandPassportIssuePlace}
+        onChange={(value) => onChange("husbandPassportIssuePlace", value)}
+      />
+      <InputField
+        label="تاريخ الإصدار:"
+        id="husbandPassportIssueDate"
+        name="husbandPassportIssueDate"
+        value={formData.husbandPassportIssueDate}
+        onChange={(value) => onChange("husbandPassportIssueDate", value)}
+        type="date"
+      />
+      <InputField
+        label="محل إقامته:"
+        id="husbandResidence"
+        name="husbandResidence"
+        value={formData.husbandResidence}
+        onChange={(value) => onChange("husbandResidence", value)}
+      />
+      <InputField
+        label="ديانته:"
+        id="husbandReligion"
+        name="husbandReligion"
+        value={formData.husbandReligion}
+        onChange={(value) => onChange("husbandReligion", value)}
+      />
+      <InputField
+        label="مهنته:"
+        id="husbandProfession"
+        name="husbandProfession"
+        value={formData.husbandProfession}
+        onChange={(value) => onChange("husbandProfession", value)}
+      />
+      <InputField
+        label="اسم والد الزوج:"
+        id="husbandFatherName"
+        name="husbandFatherName"
+        value={formData.husbandFatherName}
+        onChange={(value) => onChange("husbandFatherName", value)}
+      />
+      <InputField
+        label="اسم والدة الزوج:"
+        id="husbandMotherName"
+        name="husbandMotherName"
+        value={formData.husbandMotherName}
+        onChange={(value) => onChange("husbandMotherName", value)}
+      />
+      <InputField
+        label="محل إقامة والدة الزوج:"
+        id="husbandMotherResidence"
+        name="husbandMotherResidence"
+        value={formData.husbandMotherResidence}
+        onChange={(value) => onChange("husbandMotherResidence", value)}
+      />
+    </div>
+  </Section>
+);
+
+const WifeInfoForm: React.FC<{
+  formData: FormData;
+  onChange: (name: string, value: string) => void;
+}> = ({ formData, onChange }) => (
+  <Section title="بيانات الزوجة">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="اسم الزوجة واللقب:"
+        id="wifeName"
+        name="wifeName"
+        value={formData.wifeName}
+        onChange={(value) => onChange("wifeName", value)}
+        required
+      />
+      <InputField
+        label="الجنسية:"
+        id="wifeNationality"
+        name="wifeNationality"
+        value={formData.wifeNationality}
+        onChange={(value) => onChange("wifeNationality", value)}
+      />
+      <InputField
+        label="مكان الميلاد:"
+        id="wifeBirthPlace"
+        name="wifeBirthPlace"
+        value={formData.wifeBirthPlace}
+        onChange={(value) => onChange("wifeBirthPlace", value)}
+      />
+      <InputField
+        label="تاريخ الميلاد:"
+        id="wifeBirthDate"
+        name="wifeBirthDate"
+        value={formData.wifeBirthDate}
+        onChange={(value) => onChange("wifeBirthDate", value)}
+        type="date"
+      />
+      <InputField
+        label="رقم جواز السفر / البطاقة الشخصية:"
+        id="wifePassportNumber"
+        name="wifePassportNumber"
+        value={formData.wifePassportNumber}
+        onChange={(value) => onChange("wifePassportNumber", value)}
+      />
+      <InputField
+        label="جهة الإصدار:"
+        id="wifePassportIssuePlace"
+        name="wifePassportIssuePlace"
+        value={formData.wifePassportIssuePlace}
+        onChange={(value) => onChange("wifePassportIssuePlace", value)}
+      />
+      <InputField
+        label="تاريخ الإصدار:"
+        id="wifePassportIssueDate"
+        name="wifePassportIssueDate"
+        value={formData.wifePassportIssueDate}
+        onChange={(value) => onChange("wifePassportIssueDate", value)}
+        type="date"
+      />
+      <InputField
+        label="محل إقامتها:"
+        id="wifeResidence"
+        name="wifeResidence"
+        value={formData.wifeResidence}
+        onChange={(value) => onChange("wifeResidence", value)}
+      />
+      <InputField
+        label="ديانتها:"
+        id="wifeReligion"
+        name="wifeReligion"
+        value={formData.wifeReligion}
+        onChange={(value) => onChange("wifeReligion", value)}
+      />
+      <InputField
+        label="مهنتها:"
+        id="wifeProfession"
+        name="wifeProfession"
+        value={formData.wifeProfession}
+        onChange={(value) => onChange("wifeProfession", value)}
+      />
+      <InputField
+        label="اسم والد الزوجة:"
+        id="wifeFatherName"
+        name="wifeFatherName"
+        value={formData.wifeFatherName}
+        onChange={(value) => onChange("wifeFatherName", value)}
+      />
+      <InputField
+        label="اسم والدة الزوجة:"
+        id="wifeMotherName"
+        name="wifeMotherName"
+        value={formData.wifeMotherName}
+        onChange={(value) => onChange("wifeMotherName", value)}
+      />
+      <InputField
+        label="محل إقامة والدة الزوجة:"
+        id="wifeMotherResidence"
+        name="wifeMotherResidence"
+        value={formData.wifeMotherResidence}
+        onChange={(value) => onChange("wifeMotherResidence", value)}
+      />
+    </div>
+  </Section>
+);
+
+const MarriageDetailsForm: React.FC<{
+  formData: FormData;
+  onChange: (name: string, value: string) => void;
+}> = ({ formData, onChange }) => (
+  <Section title="بيانات عقد الزواج">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="تاريخ الزواج:"
+        id="marriageDate"
+        name="marriageDate"
+        value={formData.marriageDate}
+        onChange={(value) => onChange("marriageDate", value)}
+        type="date"
+        required
+      />
+      <div className="flex gap-2">
+        <InputField
+          label="الساعة:"
+          id="marriageTime"
+          name="marriageTime"
+          value={formData.marriageTime}
+          onChange={(value) => onChange("marriageTime", value)}
+          type="number"
+          placeholder="HH"
+        />
+        <InputField
+          label="الدقيقة:"
+          id="marriageMinute"
+          name="marriageMinute"
+          value={formData.marriageMinute}
+          onChange={(value) => onChange("marriageMinute", value)}
+          type="number"
+          placeholder="MM"
+        />
+      </div>
+      <InputField
+        label="مدينة:"
+        id="marriageCity"
+        name="marriageCity"
+        value={formData.marriageCity}
+        onChange={(value) => onChange("marriageCity", value)}
+      />
+      <InputField
+        label="تاريخ التسجيل:"
+        id="registrationDate"
+        name="registrationDate"
+        value={formData.registrationDate}
+        onChange={(value) => onChange("registrationDate", value)}
+        type="date"
+      />
+      <InputField
+        label="تحت رقم:"
+        id="registrationNumber"
+        name="registrationNumber"
+        value={formData.registrationNumber}
+        onChange={(value) => onChange("registrationNumber", value)}
+      />
+    </div>
+  </Section>
+);
+
+const ContactInfoForm: React.FC<{
+  formData: FormData;
+  onChange: (name: string, value: string) => void;
+}> = ({ formData, onChange }) => (
+  <Section title="معلومات الاتصال">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InputField
+        label="رقم الهاتف:"
+        id="contactPhoneUS"
+        name="contactPhoneUS"
+        value={formData.contactPhoneUS}
+        onChange={(value) => onChange("contactPhoneUS", value)}
+        type="tel"
+      />
+      <InputField
+        label="البريد الإلكتروني:"
+        id="contactEmailUS"
+        name="contactEmailUS"
+        value={formData.contactEmailUS}
+        onChange={(value) => onChange("contactEmailUS", value)}
+        type="email"
+      />
+      <InputField
+        label="عنوان الإقامة:"
+        id="contactAddressUS"
+        name="contactAddressUS"
+        value={formData.contactAddressUS}
+        onChange={(value) => onChange("contactAddressUS", value)}
+      />
+      <div>
+        <label className="block text-gray-700 dark:text-gray-300">
+          نوع الإقامة:
+        </label>
+        <div className="mt-2 space-x-4 flex flex-row-reverse">
+          <div className="flex items-center">
+            <input
+              id="residenceTypeTemp"
+              name="residenceTypeUS"
+              type="radio"
+              value="مؤقتة"
+              checked={formData.residenceTypeUS === "مؤقتة"}
+              onChange={(e) => onChange("residenceTypeUS", e.target.value)}
+              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="residenceTypeTemp"
+              className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
+            >
+              مؤقتة
+            </label>
+          </div>
+          <div className="flex items-center">
+            <input
+              id="residenceTypePerm"
+              name="residenceTypeUS"
+              type="radio"
+              value="دائمة"
+              checked={formData.residenceTypeUS === "دائمة"}
+              onChange={(e) => onChange("residenceTypeUS", e.target.value)}
+              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="residenceTypePerm"
+              className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
+            >
+              دائمة
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Section>
+);
+
+interface AttachmentsFormProps {
+  uploadedAttachments: { file: File; type: string }[];
+  onAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onAttachmentTypeChange: (index: number, newType: string) => void;
+  onRemoveAttachment: (index: number) => void;
+}
+
+const AttachmentsForm: React.FC<AttachmentsFormProps> = ({
+  uploadedAttachments,
+  onAttachmentUpload,
+  onAttachmentTypeChange,
+  onRemoveAttachment,
+}) => {
+  const attachmentTypeOptions: string[] = [
+    "صورة عن الهوية",
+    "صورة عن جواز السفر",
+    "عقد الزواج",
+    "شهادة ميلاد",
+    "إخراج قيد",
+    "أخرى",
+  ];
+
+  return (
+    <Section title="المرفقات">
+      {/* Attachment Upload */}
+      <div>
+        <label
+          htmlFor="attachmentUpload"
+          className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
+        >
+          <Upload className="mr-2" size={16} />
+          <span>تحميل المرفقات</span>
+        </label>
+        <input
+          type="file"
+          id="attachmentUpload"
+          multiple
+          className="hidden"
+          onChange={onAttachmentUpload}
+        />
+
+        {/* Display uploaded attachments with type selection */}
+        <div className="mt-2 space-y-2">
+          {uploadedAttachments.map((attachment, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md"
+            >
+              <div className="flex items-center flex-grow">
+                {" "}
+                {/* Use flex-grow */}
+                <span className="text-gray-900 dark:text-white m-2">
+                  <File className="inline mr-2" size={16} />
+                  {attachment.file.name}
+                </span>
+                <SelectField
+                  label=""
+                  id={`attachmentType-${index}`}
+                  name={`attachmentType-${index}`}
+                  value={attachment.type}
+                  onChange={(value) => onAttachmentTypeChange(index, value)}
+                  options={attachmentTypeOptions}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemoveAttachment(index)}
+                className="px-2 py-1  text-white rounded-md"
+              >
+                <XCircle
+                  className="text-red-500 hover:text-red-700"
+                  size={16}
+                />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Section>
+  );
+};
 
 // --- Main Component ---
 const MarriageRegistration: React.FC = () => {
@@ -162,78 +644,47 @@ const MarriageRegistration: React.FC = () => {
   const [uploadedAttachments, setUploadedAttachments] = useState<
     { file: File; type: string }[]
   >([]);
-  const attachmentTypeOptions: string[] = [
-    "صورة عن الهوية",
-    "صورة عن جواز السفر",
-    "عقد الزواج",
-    "شهادة ميلاد",
-    "إخراج قيد",
-    "أخرى",
-  ];
 
-  const handleAttachmentUpload = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files;
-    if (files) {
-      const newAttachments = Array.from(files).map((file) => ({
-        file: file,
-        type: attachmentTypeOptions[0], // Default type
-      }));
-      setUploadedAttachments((prevAttachments) => [
-        ...prevAttachments,
-        ...newAttachments,
-      ]);
-    }
-  };
+  const handleAttachmentUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files) {
+        const newAttachments = Array.from(files).map((file) => ({
+          file: file,
+          type: "صورة عن الهوية", // Default type - you might want to make this more dynamic
+        }));
+        setUploadedAttachments((prevAttachments) => [
+          ...prevAttachments,
+          ...newAttachments,
+        ]);
+      }
+    },
+    [setUploadedAttachments]
+  );
 
-  const handleAttachmentTypeChange = (index: number, newType: string) => {
-    setUploadedAttachments((prevAttachments) => {
-      const updatedAttachments = [...prevAttachments];
-      updatedAttachments[index] = {
-        ...updatedAttachments[index],
-        type: newType,
-      };
-      return updatedAttachments;
-    });
-  };
+  const handleAttachmentTypeChange = useCallback(
+    (index: number, newType: string) => {
+      setUploadedAttachments((prevAttachments) => {
+        const updatedAttachments = [...prevAttachments];
+        updatedAttachments[index] = {
+          ...updatedAttachments[index],
+          type: newType,
+        };
+        return updatedAttachments;
+      });
+    },
+    [setUploadedAttachments]
+  );
 
-  const removeAttachment = (index: number) => {
-    setUploadedAttachments((prevAttachments) => {
-      const updatedAttachments = [...prevAttachments];
-      updatedAttachments.splice(index, 1);
-      return updatedAttachments;
-    });
-  };
-
-  const SelectField: React.FC<{
-    label: string;
-    id: string;
-    name: string;
-    value: string;
-    onChange: (value: string) => void;
-    options: string[];
-    required?: boolean;
-  }> = ({ label, id, name, value, onChange, options, required }) => (
-    <div>
-      <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
-        {label}
-      </label>
-      <select
-        id={id}
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        required={required}
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </div>
+  const removeAttachment = useCallback(
+    (index: number) => {
+      setUploadedAttachments((prevAttachments) => {
+        const updatedAttachments = [...prevAttachments];
+        updatedAttachments.splice(index, 1);
+        return updatedAttachments;
+      });
+    },
+    [setUploadedAttachments]
   );
 
   return (
@@ -247,420 +698,29 @@ const MarriageRegistration: React.FC = () => {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
         {/* Family Numbers */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="رقم ورقة العائلة"
-            id="familyPaperNumber"
-            name="familyPaperNumber"
-            value={formData.familyPaperNumber}
-            onChange={(value) => handleChange("familyPaperNumber", value)}
-          />
-          <InputField
-            label="رقم قيد العائلة"
-            id="familyRecordNumber"
-            name="familyRecordNumber"
-            value={formData.familyRecordNumber}
-            onChange={(value) => handleChange("familyRecordNumber", value)}
-          />
-        </div>
-        {/* Husband's Information Section */}
-        <Section title="بيانات الزوج">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-              label="اسم الزوج واللقب:"
-              id="husbandName"
-              name="husbandName"
-              value={formData.husbandName}
-              onChange={(value) => handleChange("husbandName", value)}
-              required
-            />
-            <InputField
-              label="الجنسية:"
-              id="husbandNationality"
-              name="husbandNationality"
-              value={formData.husbandNationality}
-              onChange={(value) => handleChange("husbandNationality", value)}
-            />
-            <InputField
-              label="مكان الميلاد:"
-              id="husbandBirthPlace"
-              name="husbandBirthPlace"
-              value={formData.husbandBirthPlace}
-              onChange={(value) => handleChange("husbandBirthPlace", value)}
-            />
-            <InputField
-              label="تاريخ الميلاد:"
-              id="husbandBirthDate"
-              name="husbandBirthDate"
-              value={formData.husbandBirthDate}
-              onChange={(value) => handleChange("husbandBirthDate", value)}
-              type="date"
-            />
-            <InputField
-              label="رقم جواز السفر / البطاقة الشخصية:"
-              id="husbandPassportNumber"
-              name="husbandPassportNumber"
-              value={formData.husbandPassportNumber}
-              onChange={(value) => handleChange("husbandPassportNumber", value)}
-            />
-            <InputField
-              label="جهة الإصدار:"
-              id="husbandPassportIssuePlace"
-              name="husbandPassportIssuePlace"
-              value={formData.husbandPassportIssuePlace}
-              onChange={(value) =>
-                handleChange("husbandPassportIssuePlace", value)
-              }
-            />
-            <InputField
-              label="تاريخ الإصدار:"
-              id="husbandPassportIssueDate"
-              name="husbandPassportIssueDate"
-              value={formData.husbandPassportIssueDate}
-              onChange={(value) =>
-                handleChange("husbandPassportIssueDate", value)
-              }
-              type="date"
-            />
-            <InputField
-              label="محل إقامته:"
-              id="husbandResidence"
-              name="husbandResidence"
-              value={formData.husbandResidence}
-              onChange={(value) => handleChange("husbandResidence", value)}
-            />
-            <InputField
-              label="ديانته:"
-              id="husbandReligion"
-              name="husbandReligion"
-              value={formData.husbandReligion}
-              onChange={(value) => handleChange("husbandReligion", value)}
-            />
-            <InputField
-              label="مهنته:"
-              id="husbandProfession"
-              name="husbandProfession"
-              value={formData.husbandProfession}
-              onChange={(value) => handleChange("husbandProfession", value)}
-            />
-            <InputField
-              label="اسم والد الزوج:"
-              id="husbandFatherName"
-              name="husbandFatherName"
-              value={formData.husbandFatherName}
-              onChange={(value) => handleChange("husbandFatherName", value)}
-            />
-            <InputField
-              label="اسم والدة الزوج:"
-              id="husbandMotherName"
-              name="husbandMotherName"
-              value={formData.husbandMotherName}
-              onChange={(value) => handleChange("husbandMotherName", value)}
-            />
-            <InputField
-              label="محل إقامة والدة الزوج:"
-              id="husbandMotherResidence"
-              name="husbandMotherResidence"
-              value={formData.husbandMotherResidence}
-              onChange={(value) =>
-                handleChange("husbandMotherResidence", value)
-              }
-            />
-          </div>
+        <Section title="أرقام العائلة">
+          <FamilyNumbersForm formData={formData} onChange={handleChange} />
         </Section>
+
+        {/* Husband's Information Section */}
+        <HusbandInfoForm formData={formData} onChange={handleChange} />
 
         {/* Wife's Information Section */}
-        <Section title="بيانات الزوجة">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-              label="اسم الزوجة واللقب:"
-              id="wifeName"
-              name="wifeName"
-              value={formData.wifeName}
-              onChange={(value) => handleChange("wifeName", value)}
-              required
-            />
-            <InputField
-              label="الجنسية:"
-              id="wifeNationality"
-              name="wifeNationality"
-              value={formData.wifeNationality}
-              onChange={(value) => handleChange("wifeNationality", value)}
-            />
-            <InputField
-              label="مكان الميلاد:"
-              id="wifeBirthPlace"
-              name="wifeBirthPlace"
-              value={formData.wifeBirthPlace}
-              onChange={(value) => handleChange("wifeBirthPlace", value)}
-            />
-            <InputField
-              label="تاريخ الميلاد:"
-              id="wifeBirthDate"
-              name="wifeBirthDate"
-              value={formData.wifeBirthDate}
-              onChange={(value) => handleChange("wifeBirthDate", value)}
-              type="date"
-            />
-            <InputField
-              label="رقم جواز السفر / البطاقة الشخصية:"
-              id="wifePassportNumber"
-              name="wifePassportNumber"
-              value={formData.wifePassportNumber}
-              onChange={(value) => handleChange("wifePassportNumber", value)}
-            />
-            <InputField
-              label="جهة الإصدار:"
-              id="wifePassportIssuePlace"
-              name="wifePassportIssuePlace"
-              value={formData.wifePassportIssuePlace}
-              onChange={(value) =>
-                handleChange("wifePassportIssuePlace", value)
-              }
-            />
-            <InputField
-              label="تاريخ الإصدار:"
-              id="wifePassportIssueDate"
-              name="wifePassportIssueDate"
-              value={formData.wifePassportIssueDate}
-              onChange={(value) => handleChange("wifePassportIssueDate", value)}
-              type="date"
-            />
-            <InputField
-              label="محل إقامتها:"
-              id="wifeResidence"
-              name="wifeResidence"
-              value={formData.wifeResidence}
-              onChange={(value) => handleChange("wifeResidence", value)}
-            />
-            <InputField
-              label="ديانتها:"
-              id="wifeReligion"
-              name="wifeReligion"
-              value={formData.wifeReligion}
-              onChange={(value) => handleChange("wifeReligion", value)}
-            />
-            <InputField
-              label="مهنتها:"
-              id="wifeProfession"
-              name="wifeProfession"
-              value={formData.wifeProfession}
-              onChange={(value) => handleChange("wifeProfession", value)}
-            />
-            <InputField
-              label="اسم والد الزوجة:"
-              id="wifeFatherName"
-              name="wifeFatherName"
-              value={formData.wifeFatherName}
-              onChange={(value) => handleChange("wifeFatherName", value)}
-            />
-            <InputField
-              label="اسم والدة الزوجة:"
-              id="wifeMotherName"
-              name="wifeMotherName"
-              value={formData.wifeMotherName}
-              onChange={(value) => handleChange("wifeMotherName", value)}
-            />
-            <InputField
-              label="محل إقامة والدة الزوجة:"
-              id="wifeMotherResidence"
-              name="wifeMotherResidence"
-              value={formData.wifeMotherResidence}
-              onChange={(value) => handleChange("wifeMotherResidence", value)}
-            />
-          </div>
-        </Section>
+        <WifeInfoForm formData={formData} onChange={handleChange} />
 
         {/* Marriage Contract Information Section */}
-        <Section title="بيانات عقد الزواج">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-              label="تاريخ الزواج:"
-              id="marriageDate"
-              name="marriageDate"
-              value={formData.marriageDate}
-              onChange={(value) => handleChange("marriageDate", value)}
-              type="date"
-              required
-            />
-            <div className="flex gap-2">
-              <InputField
-                label="الساعة:"
-                id="marriageTime"
-                name="marriageTime"
-                value={formData.marriageTime}
-                onChange={(value) => handleChange("marriageTime", value)}
-                type="number"
-                placeholder="HH"
-              />
-              <InputField
-                label="الدقيقة:"
-                id="marriageMinute"
-                name="marriageMinute"
-                value={formData.marriageMinute}
-                onChange={(value) => handleChange("marriageMinute", value)}
-                type="number"
-                placeholder="MM"
-              />
-            </div>
-            <InputField
-              label="مدينة:"
-              id="marriageCity"
-              name="marriageCity"
-              value={formData.marriageCity}
-              onChange={(value) => handleChange("marriageCity", value)}
-            />
-            <InputField
-              label="تاريخ التسجيل:"
-              id="registrationDate"
-              name="registrationDate"
-              value={formData.registrationDate}
-              onChange={(value) => handleChange("registrationDate", value)}
-              type="date"
-            />
-            <InputField
-              label="تحت رقم:"
-              id="registrationNumber"
-              name="registrationNumber"
-              value={formData.registrationNumber}
-              onChange={(value) => handleChange("registrationNumber", value)}
-            />
-          </div>
-        </Section>
+        <MarriageDetailsForm formData={formData} onChange={handleChange} />
 
         {/* Contact Information in US Section */}
-        <Section title="معلومات الاتصال">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <InputField
-              label="رقم الهاتف:"
-              id="contactPhoneUS"
-              name="contactPhoneUS"
-              value={formData.contactPhoneUS}
-              onChange={(value) => handleChange("contactPhoneUS", value)}
-              type="tel"
-            />
-            <InputField
-              label="البريد الإلكتروني:"
-              id="contactEmailUS"
-              name="contactEmailUS"
-              value={formData.contactEmailUS}
-              onChange={(value) => handleChange("contactEmailUS", value)}
-              type="email"
-            />
-            <InputField
-              label="عنوان الإقامة:"
-              id="contactAddressUS"
-              name="contactAddressUS"
-              value={formData.contactAddressUS}
-              onChange={(value) => handleChange("contactAddressUS", value)}
-            />
-            <div>
-              <label className="block text-gray-700 dark:text-gray-300">
-                نوع الإقامة:
-              </label>
-              <div className="mt-2 space-x-4 flex flex-row-reverse">
-                <div className="flex items-center">
-                  <input
-                    id="residenceTypeTemp"
-                    name="residenceTypeUS"
-                    type="radio"
-                    value="مؤقتة"
-                    checked={formData.residenceTypeUS === "مؤقتة"}
-                    onChange={(e) =>
-                      handleChange("residenceTypeUS", e.target.value)
-                    }
-                    className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="residenceTypeTemp"
-                    className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    مؤقتة
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    id="residenceTypePerm"
-                    name="residenceTypeUS"
-                    type="radio"
-                    value="دائمة"
-                    checked={formData.residenceTypeUS === "دائمة"}
-                    onChange={(e) =>
-                      handleChange("residenceTypeUS", e.target.value)
-                    }
-                    className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor="residenceTypePerm"
-                    className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    دائمة
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Section>
-        {/* Attachments */}
-        <Section title="المرفقات">
-          {/* Attachment Upload */}
-          <div>
-            <label
-              htmlFor="attachmentUpload"
-              className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
-            >
-              <Upload className="mr-2" size={16} />
-              <span>تحميل المرفقات</span>
-            </label>
-            <input
-              type="file"
-              id="attachmentUpload"
-              multiple
-              className="hidden"
-              onChange={handleAttachmentUpload}
-            />
+        <ContactInfoForm formData={formData} onChange={handleChange} />
 
-            {/* Display uploaded attachments with type selection */}
-            <div className="mt-2 space-y-2">
-              {uploadedAttachments.map((attachment, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md"
-                >
-                  <div className="flex items-center flex-grow">
-                    {" "}
-                    {/* Use flex-grow */}
-                    <span className="text-gray-900 dark:text-white m-2">
-                      <File className="inline mr-2" size={16} />
-                      {attachment.file.name}
-                    </span>
-                    <SelectField
-                      label=""
-                      id={`attachmentType-${index}`}
-                      name={`attachmentType-${index}`}
-                      value={attachment.type}
-                      onChange={(value) =>
-                        handleAttachmentTypeChange(index, value)
-                      }
-                      options={attachmentTypeOptions}
-                      required
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(index)}
-                    className="px-2 py-1  text-white rounded-md"
-                  >
-                    <XCircle
-                      className="text-red-500 hover:text-red-700"
-                      size={16}
-                    />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Section>
+        {/* Attachments */}
+        <AttachmentsForm
+          uploadedAttachments={uploadedAttachments}
+          onAttachmentUpload={handleAttachmentUpload}
+          onAttachmentTypeChange={handleAttachmentTypeChange}
+          onRemoveAttachment={removeAttachment}
+        />
 
         <button
           type="submit"
