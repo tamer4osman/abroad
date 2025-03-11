@@ -727,7 +727,7 @@ const MarriageRegistration: React.FC = () => {
         {/* Marriage Contract Information Section */}
         <MarriageDetailsForm formData={formData} onChange={handleChange} />
 
-        {/* Contact Information in US Section */}
+        {/* Contact Information in Section */}
         <ContactInfoForm formData={formData} onChange={handleChange} />
 
         {/* Attachments */}
