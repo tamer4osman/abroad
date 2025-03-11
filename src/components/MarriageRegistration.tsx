@@ -534,42 +534,58 @@ const AttachmentsForm: React.FC<AttachmentsFormProps> = ({
           onChange={onAttachmentUpload}
         />
 
-        {/* Display uploaded attachments with type selection */}
-        <div className="mt-2 space-y-2">
-          {uploadedAttachments.map((attachment, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md"
-            >
-              <div className="flex items-center flex-grow">
-                {" "}
-                {/* Use flex-grow */}
-                <span className="text-gray-900 dark:text-white m-2">
-                  <File className="inline mr-2" size={16} />
-                  {attachment.file.name}
-                </span>
-                <SelectField
-                  label=""
-                  id={`attachmentType-${index}`}
-                  name={`attachmentType-${index}`}
-                  value={attachment.type}
-                  onChange={(value) => onAttachmentTypeChange(index, value)}
-                  options={attachmentTypeOptions}
-                  required
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => onRemoveAttachment(index)}
-                className="px-2 py-1  text-white rounded-md"
-              >
-                <XCircle
-                  className="text-red-500 hover:text-red-700"
-                  size={16}
-                />
-              </button>
-            </div>
-          ))}
+        {/* Display uploaded attachments in a table */}
+        <div className="mt-4 overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling if needed */}
+          <table className="min-w-full table-auto bg-white dark:bg-gray-800 rounded-md shadow-md">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  اسم الملف
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  نوع المرفق
+                </th>
+                <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  إجراء
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {uploadedAttachments.map((attachment, index) => (
+                <tr key={index}>
+                  <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
+                    <div className="flex items-center">
+                      <File className="mr-2" size={16} />
+                      {attachment.file.name}
+                    </div>
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
+                    <SelectField
+                      label=""
+                      id={`attachmentType-${index}`}
+                      name={`attachmentType-${index}`}
+                      value={attachment.type}
+                      onChange={(value) => onAttachmentTypeChange(index, value)}
+                      options={attachmentTypeOptions}
+                      required
+                    />
+                  </td>
+                  <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
+                    <button
+                      type="button"
+                      onClick={() => onRemoveAttachment(index)}
+                      className="px-2 py-1  text-white rounded-md"
+                    >
+                      <XCircle
+                        className="text-red-500 hover:text-red-700"
+                        size={16}
+                      />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </Section>
