@@ -694,7 +694,7 @@ const DivorceRegistration: React.FC = () => {
         >
           حفظ
         </button>
-      </form>
+      </form>npm 
     </div>
   );
 };
