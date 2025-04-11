@@ -426,29 +426,12 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
   const location = useLocation();
   const currentPath = location.pathname;
 
-  interface SubItem {
-    key: number;
-    icon: React.ReactNode;
-    label: string;
-    path?: string;
-  }
-
-  interface SidebarItem {
-    key: number;
-    icon: React.ReactNode;
-    label: string;
-    path?: string;
-    subItems?: SubItem[];
-  }
-
   useEffect(() => {
-
-
     const activeItem: SidebarItem | undefined = sidebarItems.find((item: SidebarItem) =>
       item.subItems?.some((sub: SubItem) => sub.path === currentPath)
     );
-    if (activeItem) setActiveSubmenu(activeItem.key === activeSubmenu ? null : activeItem.key);
-  }, [currentPath, sidebarItems, activeSubmenu]);
+    if (activeItem) setActiveSubmenu(activeItem.key);
+  }, [currentPath, sidebarItems]);
 
   const handleToggleSidebar = useCallback(() => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -491,13 +474,6 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
       </div>
       <nav className="py-4 flex-1 text-gray-900 dark:text-white overflow-y-auto">
         {sidebarItems.map((item) => {
-          interface SubItem {
-            key: number;
-            icon: React.ReactNode;
-            label: string;
-            path?: string;
-          }
-
           const isActive = item.subItems
             ? item.subItems.some((sub: SubItem) => sub.path === currentPath)
             : item.path === currentPath;
