@@ -1,7 +1,8 @@
 // filepath: /abroad/abroad/src/components/DeathRegistration.tsx
 import React, { useState, useCallback, useMemo } from "react";
-import { Upload, File, XCircle } from "lucide-react";
-
+import { Upload } from "lucide-react";
+import { AttachmentDocuments } from "./common/AttachmentDocuments";
+ 
 // --- Interfaces ---
 
 interface FormData {
@@ -151,118 +152,12 @@ const SelectField = React.memo(
 
 const Section = React.memo(
   ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="border p-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md mb-4">
+    <><div className="border p-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md mb-4">
       <h2 className="text-lg font-semibold mb-3">{title}</h2> {children}
-    </div>
-  )
-);
-
-// --- Attachment Components ---
-const AttachmentTable = React.memo(
-  ({
-    uploadedAttachments,
-    onAttachmentTypeChange,
-    onRemoveAttachment,
-  }: {
-    uploadedAttachments: { file: File; type: string }[];
-    onAttachmentTypeChange: (index: number, newType: string) => void;
-    onRemoveAttachment: (index: number) => void;
-  }) => {
-    // Memoize the options to prevent re-renders caused by object recreation
-    const attachmentTypeOptions = useMemo(
-      () => ATTACHMENT_TYPES.map((opt) => ({ value: opt, label: opt })),
-      []
-    );
-
-    return (
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full table-auto bg-white dark:bg-gray-800 rounded-md shadow-md">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                اسم الملف
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                نوع المرفق
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                إجراء
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {uploadedAttachments.map(({ file, type }, index) => (
-              <tr key={index}>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <div className="flex items-center">
-                    <File className="mr-2" size={16} />
-                    {file.name}
-                  </div>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <SelectField
-                    label=""
-                    id={`attachmentType-${index}`}
-                    name={`attachmentType-${index}`}
-                    value={type}
-                    onChange={(value) => onAttachmentTypeChange(index, value)}
-                    options={attachmentTypeOptions}
-                  />
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <button
-                    type="button"
-                    onClick={() => onRemoveAttachment(index)}
-                    className="px-2 py-1 text-white rounded-md"
-                  >
-                    <XCircle
-                      className="text-red-500 hover:text-red-700"
-                      size={16}
-                    />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-);
-
-const AttachmentsForm = React.memo(
-  ({
-    uploadedAttachments,
-    onAttachmentUpload,
-    onAttachmentTypeChange,
-    onRemoveAttachment,
-  }: {
-    uploadedAttachments: { file: File; type: string }[];
-    onAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onAttachmentTypeChange: (index: number, newType: string) => void;
-    onRemoveAttachment: (index: number) => void;
-  }) => (
-    <Section title="المرفقات">
-      <div>
-        <label
-          htmlFor="attachmentUpload"
-          className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
-        >
-          <Upload className="mr-2" size={16} />
-          <span>تحميل المرفقات</span>
-        </label>
-        <input
-          type="file"
-          id="attachmentUpload"
-          multiple
-          className="hidden"
-          onChange={onAttachmentUpload}
-        />
-        <AttachmentTable
-          uploadedAttachments={uploadedAttachments}
-          onAttachmentTypeChange={onAttachmentTypeChange}
-          onRemoveAttachment={onRemoveAttachment}
-        />
+    </div><AttachmentDocuments
+        uploadedAttachments={uploadedAttachments}
+        onAttachmentTypeChange={(id: any, value: any) => onAttachmentTypeChange(uploadedAttachments.findIndex((a: { id: any; }) => a.id === id), value)}
+        onRemoveAttachment={(id: any) => onRemoveAttachment(uploadedAttachments.findIndex((a: { id: any; }) => a.id === id))} /></>
       </div>
     </Section>
   )
@@ -310,20 +205,24 @@ const useDeathFormState = () => {
   });
 
   const [uploadedAttachments, setUploadedAttachments] = useState<
-    { file: File; type: string }[]
+    {
+      id: any; file: File; type: string 
+}[]
   >([]);
 
   const handleAttachmentUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
       if (files) {
-        const newAttachments = Array.from(files).map((file) => ({
+        const newAttachments = Array.from(files).map((file,index) => ({
+          id: `${Date.now()}-${index}`,
           file,
           type: "صورة عن الهوية",
         }));
         setUploadedAttachments((prev) => [...prev, ...newAttachments]);
       }
     },
+
     []
   );
 
@@ -337,7 +236,7 @@ const useDeathFormState = () => {
 
   const removeAttachment = useCallback(
     (index: number) =>
-      setUploadedAttachments((prev) => prev.filter((_, i) => i !== index)),
+    setUploadedAttachments((prev) => prev.filter((_, i) => i !== index)),
     []
   );
   const handleChange = useCallback(
@@ -673,12 +572,29 @@ const DeathRegistration: React.FC = () => {
         {deathInfoSection}
         {deceasedInfoSection}
         {informantInfoSection}
-        <AttachmentsForm
-          uploadedAttachments={uploadedAttachments}
-          onAttachmentUpload={handleAttachmentUpload}
-          onAttachmentTypeChange={handleAttachmentTypeChange}
-          onRemoveAttachment={removeAttachment}
-        />
+          <Section title="المرفقات">
+              <div>
+                  <label
+                      htmlFor="attachmentUpload"
+                      className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                      <Upload className="mr-2" size={16} />
+                      <span>تحميل المرفقات</span>
+                  </label>
+                  <input
+                      type="file"
+                      id="attachmentUpload"
+                      multiple
+                      className="hidden"
+                      onChange={handleAttachmentUpload}
+                  />
+                  <AttachmentDocuments
+                      uploadedAttachments={uploadedAttachments}
+                      onAttachmentTypeChange={(id: any,value: string) => handleAttachmentTypeChange(uploadedAttachments.findIndex((a) => a.id === id), value)}
+                      onRemoveAttachment={(id: any) => removeAttachment(uploadedAttachments.findIndex((a) => a.id === id))}
+                  />
+              </div>
+          </Section>
         <button
           type="submit"
           className="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-150 ease-in-out"
@@ -690,3 +606,11 @@ const DeathRegistration: React.FC = () => {
   );
 };
 export default DeathRegistration;
+function onAttachmentTypeChange(arg0: any, value: any) {
+  throw new Error("Function not implemented.");
+}
+
+function onRemoveAttachment(arg0: any) {
+  throw new Error("Function not implemented.");
+}
+
