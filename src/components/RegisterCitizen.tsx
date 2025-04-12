@@ -715,26 +715,6 @@ const RegisterCitizen: React.FC = () => {
           </div>
         </Section>
 
-        {/* Signature and Date Section */}
-        <Section title="التوقيع والتاريخ">
-          <div className="grid grid-cols-2 gap-4">
-            <InputField
-              label="التوقيع:"
-              id="signature"
-              name="signature"
-              value={formData.signature}
-              onChange={(value) => handleChange("signature", value)}
-            />
-            <InputField
-              label="التاريخ:"
-              id="date"
-              name="date"
-              value={formData.date}
-              onChange={(value) => handleChange("date", value)}
-              type="date"
-            />
-          </div>
-        </Section>
 
         <button
           type="submit"
