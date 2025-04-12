@@ -92,7 +92,7 @@ const ThemeToggle = memo(({ theme, toggleTheme }: ThemeToggleProps) => (
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.95 }}
     onClick={toggleTheme}
-    className="p-2 rounded-full hover:bg-red-700/20 dark:hover:bg-red-900/20 transition-colors"
+    className="p-2 rounded-full hover:bg-red-700/20 dark:hover:bg-red-900/20"
     aria-label="Toggle theme"
   >
     <AnimatePresence mode="wait" initial={false}>
@@ -167,16 +167,15 @@ const NotificationPanel = ({ isOpen, onClose }: NotificationPanelProps) => {
           <div className="max-h-80 overflow-y-auto">
             {notifications.length > 0 ? (
               notifications.map((notification) => (
-                <motion.div
+                <div
                   key={notification.id}
-                  whileHover={{ backgroundColor: notification.read ? "rgba(0,0,0,0.03)" : "rgba(0,0,0,0.06)" }}
                   className={`p-3 border-b border-gray-100 dark:border-gray-700 text-right ${
                     notification.read ? "bg-white dark:bg-gray-800" : "bg-blue-50 dark:bg-blue-900/20"
-                  }`}
+                  } hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors`}
                 >
                   <p className="text-sm text-gray-800 dark:text-gray-200">{notification.message}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{notification.time}</p>
-                </motion.div>
+                </div>
               ))
             ) : (
               <div className="p-4 text-center text-gray-500 dark:text-gray-400">
@@ -228,8 +227,8 @@ const UserMenu = ({ isOpen, onClose }: UserMenuProps) => {
             {menuItems.map((item, index) => (
               <motion.button
                 key={index}
-                whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-                whileTap={{ backgroundColor: "rgba(0,0,0,0.1)" }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className="w-full flex justify-end items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={() => {
                   item.action();
@@ -480,12 +479,12 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
 
           return (
             <div key={item.key}>
-              <motion.div
-                className={`flex items-center justify-end p-3 cursor-pointer transition-colors ${
+              <div
+                className={`flex items-center justify-end p-3 cursor-pointer ${
                   isActive
                     ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-r-4 border-red-800 dark:border-red-600"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
+                } transition-transform hover:translate-x-[-4px]`}
                 onClick={() => {
                   if (item.subItems) {
                     setActiveSubmenu(activeSubmenu === item.key ? null : item.key);
@@ -493,8 +492,6 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
                     navigate(item.path);
                   }
                 }}
-                whileHover={{ backgroundColor: isActive ? undefined : "rgba(0,0,0,0.05)" }}
-                whileTap={{ backgroundColor: "rgba(0,0,0,0.1)" }}
               >
                 <AnimatePresence>
                   {isSidebarOpen && (
@@ -520,34 +517,33 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
                     )}
                   </span>
                 )}
-              </motion.div>
+              </div>
               <AnimatePresence>
                 {isSidebarOpen && item.subItems && activeSubmenu === item.key && (
-                    <motion.div
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     className="bg-gray-50 dark:bg-gray-700/50 overflow-hidden"
-                    >
+                  >
                     {item.subItems.map((subItem: SubItem) => (
-                      <motion.div
-                      key={subItem.key}
-                      className={`flex items-center justify-end p-3 pr-8 cursor-pointer ${
-                        subItem.path === currentPath
-                        ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-r-2 border-red-800 dark:border-red-600"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                      }`}
-                      onClick={() => {
-                        if (subItem.path) {
-                        navigate(subItem.path);
-                        }
-                      }}
-                      whileHover={{ x: -4 }}
+                      <div
+                        key={subItem.key}
+                        className={`flex items-center justify-end p-3 pr-8 cursor-pointer ${
+                          subItem.path === currentPath
+                          ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-r-2 border-red-800 dark:border-red-600"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                        } transition-transform hover:translate-x-[-4px]`}
+                        onClick={() => {
+                          if (subItem.path) {
+                            navigate(subItem.path);
+                          }
+                        }}
                       >
-                      <span className="ml-3">{subItem.label}</span>
-                      </motion.div>
+                        <span className="ml-3">{subItem.label}</span>
+                      </div>
                     ))}
-                    </motion.div>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
@@ -872,7 +868,10 @@ const DashboardPlaceholder = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+            whileHover={{ 
+              y: -5, 
+              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" 
+            }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
           >
             <div className="flex items-start justify-between">
@@ -927,17 +926,16 @@ const DashboardPlaceholder = () => {
           </div>
           <div className="space-y-4">
             {recentActivities.map((activity) => (
-              <motion.div 
+              <div 
                 key={activity.id}
-                className="p-3 border-b border-gray-100 dark:border-gray-700 text-right"
-                whileHover={{ x: -4 }}
+                className="p-3 border-b border-gray-100 dark:border-gray-700 text-right transition-transform hover:-translate-x-1"
               >
                 <p className="font-medium text-gray-800 dark:text-white">{activity.action}</p>
                 <div className="flex justify-end items-center mt-1">
                   <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{activity.time}</span>
                   <span className="text-sm text-gray-600 dark:text-gray-300">{activity.user}</span>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </motion.div>
@@ -962,16 +960,15 @@ const DashboardPlaceholder = () => {
             { icon: <FileText />, label: "تصديق محلي", path: "/attestations/local" },
             { icon: <BarChart2 />, label: "التقارير", path: "/reports" }
           ].map((item, index) => (
-            <motion.div
+            <div
               key={index}
-              whileHover={{ y: -5, backgroundColor: "rgba(244, 63, 94, 0.05)" }}
-              className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer"
+              className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:-translate-y-1 transition-transform hover:shadow-md"
             >
               <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 mb-3">
                 {item.icon}
               </div>
               <p className="text-sm text-center text-gray-800 dark:text-white">{item.label}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
       </motion.div>
