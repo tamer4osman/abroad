@@ -13,7 +13,7 @@ interface MedicalInfoSectionProps {
 const MedicalInfoSection = memo(({ medicalInfo, onChange }: MedicalInfoSectionProps) => (
     <div className="grid grid-cols-1 gap-4 mt-4">
         <InputField
-            label="اسم الطبيب أو القابلة"
+            label="اسم المستشفي او الطبيب أو القابلة"
             id="doctorName"
             name="doctorName"
             value={medicalInfo.doctorName}
