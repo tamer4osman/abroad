@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { Upload, File } from "lucide-react";
+import { Upload } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments";
 
 // --- Interfaces ---
