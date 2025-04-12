@@ -1,13 +1,14 @@
 // filepath: /abroad/abroad/src/components/DeathRegistration.tsx
 import React, { useState, useCallback, useMemo } from "react";
-import { Upload, File, XCircle } from "lucide-react";
+// Import the actual component implementation, not just its props interface
+import AttachmentDocuments from "./common/AttachmentDocuments";
 
 // --- Interfaces ---
 
 interface FormData {
   familyPaperNumber: string;
   municipalityName: string;
-  year: string;
+  year: string; // These date/time fields seem unused, consider removing if not needed
   month: string;
   day: string;
   hour: string;
@@ -37,12 +38,24 @@ interface FormData {
   deceasedResidence: string;
   deceasedRecordPlace: string;
   deceasedGender: string;
-  notifierOccupation: string;
-  notifierRelationToDeceased: string;
-  signature: string;
-  date: string;
-  photo?: File;
+  notifierOccupation: string; // This seems redundant with informantOccupation, maybe consolidate?
+  notifierRelationToDeceased: string; // Redundant with informantRelationship?
+  signature: string; // Likely needs a different input method than text
+  date: string; // Date of form submission? Auto-populate?
+  photo?: File; // This field seems unused in the form UI
 }
+
+// Interface for the state managed by the hook
+interface AttachmentData {
+  id: string;
+  file: File;
+  type: string;
+}
+
+// Remove the locally defined AttachmentDocumentsProps interface,
+// as we are importing the component and its props are defined there.
+// interface AttachmentDocumentsProps { ... }
+
 
 // --- Constants ---
 const GENDER_TYPES = [
@@ -55,13 +68,21 @@ const MARITAL_STATUS_TYPES = [
   { value: "widowed", label: "أرمل / أرملة" },
   { value: "divorced", label: "مطلق / مطلقة" },
 ] as const;
-const ATTACHMENT_TYPES = [
+
+// Define attachment types as strings
+const ATTACHMENT_TYPES: readonly string[] = [
   "صورة عن الهوية",
   "صورة عن جواز السفر",
   "شهادة الوفاة",
   "إخراج قيد",
   "أخرى",
 ];
+
+// Transform the string array into the format expected by AttachmentDocuments
+const attachmentTypeOptions = ATTACHMENT_TYPES.map((type) => ({
+  value: type,
+  label: type,
+}));
 
 // --- Helper Components ---
 
@@ -152,119 +173,9 @@ const SelectField = React.memo(
 const Section = React.memo(
   ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div className="border p-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md mb-4">
-      <h2 className="text-lg font-semibold mb-3">{title}</h2> {children}
+      <h2 className="text-lg font-semibold mb-3">{title}</h2>
+      {children}
     </div>
-  )
-);
-
-// --- Attachment Components ---
-const AttachmentTable = React.memo(
-  ({
-    uploadedAttachments,
-    onAttachmentTypeChange,
-    onRemoveAttachment,
-  }: {
-    uploadedAttachments: { file: File; type: string }[];
-    onAttachmentTypeChange: (index: number, newType: string) => void;
-    onRemoveAttachment: (index: number) => void;
-  }) => {
-    // Memoize the options to prevent re-renders caused by object recreation
-    const attachmentTypeOptions = useMemo(
-      () => ATTACHMENT_TYPES.map((opt) => ({ value: opt, label: opt })),
-      []
-    );
-
-    return (
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full table-auto bg-white dark:bg-gray-800 rounded-md shadow-md">
-          <thead className="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                اسم الملف
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                نوع المرفق
-              </th>
-              <th className="px-4 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                إجراء
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {uploadedAttachments.map(({ file, type }, index) => (
-              <tr key={index}>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <div className="flex items-center">
-                    <File className="mr-2" size={16} />
-                    {file.name}
-                  </div>
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <SelectField
-                    label=""
-                    id={`attachmentType-${index}`}
-                    name={`attachmentType-${index}`}
-                    value={type}
-                    onChange={(value) => onAttachmentTypeChange(index, value)}
-                    options={attachmentTypeOptions}
-                  />
-                </td>
-                <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
-                  <button
-                    type="button"
-                    onClick={() => onRemoveAttachment(index)}
-                    className="px-2 py-1 text-white rounded-md"
-                  >
-                    <XCircle
-                      className="text-red-500 hover:text-red-700"
-                      size={16}
-                    />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-);
-
-const AttachmentsForm = React.memo(
-  ({
-    uploadedAttachments,
-    onAttachmentUpload,
-    onAttachmentTypeChange,
-    onRemoveAttachment,
-  }: {
-    uploadedAttachments: { file: File; type: string }[];
-    onAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onAttachmentTypeChange: (index: number, newType: string) => void;
-    onRemoveAttachment: (index: number) => void;
-  }) => (
-    <Section title="المرفقات">
-      <div>
-        <label
-          htmlFor="attachmentUpload"
-          className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
-        >
-          <Upload className="mr-2" size={16} />
-          <span>تحميل المرفقات</span>
-        </label>
-        <input
-          type="file"
-          id="attachmentUpload"
-          multiple
-          className="hidden"
-          onChange={onAttachmentUpload}
-        />
-        <AttachmentTable
-          uploadedAttachments={uploadedAttachments}
-          onAttachmentTypeChange={onAttachmentTypeChange}
-          onRemoveAttachment={onRemoveAttachment}
-        />
-      </div>
-    </Section>
   )
 );
 
@@ -307,52 +218,61 @@ const useDeathFormState = () => {
     notifierRelationToDeceased: "",
     signature: "",
     date: "",
+    // photo is handled separately? If not, add to initial state if needed
   });
 
-  const [uploadedAttachments, setUploadedAttachments] = useState<
-    { file: File; type: string }[]
-  >([]);
+  // Use the AttachmentData interface for state typing
+  const [uploadedAttachments, setUploadedAttachments] = useState<AttachmentData[]>([]);
 
+  // This function now handles the event directly from AttachmentDocuments's input
   const handleAttachmentUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const files = event.target.files;
       if (files) {
         const newAttachments = Array.from(files).map((file) => ({
+          // Generate unique ID for each file
+          id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
           file,
-          type: "صورة عن الهوية",
+          // Set a default type - using the first option or a placeholder
+          type: attachmentTypeOptions.length > 0 ? attachmentTypeOptions[0].value : "",
         }));
         setUploadedAttachments((prev) => [...prev, ...newAttachments]);
       }
+       // Reset the file input value to allow uploading the same file again if needed
+       if (event.target) {
+          event.target.value = '';
+       }
     },
-    []
+    [] // No dependencies needed as it only uses setters and constants
   );
 
-  const handleAttachmentTypeChange = useCallback(
-    (index: number, newType: string) =>
-      setUploadedAttachments((prev) =>
-        prev.map((a, i) => (i === index ? { ...a, type: newType } : a))
-      ),
-    []
-  );
+  // This function now receives ID and updates the corresponding attachment
+  const handleAttachmentTypeChange = useCallback((id: string, newType: string) => {
+    setUploadedAttachments((prev) =>
+      prev.map((attachment) =>
+        attachment.id === id ? { ...attachment, type: newType } : attachment
+      )
+    );
+  }, []); // No dependencies needed as it only uses setters
 
-  const removeAttachment = useCallback(
-    (index: number) =>
-      setUploadedAttachments((prev) => prev.filter((_, i) => i !== index)),
-    []
-  );
-  const handleChange = useCallback(
-    (name: string, value: string) =>
-      setFormData((prev) => ({ ...prev, [name]: value })),
-    []
-  );
+  // This function now receives ID and filters out the corresponding attachment
+  const removeAttachment = useCallback((id: string) => {
+    setUploadedAttachments((prev) =>
+      prev.filter((attachment) => attachment.id !== id)
+    );
+  }, []); // No dependencies needed as it only uses setters
+
+  const handleChange = useCallback((name: keyof FormData, value: string) => { // Use keyof FormData for better type safety
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
   return {
     formData,
     uploadedAttachments,
     handleChange,
-    handleAttachmentUpload,
-    handleAttachmentTypeChange,
-    removeAttachment,
+    handleAttachmentUpload, // This will be passed to AttachmentDocuments
+    handleAttachmentTypeChange, // This will be passed to AttachmentDocuments
+    removeAttachment, // This will be passed to AttachmentDocuments
   };
 };
 
@@ -362,24 +282,33 @@ const DeathRegistration: React.FC = () => {
     formData,
     uploadedAttachments,
     handleChange,
-    handleAttachmentUpload,
-    handleAttachmentTypeChange,
-    removeAttachment,
+    handleAttachmentUpload, // Renamed function for clarity, used by the hook
+    handleAttachmentTypeChange, // Renamed function for clarity, used by the hook
+    removeAttachment, // Renamed function for clarity, used by the hook
   } = useDeathFormState();
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      console.log(formData, uploadedAttachments);
+      // Log the final state
+      console.log("Form Data:", formData);
+      console.log("Uploaded Attachments:", uploadedAttachments);
+
+      // Example validation
       if (!formData.familyPaperNumber || !formData.municipalityName) {
         alert("Please fill in Family Paper Number and Municipality Name.");
+        return; // Prevent submission if validation fails
       }
+
+      // TODO: Implement actual submission logic (e.g., send data to API)
+      alert("Form submitted (check console for data)");
     },
-    [formData, uploadedAttachments]
+    [formData, uploadedAttachments] // Dependencies for useCallback
   );
 
   // Memoize the form sections to avoid unnecessary re-renders if the props don't change
-  const initialInfoSection = useMemo(
+  // (Keep existing useMemo sections as they are)
+    const initialInfoSection = useMemo(
     () => (
       <Section title="معلومات أساسية">
         <div className="grid grid-cols-2 gap-4">
@@ -561,24 +490,13 @@ const DeathRegistration: React.FC = () => {
       </Section>
     ),
     [
-      formData.deceasedName,
-      formData.deceasedBirthDate,
-      formData.deceasedBirthPlace,
-      formData.deceasedOccupation,
-      formData.deceasedNationality,
-      formData.deceasedGender,
-      formData.deceasedMaritalStatus,
-      formData.deceasedReligion,
-      formData.deceasedIdNumber,
-      formData.deceasedIdIssueDate,
-      formData.deceasedIdIssuePlace,
-      formData.deceasedAddress,
-      formData.deceasedTribe,
-      formData.deceasedFatherName,
-      formData.deceasedMotherName,
-      formData.deceasedResidence,
-      formData.deceasedRecordPlace,
-      handleChange,
+      // Add all dependencies for deceasedInfoSection
+      formData.deceasedName, formData.deceasedBirthDate, formData.deceasedBirthPlace,
+      formData.deceasedOccupation, formData.deceasedNationality, formData.deceasedGender,
+      formData.deceasedMaritalStatus, formData.deceasedReligion, formData.deceasedIdNumber,
+      formData.deceasedIdIssueDate, formData.deceasedIdIssuePlace, formData.deceasedAddress,
+      formData.deceasedTribe, formData.deceasedFatherName, formData.deceasedMotherName,
+      formData.deceasedResidence, formData.deceasedRecordPlace, handleChange,
     ]
   );
 
@@ -600,7 +518,7 @@ const DeathRegistration: React.FC = () => {
             value={formData.informantRelationship}
             onChange={(value) => handleChange("informantRelationship", value)}
           />
-          <InputField
+          <InputField // Consider if this should be informantOccupation
             label="مهنة المبلغ:"
             id="notifierOccupation"
             name="notifierOccupation"
@@ -648,15 +566,10 @@ const DeathRegistration: React.FC = () => {
       </Section>
     ),
     [
-      formData.informantName,
-      formData.informantRelationship,
-      formData.notifierOccupation,
-      formData.informantBirthDate,
-      formData.informantIdNumber,
-      formData.informantIdIssueDate,
-      formData.informantIdIssuePlace,
-      formData.informantAddress,
-      handleChange,
+      // Add all dependencies for informantInfoSection
+      formData.informantName, formData.informantRelationship, formData.notifierOccupation,
+      formData.informantBirthDate, formData.informantIdNumber, formData.informantIdIssueDate,
+      formData.informantIdIssuePlace, formData.informantAddress, handleChange,
     ]
   );
 
@@ -673,12 +586,27 @@ const DeathRegistration: React.FC = () => {
         {deathInfoSection}
         {deceasedInfoSection}
         {informantInfoSection}
-        <AttachmentsForm
-          uploadedAttachments={uploadedAttachments}
-          onAttachmentUpload={handleAttachmentUpload}
-          onAttachmentTypeChange={handleAttachmentTypeChange}
-          onRemoveAttachment={removeAttachment}
-        />
+
+        {/* Attachments Section using the imported component */}
+        <Section title="المرفقات">
+           {/*
+             * Pass the state and the correctly adapted handlers to AttachmentDocuments.
+             * Also pass the formatted attachmentTypeOptions.
+             */}
+          <AttachmentDocuments
+            uploadedAttachments={uploadedAttachments}
+            onAttachmentTypeChange={handleAttachmentTypeChange} // Pass the hook's function directly (now expects ID)
+            onRemoveAttachment={removeAttachment} // Pass the hook's function directly (now expects ID)
+            onAttachmentUpload={handleAttachmentUpload} // Pass the hook's upload handler
+            attachmentTypeOptions={attachmentTypeOptions} // Pass the formatted options
+          />
+           {/* Remove the old redundant input/label */}
+           {/*
+             <label ...>...</label>
+             <input ... />
+           */}
+        </Section>
+
         <button
           type="submit"
           className="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-150 ease-in-out"
