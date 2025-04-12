@@ -1,227 +1,346 @@
-// src/components/CourtProxy.tsx
-import React, { useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { FileText, User, Send, Hash, MapPin, Calendar } from "lucide-react";
+import React, { useState, useCallback, useMemo } from 'react';
+import { FileText, User, Send, Hash, MapPin, Calendar } from 'lucide-react';
 
-const CourtProxy = () => {
-  const [formData, setFormData] = useState({
-    // Principal (الموكل)
+// --- Interfaces ---
+interface FormData {
+  // Principal (الموكل)
+  principalName: string;
+  principalPassportNumber: string;
+  principalPassportIssueDate: string;
+  principalIdNumber: string;
+  principalResidency: string;
+
+  // Agent (الوكيل)
+  agentName: string;
+  agentPassportIdNumber: string;
+  agentIssueDate: string;
+  agentResidency: string;
+
+  // Proxy Details
+  proxySubject: string;
+
+  // Signatures/Dates
+  principalSignedName: string;
+  proxyDate: string;
+
+  // Notary/Consular Info
+  grantorFullNameEnglish: string;
+  grantorIdNumber: string;
+}
+
+interface InputFieldProps {
+  label: string;
+  id: string;
+  name: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  icon?: React.ReactNode;
+}
+
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+// --- Helper Components ---
+const InputField: React.FC<InputFieldProps> = ({
+  label,
+  id,
+  name,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  required = false,
+  icon,
+}) => (
+  <div>
+    <label htmlFor={id} className="flex justify-end items-center text-gray-700 dark:text-gray-300 text-right">
+      {label}
+      {icon && <span className="mr-2 text-gray-500">{icon}</span>}
+      {required && <span className="text-red-500 mr-1">*</span>}
+    </label>
+    <input
+      type={type}
+      id={id}
+      name={name}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      placeholder={placeholder}
+      required={required}
+      dir={label.match(/English|US ID/) ? "ltr" : "rtl"}
+    />
+  </div>
+);
+
+const TextAreaField: React.FC<InputFieldProps> = ({
+  label,
+  id,
+  name,
+  value,
+  onChange,
+  placeholder,
+  required = false,
+}) => (
+  <div>
+    <label htmlFor={id} className="block text-gray-700 dark:text-gray-300 text-right">
+      {label}
+      {required && <span className="text-red-500 mr-1">*</span>}
+    </label>
+    <textarea
+      id={id}
+      name={name}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
+      placeholder={placeholder}
+      required={required}
+      rows={3}
+      dir="rtl"
+    />
+  </div>
+);
+
+const Section: React.FC<SectionProps> = ({ title, children }) => (
+  <div className="border p-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md mb-4">
+    <h2 className="text-lg font-semibold mb-3">{title}</h2>
+    {children}
+  </div>
+);
+
+// --- Form State Hook ---
+const useCourtProxyFormState = () => {
+  const [formData, setFormData] = useState<FormData>({
     principalName: "",
     principalPassportNumber: "",
     principalPassportIssueDate: "",
-    principalIdNumber: "", // بطاقة / رخصة رقم
-    principalResidency: "", // المقيم
-
-    // Agent (الوكيل)
+    principalIdNumber: "",
+    principalResidency: "",
     agentName: "",
-    agentPassportIdNumber: "", // جواز سفر/بطاقة رقم
-    agentIssueDate: "", // تاريخ الصدور
-    agentResidency: "", // المقيم
-
-    // Proxy Details
-    proxySubject: "", // بخصوص: (Specific subject matter)
-
-    // Signatures/Dates
-    principalSignedName: "", // اسم الموكل (near signature)
-    proxyDate: "", // التاريخ
-
-    // Notary/Consular Info (from bottom section of form)
-    grantorFullNameEnglish: "", // Full Name of the Grantor of Authority
-    grantorIdNumber: "", // U.S ID Number (kept generic)
+    agentPassportIdNumber: "",
+    agentIssueDate: "",
+    agentResidency: "",
+    proxySubject: "",
+    principalSignedName: "",
+    proxyDate: "",
+    grantorFullNameEnglish: "",
+    grantorIdNumber: "",
   });
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const { name, value } = e.target;
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
-    },
-    []
-  );
+  const handleChange = useCallback((name: string, value: string) => {
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+  }, []);
+
+  return {
+    formData,
+    handleChange,
+  };
+};
+
+// --- Main Component ---
+const CourtProxy: React.FC = () => {
+  const { formData, handleChange } = useCourtProxyFormState();
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    (e: React.FormEvent) => {
       e.preventDefault();
-      // TODO: Implement form submission logic (e.g., API call)
-      console.log("Court Proxy Form Data:", formData);
-      // Add success message/redirect logic here
+      console.log("بيانات طلب التوكيل القضائي:", formData);
+      // Here you would typically send the data to a server
+      alert("تم إرسال الطلب بنجاح");
     },
     [formData]
   );
 
-  const inputVariants = {
-    initial: { y: 10, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    transition: { duration: 0.3 },
-  };
-
-  const renderInput = (
-    name: keyof typeof formData,
-    label: string,
-    type: string = "text",
-    icon?: React.ReactNode,
-    placeholder?: string
-  ) => (
-    <motion.div variants={inputVariants} className="mb-4">
-      <label
-        htmlFor={name}
-        className="flex justify-end items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-      >
-        {label}
-        {icon && <span className="ms-2 text-gray-500">{icon}</span>}
-      </label>
-      <input
-        type={type}
-        id={name}
-        name={name}
-        value={formData[name]}
-        onChange={handleChange}
-        placeholder={placeholder || ""}
-        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white text-right"
-        dir="rtl" // Right-to-left for Arabic input
-        required
-      />
-    </motion.div>
+  const principalInfoSection = useMemo(
+    () => (
+      <Section title="بيانات الموكل">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="الاسم الكامل"
+            id="principalName"
+            name="principalName"
+            value={formData.principalName}
+            onChange={(value) => handleChange("principalName", value)}
+            icon={<User size={18} />}
+            required
+          />
+          <InputField
+            label="رقم جواز السفر"
+            id="principalPassportNumber"
+            name="principalPassportNumber"
+            value={formData.principalPassportNumber}
+            onChange={(value) => handleChange("principalPassportNumber", value)}
+            icon={<Hash size={18} />}
+            required
+          />
+          <InputField
+            label="تاريخ صدور الجواز"
+            id="principalPassportIssueDate"
+            name="principalPassportIssueDate"
+            type="date"
+            value={formData.principalPassportIssueDate}
+            onChange={(value) => handleChange("principalPassportIssueDate", value)}
+            icon={<Calendar size={18} />}
+            required
+          />
+          <InputField
+            label="رقم البطاقة / الرخصة"
+            id="principalIdNumber"
+            name="principalIdNumber"
+            value={formData.principalIdNumber}
+            onChange={(value) => handleChange("principalIdNumber", value)}
+            icon={<Hash size={18} />}
+          />
+          <InputField
+            label="العنوان / مكان الإقامة"
+            id="principalResidency"
+            name="principalResidency"
+            value={formData.principalResidency}
+            onChange={(value) => handleChange("principalResidency", value)}
+            icon={<MapPin size={18} />}
+            required
+          />
+        </div>
+      </Section>
+    ),
+    [
+      formData.principalName,
+      formData.principalPassportNumber,
+      formData.principalPassportIssueDate,
+      formData.principalIdNumber,
+      formData.principalResidency,
+      handleChange,
+    ]
   );
 
+  const agentInfoSection = useMemo(
+    () => (
+      <Section title="بيانات الوكيل">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InputField
+            label="الاسم الكامل"
+            id="agentName"
+            name="agentName"
+            value={formData.agentName}
+            onChange={(value) => handleChange("agentName", value)}
+            icon={<User size={18} />}
+            required
+          />
+          <InputField
+            label="رقم جواز السفر / البطاقة"
+            id="agentPassportIdNumber"
+            name="agentPassportIdNumber"
+            value={formData.agentPassportIdNumber}
+            onChange={(value) => handleChange("agentPassportIdNumber", value)}
+            icon={<Hash size={18} />}
+            required
+          />
+          <InputField
+            label="تاريخ الصدور"
+            id="agentIssueDate"
+            name="agentIssueDate"
+            type="date"
+            value={formData.agentIssueDate}
+            onChange={(value) => handleChange("agentIssueDate", value)}
+            icon={<Calendar size={18} />}
+            required
+          />
+          <InputField
+            label="العنوان / مكان الإقامة"
+            id="agentResidency"
+            name="agentResidency"
+            value={formData.agentResidency}
+            onChange={(value) => handleChange("agentResidency", value)}
+            icon={<MapPin size={18} />}
+            required
+          />
+                    <InputField
+            label="تاريخ التوكيل"
+            id="proxyDate"
+            name="proxyDate"
+            type="date"
+            value={formData.proxyDate}
+            onChange={(value) => handleChange("proxyDate", value)}
+            icon={<Calendar size={18} />}
+            required
+          />
+        </div>
+      </Section>
+    ),
+    [
+      formData.agentName,
+      formData.agentPassportIdNumber,
+      formData.agentIssueDate,
+      formData.agentResidency,
+      handleChange,
+    ]
+  );
+
+  const proxyScopeSection = useMemo(
+    () => (
+      <Section title="نطاق التوكيل">
+        <div className="text-right text-gray-600 dark:text-gray-300 space-y-2 mb-4">
+          <p>
+            ليقوم مقامي ونيابة عني في المثول أمام جميع المحاكم بإختلاف أنواعها
+            ودرجاتها بخصوص:
+          </p>
+        </div>
+
+        <div className="mb-4">
+          <TextAreaField
+            label="الموضوع المحدد"
+            id="proxySubject"
+            name="proxySubject"
+            value={formData.proxySubject}
+            onChange={(value) => handleChange("proxySubject", value)}
+            placeholder="اذكر القضية أو الموضوع المحدد للتوكيل هنا..."
+            required
+          />
+        </div>
+
+      </Section>
+    ),
+    [formData.proxySubject, handleChange]
+  );
+
+
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="container mx-auto p-6 bg-white dark:bg-gray-800 shadow-xl rounded-lg"
+    <div
+      className="font-sans text-sm p-5 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      dir="rtl"
     >
-      <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-center text-gray-900 dark:text-white">
           نموذج توكيل للمحاكم (خاص)
         </h1>
-        <FileText className="text-red-800 dark:text-red-500" size={32} />
+        <FileText className="text-red-600 dark:text-red-400" size={32} />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Section: Principal Information */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg"
-        >
-          <h2 className="text-xl font-semibold mb-4 text-right text-gray-700 dark:text-gray-200">
-            بيانات الموكل (أقر أنا السيد/السيدة)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            {renderInput("principalName", "الاسم الكامل", "text", <User />)}
-            {renderInput("principalPassportNumber", "رقم جواز السفر", "text", <Hash />)}
-            {renderInput("principalPassportIssueDate", "تاريخ صدور الجواز", "date", <Calendar />)}
-            {renderInput("principalIdNumber", "رقم البطاقة / الرخصة", "text", <Hash />)}
-            {renderInput("principalResidency", "العنوان / مكان الإقامة", "text", <MapPin />)}
-          </div>
-        </motion.section>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {principalInfoSection}
+        {agentInfoSection}
+        {proxyScopeSection}
 
-        {/* Section: Agent Information */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg"
-        >
-          <h2 className="text-xl font-semibold mb-4 text-right text-gray-700 dark:text-gray-200">
-            بيانات الوكيل (وكلت السيد/السيدة)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            {renderInput("agentName", "الاسم الكامل", "text", <User />)}
-            {renderInput("agentPassportIdNumber", "رقم جواز السفر / البطاقة", "text", <Hash />)}
-            {renderInput("agentIssueDate", "تاريخ الصدور", "date", <Calendar />)}
-            {renderInput("agentResidency", "العنوان / مكان الإقامة", "text", <MapPin />)}
-          </div>
-        </motion.section>
 
-        {/* Section: Proxy Scope */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg"
-        >
-          <h2 className="text-xl font-semibold mb-4 text-right text-gray-700 dark:text-gray-200">
-            نطاق التوكيل
-          </h2>
-          <div className="mb-4 text-right text-gray-600 dark:text-gray-300 space-y-2">
-            <p>
-              ليقوم مقامي ونيابة عني في المثول أمام جميع المحاكم بإختلاف أنواعها
-              ودرجاتها بخصوص:
-            </p>
-             <motion.div variants={inputVariants} className="mb-4">
-              <label
-                htmlFor="proxySubject"
-                className="flex justify-end items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                الموضوع المحدد
-              </label>
-              <textarea
-                id="proxySubject"
-                name="proxySubject"
-                value={formData.proxySubject}
-                onChange={handleChange}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 dark:bg-gray-700 dark:text-white text-right"
-                dir="rtl"
-                placeholder="اذكر القضية أو الموضوع المحدد للتوكيل هنا..."
-                required
-              />
-            </motion.div>
-            <p>
-              وذلك بتمثيلي أمام جميع الجهات القضائية والجهات المختصة في رفع
-              الدعاوى المدنية وتوكيل المحامين والمثول أمام مراكز الشرطة
-              والجهات ذات العلاقة وجميع الأمور التي تخص الموكل والتوكيل والتوقيع
-              على كافة الأوراق والمستندات المتعلقة بهذا التوكيل فقط.
-            </p>
-          </div>
-        </motion.section>
-
-        {/* Section: Grantor Details & Date */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg"
-        >
-           <h2 className="text-xl font-semibold mb-4 text-right text-gray-700 dark:text-gray-200">
-            تأكيد الموكل ومعلومات إضافية
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            {renderInput("principalSignedName", "اسم الموكل (كما سيوقع)", "text", <User />)}
-            {renderInput("proxyDate", "تاريخ التوكيل", "date", <Calendar />)}
-            {renderInput("grantorFullNameEnglish", "Full Name of Grantor (English)", "text", <User />, "Grantor's Name in English")}
-            {renderInput("grantorIdNumber", "Grantor ID Number (e.g., US ID)", "text", <Hash />, "Optional ID Number")}
-          </div>
-           <p className="mt-6 text-sm text-red-600 dark:text-red-400 text-right">
-                * ملاحظة: لا يتم اعتماد التوكيل في حال الشطب أو الكشط.
-            </p>
-        </motion.section>
-
-        {/* Submit Button */}
-        <motion.div
-          className="flex justify-start pt-6" // Changed to justify-start for button on the left
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          <motion.button
+        <div className="flex justify-center mt-6">
+          <button
             type="submit"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-red-800 hover:bg-red-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800"
+            className="flex items-center px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
           >
-            <Send size={20} className="me-2" />
+            <Send size={18} className="ml-2" />
             إصدار التوكيل
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
       </form>
-    </motion.div>
+    </div>
   );
 };
 
