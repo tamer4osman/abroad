@@ -1,6 +1,12 @@
 import React, { useState, useCallback } from "react";
-import { Upload, File, XCircle } from "lucide-react";
+import { Upload } from "lucide-react";
+import AttachmentDocuments from "./common/AttachmentDocuments";
 
+interface Attachment {
+    file: File;
+    id: string;
+    type: string;
+}
 // --- Helper Components --- (No changes here)
 interface InputFieldProps {
     label: string;
@@ -131,7 +137,7 @@ const AddChildToPassport = () => {
     });
 
     const [uploadedPhoto, setUploadedPhoto] = useState<File | null>(null);
-    const [uploadedAttachments, setUploadedAttachments] = useState<{ file: File; type: string }[]>([]);
+    const [uploadedAttachments, setUploadedAttachments] = useState<Attachment[]>([]);
 
     const genderOptions = [
         { value: "male", label: "ذكر" },
@@ -141,9 +147,7 @@ const AddChildToPassport = () => {
     const attachmentTypeOptions = [
         { value: "passport", label: "جواز" },
         { value: "familyBook", label: "كتيب العائلة" },
-        { value: "marriageCertificate", label: "عقد الزواج" },
-        { value: "birthCertificate", label: "شهادة الميلاد" },
-        { value: "other", label: "أخرى" }
+        // ...more items
     ] as const;
 
     const handleChange = useCallback((name: string, value: string) => {
@@ -167,25 +171,30 @@ const AddChildToPassport = () => {
         if (files && files.length > 0) {
             const newAttachments = Array.from(files).map((file) => ({
                 file,
+                id: crypto.randomUUID(),
                 type: "",
             }));
             setUploadedAttachments((prevAttachments) => [...prevAttachments, ...newAttachments]);
         }
     };
 
-    const handleAttachmentTypeChange = (index: number, type: string) => {
+    const handleAttachmentTypeChange = (id: string, type: string) => {
         setUploadedAttachments((prevAttachments) =>
-            prevAttachments.map((attachment, i) =>
-                i === index ? { ...attachment, type } : attachment
+            prevAttachments.map((attachment) =>
+                attachment.id === id
+                    ? { ...attachment, type }
+                    : attachment
+
+
             )
         );
-    };
-
-    const removeAttachment = (indexToRemove: number) => {
+      };
+    
+      const removeAttachment = (id: string) => {
         setUploadedAttachments((prevAttachments) =>
-            prevAttachments.filter((_, index) => index !== indexToRemove)
+          prevAttachments.filter((attachment) => attachment.id !== id)
         );
-    };
+      };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -439,54 +448,13 @@ const AddChildToPassport = () => {
 
                 {/* Attachments */}
                 <Section title="المرفقات">
-                    
-                    {/* Attachment Upload */}
-                    <div>
-                        <label
-                            htmlFor="attachmentUpload"
-                            className="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-md cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600"
-                        >
-                            <Upload className="mr-2" size={16} />
-                            <span>تحميل المرفقات</span>
-                        </label>
-                        <input
-                            type="file"
-                            id="attachmentUpload"
-                            multiple
-                            className="hidden"
-                            onChange={handleAttachmentUpload}
-                        />
-
-                        {/* Display uploaded attachments with type selection */}
-                        <div className="mt-2 space-y-2">
-                            {uploadedAttachments.map((attachment, index) => (
-                                <div key={index} className="flex items-center justify-between bg-gray-100 dark:bg-gray-800 p-2 rounded-md">
-                                    <div className="flex items-center flex-grow"> {/* Use flex-grow */}
-                                        <span className="text-gray-900 dark:text-white m-2">
-                                            <File className="inline mr-2" size={16} />
-                                            {attachment.file.name}
-                                        </span>
-                                        <SelectField
-                                            label=""
-                                            id={`attachmentType-${index}`}
-                                            name={`attachmentType-${index}`}
-                                            value={attachment.type}
-                                            onChange={(value) => handleAttachmentTypeChange(index, value)}
-                                            options={attachmentTypeOptions}
-                                            required
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeAttachment(index)}
-                                        className="px-2 py-1  text-white rounded-md"
-                                    >
-                                        <XCircle className="text-red-500 hover:text-red-700" size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <AttachmentDocuments
+                        uploadedAttachments={uploadedAttachments}
+                        onAttachmentTypeChange={handleAttachmentTypeChange}
+                        onRemoveAttachment={(id) => removeAttachment(id)}
+                        onAttachmentUpload={handleAttachmentUpload}
+                        attachmentTypeOptions={attachmentTypeOptions}
+                    />
                 </Section>
 
                 {/* Submission and Signature */}
