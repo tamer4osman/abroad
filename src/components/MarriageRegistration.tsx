@@ -243,13 +243,6 @@ const HusbandInfoForm: React.FC<{
         value={formData.husbandMotherName}
         onChange={(value) => onChange("husbandMotherName", value)}
       />
-      <InputField
-        label="محل إقامة والدة الزوج:"
-        id="husbandMotherResidence"
-        name="husbandMotherResidence"
-        value={formData.husbandMotherResidence}
-        onChange={(value) => onChange("husbandMotherResidence", value)}
-      />
     </div>
   </Section>
 );
@@ -347,13 +340,6 @@ const WifeInfoForm: React.FC<{
         value={formData.wifeMotherName}
         onChange={(value) => onChange("wifeMotherName", value)}
       />
-      <InputField
-        label="محل إقامة والدة الزوجة:"
-        id="wifeMotherResidence"
-        name="wifeMotherResidence"
-        value={formData.wifeMotherResidence}
-        onChange={(value) => onChange("wifeMotherResidence", value)}
-      />
     </div>
   </Section>
 );
@@ -373,26 +359,6 @@ const MarriageDetailsForm: React.FC<{
         type="date"
         required
       />
-      <div className="flex gap-2">
-        <InputField
-          label="الساعة:"
-          id="marriageTime"
-          name="marriageTime"
-          value={formData.marriageTime}
-          onChange={(value) => onChange("marriageTime", value)}
-          type="number"
-          placeholder="HH"
-        />
-        <InputField
-          label="الدقيقة:"
-          id="marriageMinute"
-          name="marriageMinute"
-          value={formData.marriageMinute}
-          onChange={(value) => onChange("marriageMinute", value)}
-          type="number"
-          placeholder="MM"
-        />
-      </div>
       <InputField
         label="مدينة:"
         id="marriageCity"
@@ -415,80 +381,6 @@ const MarriageDetailsForm: React.FC<{
         value={formData.registrationNumber}
         onChange={(value) => onChange("registrationNumber", value)}
       />
-    </div>
-  </Section>
-);
-
-const ContactInfoForm: React.FC<{
-  formData: FormData;
-  onChange: (name: string, value: string) => void;
-}> = ({ formData, onChange }) => (
-  <Section title="معلومات الاتصال">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <InputField
-        label="رقم الهاتف:"
-        id="contactPhoneUS"
-        name="contactPhoneUS"
-        value={formData.contactPhoneUS}
-        onChange={(value) => onChange("contactPhoneUS", value)}
-        type="tel"
-      />
-      <InputField
-        label="البريد الإلكتروني:"
-        id="contactEmailUS"
-        name="contactEmailUS"
-        value={formData.contactEmailUS}
-        onChange={(value) => onChange("contactEmailUS", value)}
-        type="email"
-      />
-      <InputField
-        label="عنوان الإقامة:"
-        id="contactAddressUS"
-        name="contactAddressUS"
-        value={formData.contactAddressUS}
-        onChange={(value) => onChange("contactAddressUS", value)}
-      />
-      <div>
-        <label className="block text-gray-700 dark:text-gray-300">
-          نوع الإقامة:
-        </label>
-        <div className="mt-2 space-x-4 flex flex-row-reverse">
-          <div className="flex items-center">
-            <input
-              id="residenceTypeTemp"
-              name="residenceTypeUS"
-              type="radio"
-              value="مؤقتة"
-              checked={formData.residenceTypeUS === "مؤقتة"}
-              onChange={(e) => onChange("residenceTypeUS", e.target.value)}
-              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="residenceTypeTemp"
-              className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
-            >
-              مؤقتة
-            </label>
-          </div>
-          <div className="flex items-center">
-            <input
-              id="residenceTypePerm"
-              name="residenceTypeUS"
-              type="radio"
-              value="دائمة"
-              checked={formData.residenceTypeUS === "دائمة"}
-              onChange={(e) => onChange("residenceTypeUS", e.target.value)}
-              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <label
-              htmlFor="residenceTypePerm"
-              className="mr-2 block text-sm text-gray-700 dark:text-gray-300"
-            >
-              دائمة
-            </label>
-          </div>
-        </div>
-      </div>
     </div>
   </Section>
 );
@@ -535,7 +427,9 @@ const AttachmentsForm: React.FC<AttachmentsFormProps> = ({
         />
 
         {/* Display uploaded attachments in a table */}
-        <div className="mt-4 overflow-x-auto"> {/* Added overflow-x-auto for horizontal scrolling if needed */}
+        <div className="mt-4 overflow-x-auto">
+          {" "}
+          {/* Added overflow-x-auto for horizontal scrolling if needed */}
           <table className="min-w-full table-auto bg-white dark:bg-gray-800 rounded-md shadow-md">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -726,9 +620,6 @@ const MarriageRegistration: React.FC = () => {
 
         {/* Marriage Contract Information Section */}
         <MarriageDetailsForm formData={formData} onChange={handleChange} />
-
-        {/* Contact Information in Section */}
-        <ContactInfoForm formData={formData} onChange={handleChange} />
 
         {/* Attachments */}
         <AttachmentsForm
