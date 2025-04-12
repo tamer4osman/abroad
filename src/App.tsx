@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // Lazy-loaded components (same as original)
 //const Dashboard = lazy(() => import("./components/Dashboard"));
 const RegisterCitizen = lazy(() => import("./components/RegisterCitizen"));
+const RegisterForeign = lazy(() => import("./components/RegisterForeign"));
 const MarriageRegistration = lazy(() => import("./components/MarriageRegistration"));
 const BirthRegistration = lazy(() => import("./components/BirthRegistration"));
 const DivorceRegistration = lazy(() => import("./components/DivorceRegistration"));
@@ -603,23 +604,29 @@ function App() {
         {
           key: 12,
           icon: <></>,
+          label: "تسجيل أجنبي",
+          path: "/civil-registry/register-foreign",
+        },
+        {
+          key: 13,
+          icon: <></>,
           label: "تسجيل واقعة الزواج",
           path: "/civil-registry/marriage",
         },
         {
-          key: 13,
+          key: 14,
           icon: <></>,
           label: "تسجيل واقعة الولادة",
           path: "/civil-registry/birth",
         },
         {
-          key: 14,
+          key: 15,
           icon: <></>,
           label: "تسجيل واقعة الطلاق",
           path: "/civil-registry/divorce",
         },
         {
-          key: 15,
+          key: 16,
           icon: <></>,
           label: "تسجيل واقعة الوفاة",
           path: "/civil-registry/death",
@@ -769,6 +776,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<DashboardPlaceholder />} />
                 <Route path="/civil-registry/register-citizen" element={<RegisterCitizen />} />
+                <Route path="/civil-registry/register-foreign" element={<RegisterForeign />} />
                 <Route path="/civil-registry/marriage" element={<MarriageRegistration />} />
                   <Route path="/civil-registry/birth" element={<BirthRegistration />} />
                   <Route path="/civil-registry/divorce" element={<DivorceRegistration />} />
