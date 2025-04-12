@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, ChangeEvent } from 'react';
 import { FileText, User, Send, Hash, MapPin, Calendar } from 'lucide-react';
+import AttachmentDocuments from './common/AttachmentDocuments';
 
 // --- Interfaces ---
 interface FormData {
@@ -87,7 +88,7 @@ const TextAreaField: React.FC<InputFieldProps> = ({
   required = false,
 }) => (
   <div>
-    <label htmlFor={id} className="block text-gray-700 dark:text-gray-300 text-right">
+    <label htmlFor={id} className="flex justify-end items-center text-gray-700 dark:text-gray-300 text-right">
       {label}
       {required && <span className="text-red-500 mr-1">*</span>}
     </label>
@@ -131,6 +132,10 @@ const useCourtProxyFormState = () => {
     grantorIdNumber: "",
   });
 
+  const [uploadedAttachments, setUploadedAttachments] = useState<
+    { id: string; type: string; file: File }[]
+  >([]);
+
   const handleChange = useCallback((name: string, value: string) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -138,24 +143,62 @@ const useCourtProxyFormState = () => {
     }));
   }, []);
 
+  const handleAttachmentUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      const newAttachments = Array.from(event.target.files).map((file) => ({
+        id: Math.random().toString(36).substr(2, 9),
+        type: "",
+        file,
+      }));
+
+      setUploadedAttachments((prev) => [...prev, ...newAttachments]);
+    }
+  }, []);
+
+  const handleAttachmentTypeChange = useCallback((id: string, type: string) => {
+    setUploadedAttachments((prev) =>
+      prev.map((attachment) =>
+        attachment.id === id ? { ...attachment, type } : attachment
+      )
+    );
+  }, []);
+
+  const onRemoveAttachment = useCallback((id: string) => {
+    setUploadedAttachments((prev) =>
+      prev.filter((attachment) => attachment.id !== id)
+    );
+  }, []);
+
   return {
     formData,
+    uploadedAttachments,
     handleChange,
+    handleAttachmentUpload,
+    handleAttachmentTypeChange,
+    onRemoveAttachment,
   };
 };
 
 // --- Main Component ---
 const CourtProxy: React.FC = () => {
-  const { formData, handleChange } = useCourtProxyFormState();
+  const { 
+    formData, 
+    uploadedAttachments, 
+    handleChange, 
+    handleAttachmentUpload, 
+    handleAttachmentTypeChange, 
+    onRemoveAttachment 
+  } = useCourtProxyFormState();
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       console.log("بيانات طلب التوكيل القضائي:", formData);
+      console.log("المرفقات:", uploadedAttachments);
       // Here you would typically send the data to a server
       alert("تم إرسال الطلب بنجاح");
     },
-    [formData]
+    [formData, uploadedAttachments]
   );
 
   const principalInfoSection = useMemo(
@@ -279,6 +322,7 @@ const CourtProxy: React.FC = () => {
       formData.agentPassportIdNumber,
       formData.agentIssueDate,
       formData.agentResidency,
+      formData.proxyDate,
       handleChange,
     ]
   );
@@ -310,7 +354,28 @@ const CourtProxy: React.FC = () => {
     [formData.proxySubject, handleChange]
   );
 
-
+  const attachmentsSection = useMemo(
+    () => (
+      <Section title="المرفقات">
+        <div className="mb-4">
+          <AttachmentDocuments
+            uploadedAttachments={uploadedAttachments}
+            onAttachmentTypeChange={handleAttachmentTypeChange}
+            onRemoveAttachment={onRemoveAttachment}
+            onAttachmentUpload={handleAttachmentUpload}
+            attachmentTypeOptions={[
+              { value: "صورة جواز سفر الموكل", label: "صورة جواز سفر الموكل" },
+              { value: "صورة هوية الموكل", label: "صورة هوية الموكل" },
+              { value: "صورة جواز سفر / هوية الوكيل", label: "صورة جواز سفر / هوية الوكيل" },
+              { value: "مستندات القضية", label: "مستندات القضية" },
+              { value: "أخرى", label: "أخرى" },
+            ]}
+          />
+        </div>
+      </Section>
+    ),
+    [uploadedAttachments, handleAttachmentTypeChange, onRemoveAttachment, handleAttachmentUpload]
+  );
 
   return (
     <div
@@ -328,7 +393,7 @@ const CourtProxy: React.FC = () => {
         {principalInfoSection}
         {agentInfoSection}
         {proxyScopeSection}
-
+        {attachmentsSection}
 
         <div className="flex justify-center mt-6">
           <button
