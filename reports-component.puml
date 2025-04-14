@@ -1,0 +1,178 @@
+@startuml "Reports Component Architecture"
+
+' Theme configuration
+!theme plain
+skinparam BackgroundColor white
+skinparam ComponentStyle rectangle
+skinparam PackageStyle rectangle
+skinparam ArrowColor #444444
+skinparam RectangleBorderColor #444444
+skinparam ComponentBorderColor #444444
+skinparam PackageBorderColor #444444
+skinparam RectangleBackgroundColor #F5F5F5
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FDFDFD
+skinparam TitleFontSize 20
+skinparam DefaultTextAlignment center
+skinparam shadowing false
+
+title "Libyan Foreign Ministry Management System - Reports Component"
+
+' Main Reports Component
+package "Reports.tsx" as reportsComponent {
+  ' State management
+  package "useReports() Custom Hook" {
+    [State Initialization] as stateInit
+    [Filter Logic] as filterReports
+    [Event Handlers] as eventHandlers
+  }
+
+  ' UI Components
+  package "UI Components" {
+    [Dashboard Content] as dashboardContent
+    [Reports Filters] as reportsFilters
+    [Reports Content] as reportsContent
+    [Analytics Content] as analyticsContent
+    
+    ' Reusable components
+    package "Reusable Components" {
+      [Section] as sectionComponent
+      [StatCard] as statCardComponent
+      [ReportCard] as reportCardComponent
+    }
+
+    ' Dashboard subcomponents
+    package "Dashboard UI" {
+      [Stats Overview] as statsOverview
+      [Service Metrics] as serviceMetrics
+      [Proxy Type Distribution] as proxyDistribution
+      [Embassy Services] as embassyServices
+    }
+
+    ' Reports subcomponents
+    package "Reports UI" {
+      [Filter Panel] as filterPanel
+      [Search Interface] as searchInterface
+      [Report List] as reportList
+      [Empty State] as emptyState
+    }
+
+    ' Analytics subcomponents
+    package "Analytics UI" {
+      [Proxy Analytics] as proxyAnalytics
+      [Proxy Types Details] as proxyTypesDetails
+      [Service Performance Analysis] as servicePerformance
+    }
+  }
+
+  ' Mock Data Providers
+  package "Mock Data Providers" {
+    [generateMockReports()] as mockReports
+    [generateMockStats()] as mockStats
+    [generateServiceMetrics()] as mockServiceMetrics
+    [generateEmbassyOptions()] as mockEmbassyOptions
+  }
+  
+  ' Types & Interfaces
+  package "Types & Interfaces" {
+    [ReportType] as reportType
+    [ReportPeriod] as reportPeriod
+    [ProxyType] as proxyType
+    [ReportData] as reportData
+    [FilterOption] as filterOption
+    [FilterState] as filterState
+    [DashboardStat] as dashboardStat
+    [ServiceMetric] as serviceMetric
+  }
+}
+
+' External dependencies
+package "External Dependencies" {
+  [React] as react
+  [framer-motion] as framerMotion
+  [lucide-react] as lucideReact
+}
+
+' User roles
+actor "Embassy Staff" as staff
+actor "Diplomatic Officials" as officials
+actor "System Administrator" as admin
+
+' Main relationships
+stateInit --> mockReports : initializes data
+stateInit --> mockStats : initializes data
+stateInit --> mockServiceMetrics : initializes data
+stateInit --> mockEmbassyOptions : initializes data
+
+' Hook relationships
+filterReports --> reportData : filters based on criteria
+eventHandlers --> filterState : updates state
+
+' UI Component relationships
+dashboardContent --> statsOverview : renders
+dashboardContent --> serviceMetrics : renders
+dashboardContent --> proxyDistribution : renders
+dashboardContent --> embassyServices : renders
+
+reportsFilters --> filterPanel : renders
+reportsFilters --> searchInterface : renders
+
+reportsContent --> reportsFilters : includes
+reportsContent --> reportList : renders
+reportsContent --> emptyState : renders conditionally
+
+analyticsContent --> proxyAnalytics : renders
+analyticsContent --> proxyTypesDetails : renders
+analyticsContent --> servicePerformance : renders
+
+' Reusable component usage
+statsOverview --> statCardComponent : uses
+reportList --> reportCardComponent : uses
+dashboardContent --> sectionComponent : uses
+reportsContent --> sectionComponent : uses
+analyticsContent --> sectionComponent : uses
+
+' Type references
+reportList ..> reportData : uses type
+filterPanel ..> filterState : uses type
+filterPanel ..> reportType : uses type
+filterPanel ..> reportPeriod : uses type
+filterPanel ..> proxyType : uses type
+statsOverview ..> dashboardStat : uses type
+serviceMetrics ..> serviceMetric : uses type
+filterPanel ..> filterOption : uses type
+
+' External dependencies
+reportsComponent --> react : uses
+reportsComponent --> framerMotion : uses for animations
+reportsComponent --> lucideReact : uses for icons
+
+' Data flow with future backend (dotted lines)
+reportsComponent ..> [Reports API] : "will connect to in Phase 4"
+reportsComponent ..> [Analytics Engine] : "will connect to in Phase 5"
+
+' User interactions
+staff --> reportsComponent : views reports
+officials --> reportsComponent : analyzes trends
+admin --> reportsComponent : configures report parameters
+
+' Tab structure
+note bottom of reportsComponent
+  The Reports component consists of three main tabs:
+  1. Dashboard - Overview statistics and visual representations
+  2. Reports - List of available reports with filtering options
+  3. Analytics - Advanced analysis, especially for proxy powers
+end note
+
+note right of reportType
+  Report types include:
+  - Citizen service reports
+  - Passport reports
+  - Visa reports
+  - Attestation reports
+  - Proxy reports (with sub-types)
+  - Activity reports
+  - Performance reports
+end note
+
+@enduml

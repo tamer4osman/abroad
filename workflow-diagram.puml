@@ -1,0 +1,302 @@
+@startuml "Libyan Foreign Ministry Management System - Workflow"
+
+' Theme and styling configuration
+!theme plain
+skinparam BackgroundColor white
+skinparam ArrowColor #444444
+skinparam ActorBorderColor #444444
+skinparam ActivityBorderColor #444444
+skinparam ActivityDiamondBorderColor #444444
+skinparam ActivityStartColor #444444
+skinparam ActivityEndColor #444444
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #444444
+skinparam TitleFontSize 20
+skinparam DefaultFontSize 12
+skinparam DefaultTextAlignment center
+skinparam shadowing false
+
+title "Libyan Foreign Ministry Management System - Workflow Diagram"
+
+' Define swimlanes for different user roles
+|Libyan Citizen|
+|Embassy Staff|
+|Department Manager|
+|System Administrator|
+
+' Start point
+|Libyan Citizen|
+start
+
+' Main processes
+group Authentication
+    :Citizen visits embassy/consulate;
+    |Embassy Staff|
+    :Login to system;
+    :Verify credentials;
+    if (Valid credentials?) then (yes)
+        :Access dashboard;
+    else (no)
+        :Display error message;
+        :Retry login or\ncontact admin;
+    endif
+end group
+
+' Civil Registry Process
+group Civil Registry Services
+    |Libyan Citizen|
+    :Request civil registry service\n(birth, marriage, divorce, death);
+    |Embassy Staff|
+    :Select appropriate service\nfrom Civil Registry module;
+    
+    ' Fork for different civil registry types
+    fork
+        :Process Birth Registration;
+        :Enter child information;
+        :Enter parents information;
+        :Enter medical information;
+        :Enter informant details;
+        :Upload supporting documents;
+    fork again
+        :Process Marriage Registration;
+        :Enter spouse details;
+        :Enter witness information;
+        :Upload marriage certificate;
+    fork again
+        :Process Divorce Registration;
+        :Enter divorce details;
+        :Upload court documents;
+    fork again
+        :Process Death Registration;
+        :Enter deceased information;
+        :Enter death details;
+        :Upload supporting documents;
+    end fork
+    
+    :Validate and verify submitted information;
+    :Calculate applicable fees;
+    |Libyan Citizen|
+    :Pay required fees;
+    |Embassy Staff|
+    :Record payment;
+    :Generate official document/certificate;
+    |Libyan Citizen|
+    :Receive document/certificate;
+    |Department Manager|
+    :Review completed civil registry\ntransactions (periodic);
+end group
+
+' Passport Services Process
+group Passport Services
+    |Libyan Citizen|
+    :Request passport service\n(new, renewal, travel document, add child);
+    |Embassy Staff|
+    :Select appropriate service\nfrom Passport Services module;
+    
+    ' Fork for different passport service types
+    fork
+        :Process Passport Issuance;
+        :Capture applicant information;
+        :Verify identity documents;
+        :Capture passport details;
+    fork again
+        :Process Travel Document;
+        :Enter emergency details;
+        :Capture applicant information;
+        :Verify circumstances;
+    fork again
+        :Process Add Child to Passport;
+        :Select parent passport;
+        :Enter child details;
+        :Verify relationship;
+    end fork
+    
+    :Capture biometric data\n(future phase);
+    :Upload supporting documents;
+    :Validate submission;
+    :Calculate fees;
+    |Libyan Citizen|
+    :Pay passport fees;
+    |Embassy Staff|
+    :Process payment;
+    :Submit application for approval;
+    |Department Manager|
+    :Review and approve passport\napplications;
+    |Embassy Staff|
+    :Issue passport/document;
+    |Libyan Citizen|
+    :Collect passport/document;
+    |Embassy Staff|
+    :Record delivery in system;
+    |Department Manager|
+    :Generate passport issuance reports;
+end group
+
+' Visa Processing
+group Visa Processing
+    |Libyan Citizen|
+    :Submit visa application\nfor foreign national;
+    |Embassy Staff|
+    :Access Visa Processing module;
+    :Enter New Visa Request;
+    :Capture applicant details;
+    :Record purpose of travel;
+    :Upload supporting documents;
+    :Select visa type;
+    :Calculate visa fees;
+    |Libyan Citizen|
+    :Pay visa fees;
+    |Embassy Staff|
+    :Record payment;
+    :Submit for processing;
+    :Move to Pending Requests;
+    |Department Manager|
+    :Review visa applications;
+    if (Approve application?) then (yes)
+        :Approve visa;
+        |Embassy Staff|
+        :Issue visa;
+    else (no)
+        :Reject with reason;
+        |Embassy Staff|
+        :Communicate rejection;
+    endif
+    |Embassy Staff|
+    :Move to Completed Requests;
+    :Generate visa statistics;
+    |Department Manager|
+    :Review visa issuance patterns;
+end group
+
+' Document Attestation
+group Document Attestation
+    |Libyan Citizen|
+    :Submit document for attestation;
+    |Embassy Staff|
+    :Access Document Attestation module;
+    fork
+        :Process Local Attestation;
+        :Verify document authenticity;
+    fork again
+        :Process International Attestation;
+        :Verify document;
+        :Check apostille requirements;
+    end fork
+    :Calculate attestation fees;
+    |Libyan Citizen|
+    :Pay attestation fees;
+    |Embassy Staff|
+    :Attest document;
+    :Record in system;
+    :Return attested document;
+    |Libyan Citizen|
+    :Receive attested document;
+end group
+
+' Legal Proxy Management
+group Legal Proxy Management
+    |Libyan Citizen|
+    :Request legal proxy service;
+    |Embassy Staff|
+    :Access Legal Proxy module;
+    
+    ' Fork for different proxy types
+    fork
+        :Process Court Proxy;
+        :Enter legal representation details;
+    fork again
+        :Process Bank Proxy;
+        :Enter banking authorization details;
+    fork again
+        :Process Divorce Proxy;
+        :Enter divorce representation details;
+    fork again
+        :Process Real Estate Proxy;
+        :Enter property details;
+        :Record transaction authorization;
+    fork again
+        :Process Inheritance Proxy;
+        :Enter inheritance details;
+        :Record beneficiaries;
+    fork again
+        :Process Document Completion Proxy;
+        :Enter document completion details;
+    fork again
+        :Process General Proxy;
+        :Enter general authorization details;
+    end fork
+    
+    :Verify identities;
+    :Validate proxy requirements;
+    :Calculate proxy fees;
+    |Libyan Citizen|
+    :Pay proxy fees;
+    |Embassy Staff|
+    :Generate proxy document;
+    :Record in system;
+    |Libyan Citizen|
+    :Receive proxy document;
+end group
+
+' Reporting and Analytics
+group Reporting and Analytics
+    |Embassy Staff|
+    :Access Reports module;
+    :Generate operational reports;
+    |Department Manager|
+    :Review service metrics;
+    :Analyze performance data;
+    :Track processing times;
+    :Export reports as needed;
+    :Make operational decisions\nbased on reports;
+    |System Administrator|
+    :Configure report parameters;
+    :Set up scheduled reports;
+    :Manage reporting permissions;
+end group
+
+' System Administration
+group System Administration
+    |System Administrator|
+    :Manage user accounts;
+    :Configure system settings;
+    :Set fee structures;
+    :Update document templates;
+    :Monitor system performance;
+    :Manage security settings;
+    :Perform backups;
+    :Review audit logs;
+end group
+
+' Future Integration Phase
+group API Integration (Phase 4)
+    |System Administrator|
+    :Configure API connections;
+    :Set up data synchronization;
+    :Test central system integration;
+    :Verify national ID verification;
+    :Implement secure data exchange;
+    note left: Planned for Phase 4\n(December 2025)
+end group
+
+' Analytics Enhancement Phase
+group Advanced Analytics (Phase 5)
+    |Department Manager|
+    :Access enhanced analytics;
+    :View predictive models;
+    :Optimize resource allocation;
+    :Monitor service quality metrics;
+    note left: Planned for Phase 5\n(February 2026)
+end group
+
+' End point
+|Department Manager|
+:Overall system operations\nand continuous improvement;
+|System Administrator|
+:Ongoing system maintenance;
+|Embassy Staff|
+stop
+
+footer "Libyan Foreign Ministry Management System - Implementation Phase 3 (As of April 2025)"
+
+@enduml

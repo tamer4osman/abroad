@@ -1,0 +1,250 @@
+@startuml "Libyan Foreign Ministry Management System - Architecture"
+
+' Theme and styling configuration
+!theme plain
+skinparam BackgroundColor white
+skinparam ComponentStyle rectangle
+skinparam PackageStyle rectangle
+skinparam ArrowColor #444444
+skinparam RectangleBorderColor #444444
+skinparam ComponentBorderColor #444444
+skinparam PackageBorderColor #444444
+skinparam RectangleBackgroundColor #F5F5F5
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FDFDFD
+skinparam TitleFontSize 20
+skinparam DefaultTextAlignment center
+skinparam shadowing false
+
+title "Libyan Foreign Ministry Management System - Architecture Overview"
+
+' User roles
+actor "Embassy Staff" as staff
+actor "Diplomatic Officials" as officials
+actor "System Administrator" as admin
+actor "Citizens" as citizens #aliceblue
+
+' Main architecture layers
+package "Frontend Application (React/TypeScript)" {
+  ' Core structure
+  package "Core & Framework" {
+    [main.tsx] as mainEntryPoint
+    [App.tsx] as appRoot
+    [index.css] as globalStyles
+    [vite.config.ts] as buildConfig
+  }
+
+  ' Layout components  
+  package "Layout Components" {
+    [Sidebar.tsx] as sidebar
+    [Footer] as footer
+    component "Topbar/Header" as topbar
+  }
+
+  ' Main feature modules
+  package "Modules" {
+    ' Civil Registry Module
+    package "Civil Registry Module" {
+      [RegisterCitizen.tsx] as registerCitizen
+      [RegisterForeign.tsx] as registerForeign
+      [MarriageRegistration.tsx] as marriageRegistration
+      [BirthRegistration.tsx] as birthRegistration
+      [DivorceRegistration.tsx] as divorceRegistration
+      [DeathRegistration.tsx] as deathRegistration
+    }
+    
+    ' Passport Services Module
+    package "Passport Services Module" {
+      [IssuePassport.tsx] as issuePassport
+      [TravelDocument.tsx] as travelDocument
+      [AddChildToPassport.tsx] as addChildToPassport
+      [CompletedRequestsPassports.tsx] as completedRequestsPassports
+    }
+    
+    ' Visa Processing Module
+    package "Visa Processing Module" {
+      [NewRequestVisas.tsx] as newRequestVisas
+      [PendingRequestsVisas.tsx] as pendingRequestsVisas
+      [CompletedRequestsVisas.tsx] as completedRequestsVisas
+    }
+    
+    ' Document Attestation Module
+    package "Document Attestation Module" {
+      [LocalAttestation.tsx] as localAttestation
+      [InternationalAttestation.tsx] as internationalAttestation
+    }
+    
+    ' Legal Proxy Module
+    package "Legal Proxy Module" {
+      [CourtProxy.tsx] as courtProxy
+      [BankProxy.tsx] as bankProxy
+      [DivorceProxy.tsx] as divorceProxy
+      [RealEstateProxy.tsx] as realEstateProxy
+      [InheritanceProxy.tsx] as inheritanceProxy
+      [DocumentCompletionProxy.tsx] as documentCompletionProxy
+      [GeneralProxy.tsx] as generalProxy
+    }
+    
+    ' Support Modules
+    [Reports.tsx] as reports
+    [SettingsComponent.tsx] as settings
+    [Dashboard.tsx] as dashboard
+  }
+  
+  ' Common components
+  package "Common Components" {
+    package "Form Components" {
+      [Section.tsx] as section
+      [InputField.tsx] as inputField
+      [FormField.tsx] as formField
+      [SelectField.tsx] as selectField
+      [DateField.tsx] as dateField
+      [PhoneNumberField.tsx] as phoneNumberField
+      [EmailField.tsx] as emailField
+      [FormErrors.tsx] as formErrors
+      [FormMessage.tsx] as formMessage
+      [SubmitButton.tsx] as submitButton
+    }
+    
+    package "Utility Components" {
+      [AttachmentDocuments.tsx] as attachmentDocuments
+      [WitnessInfoSection.tsx] as witnessInfoSection
+      [ParentsInfoSection.tsx] as parentsInfoSection
+      [ChildInfoSection.tsx] as childInfoSection
+      [MedicalInfoSection.tsx] as medicalInfoSection
+      [InformantInfoSection.tsx] as informantInfoSection
+    }
+  }
+  
+  ' Services & Hooks
+  package "Services & Custom Hooks" {
+    [FormDataService.ts] as formDataService
+    [ValidationService.ts] as validationService
+    component "Custom React Hooks" as customHooks
+  }
+  
+  ' Types & Constants
+  package "Types & Constants" {
+    [sidebar.types.ts] as sidebarTypes
+    [visa.types.ts] as visaTypes
+    [BirthRegistration.types.ts] as birthRegistrationTypes
+    [BirthRegistration.constants.ts] as birthRegistrationConstants
+    [VisaForm.constants.ts] as visaFormConstants
+  }
+}
+
+' External dependencies
+package "External Libraries & Dependencies" {
+  [React 18] as react
+  [TypeScript] as typescript
+  [Vite] as vite
+  [React Router] as reactRouter
+  [Framer Motion] as framerMotion
+  [Lucide React] as lucideIcons
+  [TailwindCSS] as tailwind
+}
+
+' Future Backend Systems
+package "Future Backend API (Phase 4)" as backendAPI {
+  [Civil Registry API] as civilRegistryAPI
+  [Passport API] as passportAPI
+  [Visa API] as visaAPI
+  [Attestation API] as attestationAPI
+  [Legal Proxy API] as proxyAPI
+  [Reports API] as reportsAPI
+  [Authentication API] as authAPI
+}
+
+' External systems (future integrations)
+cloud "External Ministry Systems" {
+  [Central Citizen Database] as centralCitizenDB
+  [National ID System] as nationalIDSystem
+  [Document Verification System] as docVerificationSystem
+}
+
+' Main dependency flows
+mainEntryPoint --> appRoot
+appRoot --> sidebar
+appRoot --> footer
+appRoot --> topbar
+
+' Core routing dependencies
+appRoot --> dashboard
+appRoot --> registerCitizen
+appRoot --> registerForeign
+appRoot --> marriageRegistration
+appRoot --> birthRegistration
+appRoot --> divorceRegistration
+appRoot --> deathRegistration
+appRoot --> issuePassport
+appRoot --> travelDocument
+appRoot --> addChildToPassport
+appRoot --> completedRequestsPassports
+appRoot --> newRequestVisas
+appRoot --> pendingRequestsVisas
+appRoot --> completedRequestsVisas
+appRoot --> localAttestation
+appRoot --> internationalAttestation
+appRoot --> courtProxy
+appRoot --> bankProxy
+appRoot --> divorceProxy
+appRoot --> realEstateProxy
+appRoot --> inheritanceProxy
+appRoot --> documentCompletionProxy
+appRoot --> generalProxy
+appRoot --> reports
+appRoot --> settings
+
+' Module internal dependencies
+registerCitizen --> formField
+registerCitizen --> section
+registerCitizen --> submitButton
+birthRegistration --> birthRegistrationTypes
+birthRegistration --> birthRegistrationConstants
+newRequestVisas --> visaTypes
+newRequestVisas --> visaFormConstants
+realEstateProxy --> attachmentDocuments
+
+' Service dependencies
+registerCitizen --> formDataService
+registerCitizen --> validationService
+
+' External library dependencies
+appRoot --> react
+appRoot --> reactRouter
+appRoot --> framerMotion
+appRoot --> tailwind
+appRoot --> lucideIcons
+appRoot --> typescript
+appRoot --> vite
+
+' Future backend connections
+registerCitizen ...> civilRegistryAPI : "Phase 4"
+issuePassport ...> passportAPI : "Phase 4"
+newRequestVisas ...> visaAPI : "Phase 4"
+localAttestation ...> attestationAPI : "Phase 4" 
+courtProxy ...> proxyAPI : "Phase 4"
+reports ...> reportsAPI : "Phase 4"
+
+' Future external system integrations
+civilRegistryAPI ...> centralCitizenDB : "Phase 4"
+passportAPI ...> nationalIDSystem : "Phase 4"
+attestationAPI ...> docVerificationSystem : "Phase 4"
+
+' User interactions
+staff --> appRoot : uses
+officials --> reports : reviews
+admin --> settings : configures
+citizens --> backendAPI : request services (future)
+
+' Note about project phases
+note right of backendAPI
+  Implementation Phases:
+  Phase 1: Core Civil Registry & Passport Services
+  Phase 2: Visa Processing & Document Attestation
+  Phase 3: Legal Proxy Management & Reporting
+  Phase 4: API Integration with Ministry Systems
+  Phase 5: Advanced Analytics & Monitoring
+end note
+
+@enduml

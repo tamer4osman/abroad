@@ -1,0 +1,119 @@
+@startuml "Libyan Foreign Ministry Management System - Data Flow"
+
+' Theme configuration
+!theme plain
+skinparam BackgroundColor white
+skinparam ArrowColor #444444
+skinparam RectangleBorderColor #444444
+skinparam DatabaseBorderColor #444444
+skinparam ActorBorderColor #444444
+skinparam RectangleBackgroundColor #F5F5F5
+skinparam DatabaseBackgroundColor #FEFEFE
+skinparam TitleFontSize 20
+skinparam DefaultTextAlignment center
+skinparam shadowing false
+
+title "Libyan Foreign Ministry Management System - Data Flow Diagram"
+
+' Actors
+actor "Embassy Staff" as staff
+actor "Diplomatic Officials" as officials
+actor "System Administrator" as admin
+actor "Libyan Citizens" as citizens
+
+' Main data sources
+database "Civil Registry Records" as civilRegistry
+database "Passport Services Data" as passportData 
+database "Visa Processing Data" as visaData
+database "Document Attestation Data" as attestationData
+database "Legal Proxy Records" as proxyData
+
+' Processing components
+rectangle "Civil Registry Module" as civilRegistryModule
+rectangle "Passport Services Module" as passportModule
+rectangle "Visa Processing Module" as visaModule
+rectangle "Document Attestation Module" as attestationModule
+rectangle "Legal Proxy Module" as proxyModule
+rectangle "Reports Module" as reportsModule
+
+' Data stores
+database "Local Storage / Browser Cache" as localStorage
+
+' Future components
+rectangle "Reports API (Future)" as reportsAPI
+rectangle "Analytics Engine (Future)" as analyticsEngine
+rectangle "Data Export Service (Future)" as exportService
+
+' Data flow directions
+
+' User interactions
+staff --> civilRegistryModule : inputs data
+staff --> passportModule : processes applications
+staff --> visaModule : handles requests
+staff --> attestationModule : verifies documents
+staff --> proxyModule : manages proxies
+staff --> reportsModule : views metrics
+officials --> reportsModule : reviews statistics
+admin --> reportsModule : configures parameters
+citizens --> civilRegistryModule : provides information
+
+' Data input flows
+civilRegistryModule --> civilRegistry : creates/updates records
+passportModule --> passportData : stores application data
+visaModule --> visaData : records visa information
+attestationModule --> attestationData : saves attestation details
+proxyModule --> proxyData : stores proxy records
+
+' Reports data flows
+civilRegistry --> reportsModule : provides demographic data
+passportData --> reportsModule : provides service statistics
+visaData --> reportsModule : provides processing metrics
+attestationData --> reportsModule : provides verification stats
+proxyData --> reportsModule : provides proxy analytics
+
+' Local storage for offline functionality
+civilRegistryModule <--> localStorage : caches form data
+passportModule <--> localStorage : saves draft applications
+visaModule <--> localStorage : stores application progress
+attestationModule <--> localStorage : preserves verification status
+proxyModule <--> localStorage : maintains proxy details
+reportsModule <--> localStorage : stores filter preferences
+
+' Future backend integration
+reportsModule .> reportsAPI : will connect in Phase 4
+reportsAPI .> analyticsEngine : will process data
+reportsModule .> exportService : will export reports
+exportService .> staff : will deliver formatted reports
+
+' Specific proxy data flows
+note right of proxyData
+  Legal Proxy Record Types:
+  - Court proxies
+  - Bank proxies
+  - Divorce proxies
+  - Real estate proxies
+  - Inheritance proxies
+  - Document completion proxies
+  - General proxies
+end note
+
+' Reporting flows
+note right of reportsModule
+  Data Processing:
+  1. Collects raw data from all modules
+  2. Aggregates statistics and metrics
+  3. Processes for visualization
+  4. Filters based on user criteria
+  5. Formats for display/export
+end note
+
+' Phase information
+note bottom of reportsAPI
+  Implementation Phases:
+  Phase 1: Client-side reporting with mock data
+  Phase 3: Enhanced reporting with real local data
+  Phase 4: API integration for centralized reporting
+  Phase 5: Advanced analytics with predictive capabilities
+end note
+
+@enduml

@@ -1,0 +1,200 @@
+@startuml "Libyan Foreign Ministry Management System - Reports Sequence"
+
+' Theme and styling configuration
+!theme plain
+skinparam BackgroundColor white
+skinparam ParticipantBackgroundColor #F5F5F5
+skinparam SequenceBoxBackgroundColor #FEFEFE
+skinparam SequenceGroupBackgroundColor #FDFDFD
+skinparam SequenceGroupHeaderFontColor #444444
+skinparam ParticipantBorderColor #444444
+skinparam SequenceLifeLineBorderColor #444444
+skinparam TitleFontSize 20
+skinparam DefaultFontSize 12
+skinparam DefaultTextAlignment center
+skinparam shadowing false
+
+title "Reports Module - Sequence Diagram"
+
+' Define Participants
+actor "Embassy Staff" as staff
+actor "Diplomatic Official" as official
+actor "System Administrator" as admin
+participant "Reports.tsx" as reports
+participant "useReports() Hook" as useReports
+participant "Dashboard Content" as dashboard
+participant "Reports Filters" as filters
+participant "Reports Content" as reportsContent
+participant "Analytics Content" as analytics
+participant "Mock Data Provider" as mockData
+participant "Local Storage" as localStorage
+participant "Future Reports API" as api #lightgrey
+note over api: Planned for Phase 4
+
+' Authentication sequence (simplified)
+staff -> reports : Access Reports module
+activate reports
+reports -> useReports : Initialize hook
+activate useReports
+
+' Data initialization
+useReports -> mockData : generateMockReports()
+activate mockData
+mockData --> useReports : Return mock reports data
+deactivate mockData
+
+useReports -> mockData : generateMockStats()
+activate mockData
+mockData --> useReports : Return statistics data
+deactivate mockData
+
+useReports -> mockData : generateServiceMetrics()
+activate mockData
+mockData --> useReports : Return service metrics
+deactivate mockData
+
+useReports -> mockData : generateEmbassyOptions()
+activate mockData
+mockData --> useReports : Return embassy options
+deactivate mockData
+
+' Initialize state with data
+useReports -> useReports : Initialize component state
+useReports -> localStorage : Load saved filter preferences
+activate localStorage
+localStorage --> useReports : Return saved preferences (if any)
+deactivate localStorage
+
+' Return data to main component
+useReports --> reports : Return state and handlers
+deactivate useReports
+
+' Tab selection
+reports -> reports : Default to Dashboard tab
+reports -> dashboard : Render Dashboard tab content
+activate dashboard
+
+group Dashboard Tab Interaction
+    dashboard -> dashboard : Display statistics overview
+    dashboard -> dashboard : Show service metrics
+    dashboard -> dashboard : Display proxy type distribution
+    dashboard -> dashboard : Show embassy services distribution
+    
+    staff -> dashboard : View dashboard statistics
+    dashboard --> staff : Display visual representation of data
+    deactivate dashboard
+end
+
+group Reports Tab Interaction
+    staff -> reports : Click on Reports tab
+    reports -> reports : setSelectedTab('reports')
+    reports -> reportsContent : Render Reports tab content
+    activate reportsContent
+    
+    reportsContent -> filters : Render filter panel
+    activate filters
+    
+    ' Filter interaction
+    staff -> filters : Set filter criteria
+    filters -> useReports : handleFilterChange(type, value)
+    activate useReports
+    useReports -> useReports : Update filter state
+    useReports -> useReports : filterReports()
+    useReports --> filters : Return filtered reports
+    deactivate useReports
+    
+    ' Search interaction
+    staff -> filters : Enter search query
+    filters -> useReports : handleSearchChange(query)
+    activate useReports
+    useReports -> useReports : Update search query
+    useReports -> useReports : filterReports()
+    useReports --> filters : Return search results
+    deactivate useReports
+    
+    ' Expand filters
+    staff -> filters : Click "More Options"
+    filters -> filters : setExpandedFilters(true)
+    filters --> staff : Display additional filter options
+    deactivate filters
+    
+    ' Report interaction
+    staff -> reportsContent : Click on report card
+    reportsContent -> useReports : handleViewReport(report)
+    activate useReports
+    useReports -> useReports : Process report view request
+    alt Current Phase (Mock Data)
+        useReports --> staff : Display mock report alert
+    else Future Phase (API Integration)
+        useReports -> api : fetchReportDetails(report.id)
+        api --> useReports : Return detailed report data
+        useReports --> staff : Display detailed report view
+    end
+    deactivate useReports
+    
+    ' Download report
+    staff -> reportsContent : Click download report
+    reportsContent -> useReports : handleDownloadReport(report, format)
+    activate useReports
+    useReports -> useReports : Process download request
+    alt Current Phase (Mock Data)
+        useReports --> staff : Display mock download alert
+    else Future Phase (API Integration)
+        useReports -> api : downloadReport(report.id, format)
+        api --> useReports : Return report file
+        useReports --> staff : Trigger file download
+    end
+    deactivate useReports
+    deactivate reportsContent
+end
+
+group Analytics Tab Interaction
+    official -> reports : Click on Analytics tab
+    reports -> reports : setSelectedTab('analytics')
+    reports -> analytics : Render Analytics tab content
+    activate analytics
+    
+    analytics -> analytics : Display proxy analytics
+    analytics -> analytics : Show proxy types details
+    analytics -> analytics : Present service performance analysis
+    
+    ' View specific analysis
+    official -> analytics : Interact with analytics charts
+    analytics -> analytics : Update visualization
+    analytics --> official : Display detailed analytics
+    
+    ' Future AI-powered insights
+    note over analytics, api: Planned for Phase 5
+    official -> analytics : Request predictive insights
+    analytics -> api : requestPredictiveAnalysis()
+    api --> analytics : Return AI-processed insights
+    analytics --> official : Display predictive analytics
+    deactivate analytics
+end
+
+' Administrative actions
+admin -> reports : Configure report parameters
+reports -> reports : Display configuration options
+admin -> reports : Set up scheduled reports
+alt Future Phase (API Integration)
+    reports -> api : saveReportSchedule(config)
+    api --> reports : Confirm schedule saved
+    reports --> admin : Display confirmation
+end
+
+' Save preferences before leaving
+staff -> reports : Navigate away from Reports
+reports -> useReports : cleanupHook()
+activate useReports
+useReports -> localStorage : Save filter preferences
+activate localStorage
+localStorage --> useReports : Confirm saved
+deactivate localStorage
+useReports --> reports : Cleanup complete
+deactivate useReports
+reports --> staff : Complete navigation
+deactivate reports
+
+footer "Libyan Foreign Ministry Management System - Implementation Phase 3 (As of April 2025)"
+
+@enduml
