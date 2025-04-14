@@ -48,7 +48,10 @@ const InputField: React.FC<InputFieldProps> = ({
   options,
 }) => (
   <div>
-    <label htmlFor={id} className="flex justify-start items-center text-gray-700 dark:text-gray-300 text-right mb-1">
+    <label
+      htmlFor={id}
+      className="flex justify-start items-center text-gray-700 dark:text-gray-300 text-right mb-1"
+    >
       {label}
       {icon && <span className="mr-2 text-gray-500">{icon}</span>}
       {required && <span className="text-red-500 mr-1">*</span>}
@@ -63,7 +66,9 @@ const InputField: React.FC<InputFieldProps> = ({
         className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     ) : (
@@ -106,7 +111,9 @@ const useDivorceProxyFormState = () => {
     { id: string; type: string; file: File }[]
   >([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
 
   const handleChange = useCallback((name: keyof FormData, value: string) => {
     setFormData((prevFormData) => ({
@@ -115,20 +122,23 @@ const useDivorceProxyFormState = () => {
     }));
   }, []);
 
-  const handleAttachmentUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files.length > 0) {
-      const newAttachments = Array.from(event.target.files).map((file) => ({
-        id: Math.random().toString(36).substr(2, 9),
-        type: "",
-        file,
-      }));
-      setUploadedAttachments((prev) => [...prev, ...newAttachments]);
-    }
-    // Reset file input visually
-    if (event.target) {
-      event.target.value = "";
-    }
-  }, []);
+  const handleAttachmentUpload = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (event.target.files && event.target.files.length > 0) {
+        const newAttachments = Array.from(event.target.files).map((file) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          type: "",
+          file,
+        }));
+        setUploadedAttachments((prev) => [...prev, ...newAttachments]);
+      }
+      // Reset file input visually
+      if (event.target) {
+        event.target.value = "";
+      }
+    },
+    []
+  );
 
   const handleAttachmentTypeChange = useCallback((id: string, type: string) => {
     setUploadedAttachments((prev) =>
@@ -183,7 +193,7 @@ const DivorceProxy: React.FC = () => {
 
       try {
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         // In a real app, you'd send data to a backend here
         // const response = await api.submitDivorceProxy(formData, uploadedAttachments);
         setSubmitStatus("success");
@@ -201,7 +211,6 @@ const DivorceProxy: React.FC = () => {
   const grantorInfoSection = useMemo(
     () => (
       <Section title="بيانات الموكل">
-
         <InputField
           label="السيد / السيدة (الموكل)"
           id="agentName"
@@ -219,7 +228,9 @@ const DivorceProxy: React.FC = () => {
             name="grantorIdType"
             type="select"
             value={formData.grantorIdType}
-            onChange={(value) => handleChange("grantorIdType", value as FormData["grantorIdType"])}
+            onChange={(value) =>
+              handleChange("grantorIdType", value as FormData["grantorIdType"])
+            }
             options={[
               { value: "id", label: "بطاقة شخصية" },
               { value: "license", label: "رخصة قيادة" },
@@ -250,7 +261,13 @@ const DivorceProxy: React.FC = () => {
         />
       </Section>
     ),
-    [formData.agentName, formData.grantorIdType, formData.grantorIdNumber, formData.grantorResident, handleChange]
+    [
+      formData.agentName,
+      formData.grantorIdType,
+      formData.grantorIdNumber,
+      formData.grantorResident,
+      handleChange,
+    ]
   );
 
   const agentInfoSection = useMemo(
@@ -273,7 +290,9 @@ const DivorceProxy: React.FC = () => {
             name="agentIdType"
             type="select"
             value={formData.agentIdType}
-            onChange={(value) => handleChange("agentIdType", value as FormData["agentIdType"])}
+            onChange={(value) =>
+              handleChange("agentIdType", value as FormData["agentIdType"])
+            }
             options={[
               { value: "passport", label: "جواز سفر" },
               { value: "id", label: "بطاقة شخصية" },
@@ -345,8 +364,8 @@ const DivorceProxy: React.FC = () => {
         />
         <p className="text-md text-gray-700 dark:text-gray-300 leading-relaxed mt-4">
           وتمثيلي في المحاكم بجميع أنواعها ومختلف درجاتها كمدعى أو مدعى عليه،
-          وله الحق في التفاوض بإسمي وتمثيلي أمام مكاتب محرري العقود وكذلك
-          توكيل محامين في كل أو بعض ما يخص هذا التوكيل فقط.
+          وله الحق في التفاوض بإسمي وتمثيلي أمام مكاتب محرري العقود وكذلك توكيل
+          محامين في كل أو بعض ما يخص هذا التوكيل فقط.
         </p>
       </Section>
     ),
@@ -365,14 +384,22 @@ const DivorceProxy: React.FC = () => {
             attachmentTypeOptions={[
               { value: "grantor_id", label: "صورة إثبات الموكل" },
               { value: "agent_id", label: "صورة إثبات الوكيل" },
-              { value: "marriage_certificate", label: "صورة عقد الزواج (إن وجد)" },
+              {
+                value: "marriage_certificate",
+                label: "صورة عقد الزواج (إن وجد)",
+              },
               { value: "other", label: "أخرى" },
             ]}
           />
         </div>
       </Section>
     ),
-    [uploadedAttachments, handleAttachmentTypeChange, onRemoveAttachment, handleAttachmentUpload]
+    [
+      uploadedAttachments,
+      handleAttachmentTypeChange,
+      onRemoveAttachment,
+      handleAttachmentUpload,
+    ]
   );
 
   return (
@@ -407,9 +434,25 @@ const DivorceProxy: React.FC = () => {
             } focus:outline-none`}
           >
             {isSubmitting ? (
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
             ) : (
               <Save className="ml-2 h-5 w-5" />
