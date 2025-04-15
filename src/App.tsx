@@ -60,6 +60,8 @@ const RealEstateProxy = lazy(() => import("./components/RealEstateProxy"));
 const InheritanceProxy = lazy(() => import("./components/InheritanceProxy"));
 const DocumentCompletionProxy = lazy(() => import("./components/DocumentCompletionProxy"));
 const GeneralProxy = lazy(() => import("./components/GeneralProxy"));
+const LoginPage = lazy(() => import("./components/LoginPage"));
+const SignupPage = lazy(() => import("./components/SignupPage"));
 
 // Enhanced LoadingScreen component with animation
 const LoadingScreen = () => (
@@ -756,60 +758,71 @@ function App() {
   return (
     <Router>
       <div className={`flex flex-col h-dvh font-sans ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
-        <Topbar
-          theme={theme}
-          toggleTheme={toggleTheme}
-          isSidebarOpen={isSidebarOpen}
-          setIsSidebarOpen={setIsSidebarOpen}
-        />
-        <div className="flex-1 flex bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div 
-              key={location.pathname}
-              className="flex-1 overflow-y-auto p-6"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-                <Suspense fallback={<LoadingScreen />}>
-              <Routes>
-                <Route path="/" element={<DashboardPlaceholder />} />
-                <Route path="/civil-registry/register-citizen" element={<RegisterCitizen />} />
-                <Route path="/civil-registry/register-foreign" element={<RegisterForeign />} />
-                <Route path="/civil-registry/marriage" element={<MarriageRegistration />} />
-                  <Route path="/civil-registry/birth" element={<BirthRegistration />} />
-                  <Route path="/civil-registry/divorce" element={<DivorceRegistration />} />
-                  <Route path="/civil-registry/death" element={<DeathRegistration />} />
-                  <Route path="/reports" element={<Reports />} />
-                  <Route path="/settings" element={<SettingsComponent />} />
-                  <Route path="/passports/issue-passport" element={<IssuePassport />} />
-                  <Route path="/passports/travel-document" element={<TravelDocument />} />
-                  <Route path="/passports/add-child" element={<AddChildToPassport />} />
-                  <Route path="/passports/completed-requests" element={<CompletedRequestsPassports />} />
-                  <Route path="/visas/new-request" element={<NewRequestVisas />} />
-                  <Route path="/visas/pending-requests" element={<PendingRequestsVisas />} />
-                  <Route path="/visas/completed-requests" element={<CompletedRequestsVisas />} />
-                  <Route path="/attestations/local" element={<LocalAttestation />} />
-                  <Route path="/attestations/international" element={<InternationalAttestation />} />
-                  <Route path="/proxies/court" element={<CourtProxy />} />
-                  <Route path="/proxies/bank" element={<BankProxy />} />
-                  <Route path="/proxies/divorce" element={<DivorceProxy />} />
-                  <Route path="/proxies/real-estate" element={<RealEstateProxy />} />
-                  <Route path="/proxies/inheritance" element={<InheritanceProxy />} />
-                  <Route path="/proxies/document-completion" element={<DocumentCompletionProxy />} />
-                  <Route path="/proxies/general" element={<GeneralProxy />} />
-                </Routes>
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
-          <Sidebar
-            isSidebarOpen={isSidebarOpen}
-            setIsSidebarOpen={setIsSidebarOpen}
-            sidebarItems={sidebarItems}
-          />
-        </div>
-        <Footer socialMedia={socialMedia} />
+        {/* Hide Topbar and Sidebar on login/signup pages */}
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+        </Routes>
+        <Routes>
+          <Route path="/*" element={
+            <>
+              <Topbar
+                theme={theme}
+                toggleTheme={toggleTheme}
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+              />
+              <div className="flex-1 flex bg-gray-50 dark:bg-gray-900 relative overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={location.pathname}
+                    className="flex-1 overflow-y-auto p-6"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Suspense fallback={<LoadingScreen />}>
+                      <Routes>
+                        <Route path="dashboard" element={<DashboardPlaceholder />} />
+                        <Route path="civil-registry/register-citizen" element={<RegisterCitizen />} />
+                        <Route path="civil-registry/register-foreign" element={<RegisterForeign />} />
+                        <Route path="civil-registry/marriage" element={<MarriageRegistration />} />
+                        <Route path="civil-registry/birth" element={<BirthRegistration />} />
+                        <Route path="civil-registry/divorce" element={<DivorceRegistration />} />
+                        <Route path="civil-registry/death" element={<DeathRegistration />} />
+                        <Route path="reports" element={<Reports />} />
+                        <Route path="settings" element={<SettingsComponent />} />
+                        <Route path="passports/issue-passport" element={<IssuePassport />} />
+                        <Route path="passports/travel-document" element={<TravelDocument />} />
+                        <Route path="passports/add-child" element={<AddChildToPassport />} />
+                        <Route path="passports/completed-requests" element={<CompletedRequestsPassports />} />
+                        <Route path="visas/new-request" element={<NewRequestVisas />} />
+                        <Route path="visas/pending-requests" element={<PendingRequestsVisas />} />
+                        <Route path="visas/completed-requests" element={<CompletedRequestsVisas />} />
+                        <Route path="attestations/local" element={<LocalAttestation />} />
+                        <Route path="attestations/international" element={<InternationalAttestation />} />
+                        <Route path="proxies/court" element={<CourtProxy />} />
+                        <Route path="proxies/bank" element={<BankProxy />} />
+                        <Route path="proxies/divorce" element={<DivorceProxy />} />
+                        <Route path="proxies/real-estate" element={<RealEstateProxy />} />
+                        <Route path="proxies/inheritance" element={<InheritanceProxy />} />
+                        <Route path="proxies/document-completion" element={<DocumentCompletionProxy />} />
+                        <Route path="proxies/general" element={<GeneralProxy />} />
+                      </Routes>
+                    </Suspense>
+                  </motion.div>
+                </AnimatePresence>
+                <Sidebar
+                  isSidebarOpen={isSidebarOpen}
+                  setIsSidebarOpen={setIsSidebarOpen}
+                  sidebarItems={sidebarItems}
+                />
+              </div>
+              <Footer socialMedia={socialMedia} />
+            </>
+          } />
+        </Routes>
       </div>
     </Router>
   );
