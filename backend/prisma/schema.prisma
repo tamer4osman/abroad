@@ -1,0 +1,1013 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Core User, Role, Permission, Embassy ---
+model User {
+  user_id       Int      @id @default(autoincrement())
+  username      String   @unique
+  password_hash String
+  email         String   @unique // Added unique constraint
+  first_name    String
+  last_name     String
+  is_active     Boolean  @default(true)
+  last_login    DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  userRoles     UserRole[]
+  authLogs      AuthLog[]
+  uploadedDocuments CitizenDocument[]
+  birthRegistrationsRegistered BirthRegistration[] @relation("UserBirthRegistrations")
+  marriageRegistrationsRegistered MarriageRegistration[] @relation("UserMarriageRegistrations") // Added relation name
+  divorceRegistrationsRegistered DivorceRegistration[] @relation("UserDivorceRegistrations")
+  deathRegistrationsRegistered DeathRegistration[] @relation("UserDeathRegistrations")
+  auditLogs AuditLog[]
+  reportExecutions ReportExecution[] @relation("UserReportExecutions")
+  createdReportTemplates ReportTemplate[]
+  modifiedSystemSettings SystemSetting[]
+  modifiedFeeStructures FeeStructure[]
+  issuedPassports Passport[] @relation("IssuedByUser")
+  addedPassportChildren PassportChild[]
+  assignedPassportApplications PassportApplication[] @relation("AssignedPassportApplications")
+  approvedPassportApplications PassportApplication[] @relation("ApprovedPassportApplications")
+  issuedTravelDocuments TravelDocument[]
+  assignedVisaApplications VisaApplication[] @relation("AssignedVisaApplications")
+  approvedVisaApplications VisaApplication[] @relation("ApprovedVisaApplications")
+  issuedVisas IssuedVisa[]
+  assignedAttestationRequests AttestationRequest[]
+  attestedDocuments AttestationDocument[]
+  completedAttestationSteps AttestationStep[]
+  approvedLegalProxies LegalProxy[]
+  verifiedProxyActivities ProxyActivity[]
+  notifications Notification[]
+}
+
+model Role {
+  role_id    Int      @id @default(autoincrement())
+  role_name  String   @unique
+  description String?
+  userRoles  UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  user_role_id Int    @id @default(autoincrement())
+  user         User   @relation(fields: [user_id], references: [user_id])
+  user_id      Int
+  role         Role   @relation(fields: [role_id], references: [role_id])
+  role_id      Int
+  embassy      Embassy? @relation(fields: [embassy_id], references: [embassy_id]) // Role can be scoped to an embassy
+  embassy_id   Int?
+  assigned_at  DateTime @default(now())
+
+  @@index([user_id, role_id, embassy_id]) // Index for efficient lookups
+}
+
+model Embassy {
+  embassy_id Int    @id @default(autoincrement())
+  name       String
+  country    String
+  city       String
+  address    String
+  phone      String?
+  email      String?
+  is_active  Boolean  @default(true)
+  timezone   String // e.g., 'Africa/Tripoli'
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  userRoles  UserRole[]
+  visaApplications VisaApplication[]
+  birthRegistrations BirthRegistration[]
+  marriageRegistrations MarriageRegistration[]
+  divorceRegistrations DivorceRegistration[]
+  deathRegistrations DeathRegistration[]
+  passportsIssued Passport[]
+  passportApplications PassportApplication[]
+  travelDocumentsIssued TravelDocument[]
+  attestationRequests AttestationRequest[]
+  legalProxies LegalProxy[]
+  dailyServiceMetrics MvDailyServiceMetrics[]
+  serviceStats EmbassyServiceStats[]
+  auditLogs AuditLog[]
+}
+
+model AuthLog {
+  log_id    Int      @id @default(autoincrement())
+  user      User     @relation(fields: [user_id], references: [user_id])
+  user_id   Int
+  action    String   // e.g., LOGIN_SUCCESS, LOGIN_FAILURE, PASSWORD_RESET
+  ip_address String
+  user_agent String? // Store browser/client info
+  timestamp DateTime @default(now())
+  details   String?  // e.g., Failure reason
+}
+
+model Permission {
+  permission_id   Int    @id @default(autoincrement())
+  permission_name String @unique // e.g., CREATE_USER, APPROVE_VISA, ISSUE_PASSPORT
+  description     String?
+  category        String? // Group permissions (e.g., UserManagement, VisaProcessing)
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  role_permission_id Int    @id @default(autoincrement())
+  role               Role   @relation(fields: [role_id], references: [role_id])
+  role_id            Int
+  permission         Permission @relation(fields: [permission_id], references: [permission_id])
+  permission_id      Int
+
+  @@unique([role_id, permission_id]) // Ensure a role doesn't have the same permission twice
+}
+
+// --- Civil Registry & Citizen Tables ---
+model Citizen {
+  citizen_id        Int      @id @default(autoincrement())
+  national_id       String   @unique // National ID Number
+  first_name_ar     String
+  last_name_ar      String
+  first_name_en     String
+  last_name_en      String
+  father_name_ar    String   @map("father_name_ar")
+  father_name_en    String   @map("father_name_en")
+  mother_name_ar    String   @map("mother_name_ar")
+  mother_name_en    String   @map("mother_name_en")
+  gender            String   // M/F/Other
+  date_of_birth     DateTime @db.Date // Store only date
+  date_of_birth_hijri String?
+  place_of_birth    String // City, Country
+  marital_status    String // SINGLE, MARRIED, DIVORCED, WIDOWED
+  occupation        String?
+  nationality       String   @default("Libyan") // Default nationality?
+  is_alive          Boolean  @default(true)
+  registration_date DateTime @default(now())
+  last_updated      DateTime @updatedAt
+  photo_url         String? // URL to citizen's photo
+
+  // Relations
+  contactInfos      CitizenContactInfo[]
+  documents         CitizenDocument[]
+  familyRelations   FamilyRelationship[] @relation("CitizenFamily")
+  relatedFamilies   FamilyRelationship[] @relation("RelatedCitizenFamily")
+  birthRegistrationsAsChild BirthRegistration[] @relation("ChildBirth")
+  birthRegistrationsAsFather BirthRegistration[] @relation("FatherBirth")
+  birthRegistrationsAsMother BirthRegistration[] @relation("MotherBirth")
+  marriageAsHusband MarriageRegistration[] @relation("HusbandMarriage")
+  marriageAsWife    MarriageRegistration[] @relation("WifeMarriage")
+  divorceAsHusband  DivorceRegistration[] @relation("HusbandDivorce")
+  divorceAsWife     DivorceRegistration[] @relation("WifeDivorce")
+  deathRegistrations DeathRegistration[] // If citizen is deceased
+  passports         Passport[]
+  passportApplications PassportApplication[]
+  travelDocuments   TravelDocument[]
+  passportChildren  PassportChild[] @relation("ChildPassport")
+  legalProxiesAsGrantor LegalProxy[] @relation("GrantorProxy")
+  custodyArrangements CustodyArrangement[] @relation("ChildCustody") // Relation name added
+  divorceParties      DivorceParty[] // Relation for DivorceParty
+  mvCitizenDocumentSummary MvCitizenDocumentSummary?
+
+  @@index([national_id])
+  @@index([first_name_en, last_name_en])
+  @@index([first_name_ar, last_name_ar])
+}
+
+model CitizenContactInfo {
+  contact_id    Int    @id @default(autoincrement())
+  citizen       Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade) // Cascade delete if citizen removed
+  citizen_id    Int
+  contact_type  String // HOME, WORK, MOBILE, EMAIL
+  address_line1 String?
+  address_line2 String?
+  city          String?
+  region        String?
+  country       String
+  postal_code   String?
+  email         String?
+  phone         String?
+  is_primary    Boolean @default(false) // Mark one phone/email/address as primary
+  is_current    Boolean @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([citizen_id, contact_type])
+}
+
+model CitizenDocument {
+  document_id         Int    @id @default(autoincrement())
+  citizen             Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
+  citizen_id          Int
+  document_type       String // National ID, Birth Certificate, Passport Copy, etc.
+  document_number     String?
+  issue_date          DateTime? @db.Date
+  expiry_date         DateTime? @db.Date
+  issuing_authority   String?
+  document_file_url   String? // Changed from path to URL for flexibility
+  verification_status String  @default("PENDING") // PENDING, VERIFIED, REJECTED
+  uploaded_by         User    @relation(fields: [uploaded_by_id], references: [user_id])
+  uploaded_by_id      Int
+  notes               String?
+  upload_date         DateTime @default(now())
+
+  @@index([citizen_id, document_type])
+}
+
+model FamilyRelationship {
+  relationship_id   Int    @id @default(autoincrement())
+  citizen           Citizen @relation("CitizenFamily", fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
+  citizen_id        Int
+  related_citizen   Citizen @relation("RelatedCitizenFamily", fields: [related_citizen_id], references: [citizen_id], onDelete: Cascade)
+  related_citizen_id Int
+  relationship_type String // FATHER, MOTHER, SPOUSE, SON, DAUGHTER, SIBLING
+  start_date        DateTime? @db.Date // e.g., Marriage date
+  end_date          DateTime? @db.Date // e.g., Divorce date
+  is_active         Boolean @default(true)
+  notes             String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@unique([citizen_id, related_citizen_id, relationship_type]) // Prevent duplicate relationships
+  @@index([related_citizen_id])
+}
+
+// --- Birth Registration ---
+model BirthRegistration {
+  birth_id         Int    @id @default(autoincrement())
+  child_citizen    Citizen @relation("ChildBirth", fields: [child_citizen_id], references: [citizen_id], onDelete: Restrict) // Don't delete citizen if birth record exists
+  child_citizen_id Int    @unique // A citizen should only have one primary birth registration
+  father_citizen   Citizen? @relation("FatherBirth", fields: [father_citizen_id], references: [citizen_id], onDelete: SetNull)
+  father_citizen_id Int?
+  mother_citizen   Citizen? @relation("MotherBirth", fields: [mother_citizen_id], references: [citizen_id], onDelete: SetNull)
+  mother_citizen_id Int?
+  date_of_birth    DateTime @db.Date
+  time_of_birth    DateTime? @db.Time // Store only time
+  place_of_birth   String   // City, Region, Country
+  hospital_name    String?
+  birth_certificate_number String? @unique
+  birth_certificate_file_url String?
+  registry_number  String? // Local registry number
+  registered_by    User    @relation("UserBirthRegistrations", fields: [registered_by_id], references: [user_id])
+  registered_by_id Int
+  status           String  @default("PENDING") // PENDING, REGISTERED, VERIFIED, REJECTED
+  embassy          Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id       Int
+  notes            String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  witnesses        BirthWitness[]
+  medicalInfo      BirthMedicalInfo? // Typically one set of medical info per birth
+
+  @@index([father_citizen_id])
+  @@index([mother_citizen_id])
+  @@index([embassy_id, status])
+}
+
+model BirthWitness {
+  witness_id           Int    @id @default(autoincrement())
+  birth                BirthRegistration @relation(fields: [birth_id], references: [birth_id], onDelete: Cascade)
+  birth_id             Int
+  witness_name         String
+  witness_id_type      String // NATIONAL_ID, PASSPORT
+  witness_id_number    String
+  relationship_to_child String? // e.g., Grandparent, Doctor
+  contact_info         String? // Phone or Address
+  created_at           DateTime @default(now())
+
+  @@index([birth_id])
+}
+
+model BirthMedicalInfo {
+  medical_info_id    Int    @id @default(autoincrement())
+  birth              BirthRegistration @relation(fields: [birth_id], references: [birth_id], onDelete: Cascade)
+  birth_id           Int    @unique // One medical info per birth
+  birth_weight_kg    Float? @map("birth_weight_kg")
+  birth_length_cm    Float? @map("birth_length_cm")
+  apgar_score_1min   Int?   @map("apgar_score_1min") // APGAR score at 1 minute
+  apgar_score_5min   Int?   @map("apgar_score_5min") // APGAR score at 5 minutes
+  birth_type         String? // VAGINAL, C_SECTION, FORCEPS, VACUUM
+  attending_physician String?
+  medical_notes      String? // Any complications or notes
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+// --- Marriage Registration ---
+model MarriageRegistration {
+  marriage_id         Int    @id @default(autoincrement())
+  husband_citizen     Citizen @relation("HusbandMarriage", fields: [husband_citizen_id], references: [citizen_id], onDelete: Restrict)
+  husband_citizen_id  Int
+  wife_citizen        Citizen @relation("WifeMarriage", fields: [wife_citizen_id], references: [citizen_id], onDelete: Restrict)
+  wife_citizen_id     Int
+  marriage_date       DateTime @db.Date
+  marriage_date_hijri String?
+  marriage_location   String // City, Country
+  certificate_number  String? @unique
+  certificate_file_url String?
+  issuing_authority   String // e.g., Court Name, Registry Office
+  registration_date   DateTime @default(now()) @db.Date
+  registered_by       User    @relation("UserMarriageRegistrations", fields: [registered_by_id], references: [user_id])
+  registered_by_id    Int
+  status              String  @default("PENDING") // PENDING, REGISTERED, VERIFIED, ANNULLED, REJECTED
+  embassy             Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id          Int
+  notes               String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  witnesses           MarriageWitness[]
+  divorce             DivorceRegistration? // Relation to the divorce record, if any
+
+  @@index([husband_citizen_id, wife_citizen_id])
+  @@index([embassy_id, status])
+}
+
+model MarriageWitness {
+  witness_id        Int    @id @default(autoincrement())
+  marriage          MarriageRegistration @relation(fields: [marriage_id], references: [marriage_id], onDelete: Cascade)
+  marriage_id       Int
+  witness_name      String
+  witness_id_type   String // NATIONAL_ID, PASSPORT
+  witness_id_number String
+  contact_info      String? // Phone or Address
+  created_at        DateTime @default(now())
+
+  @@index([marriage_id])
+}
+
+// --- Divorce Registration ---
+model DivorceRegistration {
+  divorce_id         Int    @id @default(autoincrement())
+  marriage           MarriageRegistration @relation(fields: [marriage_id], references: [marriage_id], onDelete: Restrict) // Divorce needs a marriage
+  marriage_id        Int    @unique // A divorce record corresponds to exactly one marriage record
+  husband_citizen    Citizen @relation("HusbandDivorce", fields: [husband_citizen_id], references: [citizen_id], onDelete: Restrict)
+  husband_citizen_id Int
+  wife_citizen       Citizen @relation("WifeDivorce", fields: [wife_citizen_id], references: [citizen_id], onDelete: Restrict)
+  wife_citizen_id    Int
+  divorce_date       DateTime @db.Date
+  divorce_date_hijri String?
+  divorce_type       String // e.g., Khula, Talaq, Court Decree
+  court_name         String?
+  case_number        String? @unique
+  decree_file_url    String?
+  registration_date  DateTime @default(now()) @db.Date
+  registered_by      User    @relation("UserDivorceRegistrations", fields: [registered_by_id], references: [user_id])
+  registered_by_id   Int
+  status             String  @default("PENDING") // PENDING, REGISTERED, VERIFIED, REJECTED
+  embassy            Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id         Int
+  notes              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  parties            DivorceParty[]
+  custodyArrangements CustodyArrangement[]
+
+  @@index([husband_citizen_id, wife_citizen_id]) // Same index as marriage for lookups
+  @@index([embassy_id, status])
+}
+
+model DivorceParty {
+  party_id      Int    @id @default(autoincrement())
+  divorce       DivorceRegistration @relation(fields: [divorce_id], references: [divorce_id], onDelete: Cascade)
+  divorce_id    Int
+  citizen       Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Restrict) // Keep citizen even if divorce deleted? Debatable.
+  citizen_id    Int
+  role          String // HUSBAND, WIFE, LAWYER_HUSBAND, LAWYER_WIFE
+  created_at    DateTime @default(now())
+
+  @@unique([divorce_id, citizen_id, role]) // Ensure citizen has only one role per divorce
+  @@index([citizen_id])
+}
+
+model CustodyArrangement {
+  custody_id        Int    @id @default(autoincrement())
+  divorce           DivorceRegistration @relation(fields: [divorce_id], references: [divorce_id], onDelete: Cascade)
+  divorce_id        Int
+  child_citizen     Citizen @relation("ChildCustody", fields: [child_citizen_id], references: [citizen_id], onDelete: Restrict)
+  child_citizen_id  Int
+  custody_holder    String // FATHER, MOTHER, JOINT, OTHER
+  custody_details   String? // Description of the arrangement, visitation rights etc.
+  effective_date    DateTime @db.Date
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@unique([divorce_id, child_citizen_id]) // One arrangement per child per divorce
+  @@index([child_citizen_id])
+}
+
+// --- Death Registration ---
+model DeathRegistration {
+  death_id         Int    @id @default(autoincrement())
+  citizen          Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Restrict)
+  citizen_id       Int    @unique // Citizen can only have one death registration
+  date_of_death    DateTime @db.Date
+  time_of_death    DateTime? @db.Time
+  place_of_death   String // City, Region, Country
+  cause_of_death   String? // ICD-10 Code or description
+  death_certificate_number String? @unique
+  death_certificate_file_url String?
+  issuing_authority String // e.g., Hospital, Coroner, Civil Registry
+  registration_date DateTime @default(now()) @db.Date
+  registered_by    User    @relation("UserDeathRegistrations", fields: [registered_by_id], references: [user_id])
+  registered_by_id Int
+  status           String  @default("PENDING") // PENDING, REGISTERED, VERIFIED, REJECTED
+  embassy          Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id       Int
+  notes            String? // e.g., Circumstances if known
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  informants       DeathInformant[]
+
+  @@index([embassy_id, status])
+}
+
+model DeathInformant {
+  informant_id             Int    @id @default(autoincrement())
+  death                    DeathRegistration @relation(fields: [death_id], references: [death_id], onDelete: Cascade)
+  death_id                 Int
+  informant_name           String
+  informant_id_type        String // NATIONAL_ID, PASSPORT
+  informant_id_number      String
+  relationship_to_deceased String // SPOUSE, SON, DAUGHTER, DOCTOR, OFFICIAL
+  contact_info             String? // Phone or Address
+  statement_date           DateTime @default(now()) @db.Date
+  created_at               DateTime @default(now())
+
+  @@index([death_id])
+}
+
+// --- Passport Services ---
+model Passport {
+  passport_id         Int    @id @default(autoincrement())
+  citizen             Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Restrict)
+  citizen_id          Int
+  passport_number     String  @unique
+  passport_type       String  // ORDINARY, DIPLOMATIC, SPECIAL, EMERGENCY
+  issue_date          DateTime @db.Date
+  expiry_date         DateTime @db.Date
+  issuing_embassy     Embassy @relation(fields: [issuing_embassy_id], references: [embassy_id])
+  issuing_embassy_id  Int
+  issued_by           User    @relation("IssuedByUser", fields: [issued_by_id], references: [user_id])
+  issued_by_id        Int
+  status              String  // ACTIVE, EXPIRED, REVOKED, LOST, STOLEN
+  previous_passport_number String? // Link by number if needed, direct relation complex if previous deleted
+  photo_file_url      String?
+  biometric_data_ref  String? // Reference to biometric system data?
+  notes               String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  children            PassportChild[] // Children included in this passport (if applicable)
+  application         PassportApplication? // Link back to the application that generated this passport
+
+  @@index([citizen_id, status])
+  @@index([expiry_date])
+}
+
+model PassportChild {
+  entry_id         Int    @id @default(autoincrement())
+  passport         Passport @relation(fields: [passport_id], references: [passport_id], onDelete: Cascade)
+  passport_id      Int
+  child_citizen    Citizen @relation("ChildPassport", fields: [child_citizen_id], references: [citizen_id], onDelete: Restrict)
+  child_citizen_id Int
+  added_date       DateTime @default(now()) @db.Date
+  added_by         User    @relation(fields: [added_by_id], references: [user_id])
+  added_by_id      Int
+  status           String  @default("ACTIVE") // ACTIVE, REMOVED
+  notes            String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  @@unique([passport_id, child_citizen_id]) // Child can only be on a passport once
+  @@index([child_citizen_id])
+}
+
+model PassportApplication {
+  application_id      Int    @id @default(autoincrement())
+  citizen             Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
+  citizen_id          Int
+  application_type    String  // NEW, RENEWAL, LOST_REPLACEMENT, DAMAGED_REPLACEMENT, ADD_CHILD
+  application_reason  String? // If replacement/other
+  application_date    DateTime @default(now())
+  processing_type     String  @default("NORMAL") // NORMAL, URGENT
+  embassy             Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id          Int
+  assigned_to         User?   @relation("AssignedPassportApplications", fields: [assigned_to_id], references: [user_id], onDelete: SetNull)
+  assigned_to_id      Int?
+  approved_by         User?   @relation("ApprovedPassportApplications", fields: [approved_by_id], references: [user_id], onDelete: SetNull)
+  approved_by_id      Int?
+  approval_date       DateTime?
+  rejection_reason    String?
+  tracking_number     String  @unique @default(cuid()) // Added tracking number
+  notes               String?
+  passport            Passport? @relation(fields: [passport_id], references: [passport_id], onDelete: SetNull) // Link to the issued passport
+  passport_id         Int?    @unique // One application results in one passport
+  status              String  @default("PENDING") // PENDING, PROCESSING, AWAITING_PAYMENT, PENDING_APPROVAL, APPROVED, REJECTED, ISSUED, CANCELLED
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  // Denormalized fields for potential quicker access, manage updates carefully
+  fee_amount          Float?
+  fee_payment_status  String?  @default("PENDING") // PENDING, PAID, WAIVED
+  fee_receipt_number  String?
+  payment_date        DateTime?
+  // documents_verified  Boolean? // Status can imply this
+
+  @@index([citizen_id, status])
+  @@index([embassy_id, status])
+  @@index([assigned_to_id])
+}
+
+model TravelDocument {
+  document_id        Int    @id @default(autoincrement())
+  citizen            Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Restrict)
+  citizen_id         Int
+  document_number    String  @unique
+  document_type      String  // LAISSEZ_PASSER, EMERGENCY_CERTIFICATE
+  issue_date         DateTime @db.Date
+  expiry_date        DateTime @db.Date
+  reason_for_issuance String
+  destination_country String?
+  issuing_embassy    Embassy @relation(fields: [issuing_embassy_id], references: [embassy_id])
+  issuing_embassy_id Int
+  issued_by          User    @relation(fields: [issued_by_id], references: [user_id])
+  issued_by_id       Int
+  status             String // ACTIVE, EXPIRED, REVOKED
+  notes              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([citizen_id, status])
+  @@index([issuing_embassy_id, status])
+}
+
+// --- Visa Processing ---
+model VisaApplication {
+  application_id     Int    @id @default(autoincrement())
+  // Applicant Details (Non-Citizen)
+  first_name         String
+  last_name          String
+  nationality        String // Country Code or Name
+  passport_number    String
+  passport_issue_date DateTime @db.Date
+  passport_expiry_date DateTime @db.Date
+  date_of_birth      DateTime @db.Date
+  gender             String // M/F/Other
+  email              String?
+  phone              String?
+  current_address    String?
+
+  // Visa Details
+  visa_type          String // TOURIST, BUSINESS, WORK, STUDENT, FAMILY_REUNION, TRANSIT
+  visa_purpose       String // Detailed purpose
+  entry_type         String // SINGLE, MULTIPLE
+  requested_duration_days Int @map("requested_duration_days")
+  intended_entry_date DateTime? @db.Date
+  intended_exit_date  DateTime? @db.Date
+
+  // Processing Details
+  processing_type    String  @default("NORMAL") // NORMAL, URGENT
+  application_date   DateTime @default(now())
+  embassy            Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id         Int
+  assigned_to        User?   @relation("AssignedVisaApplications", fields: [assigned_to_id], references: [user_id], onDelete: SetNull)
+  assigned_to_id     Int?
+  approved_by        User?   @relation("ApprovedVisaApplications", fields: [approved_by_id], references: [user_id], onDelete: SetNull)
+  approved_by_id     Int?
+  approval_date      DateTime?
+  rejection_reason   String?
+  tracking_number    String  @unique @default(cuid())
+  notes              String?
+  status             String  @default("PENDING") // PENDING, PROCESSING, AWAITING_PAYMENT, PENDING_APPROVAL, APPROVED, REJECTED, ISSUED, CANCELLED
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Denormalized Fee Info
+  fee_amount         Float?
+  fee_payment_status String?  @default("PENDING") // PENDING, PAID, WAIVED
+  fee_receipt_number String?
+  payment_date       DateTime?
+
+  // Relations
+  sponsors           VisaSponsor[]
+  documents          VisaDocument[]
+  issuedVisa         IssuedVisa? // Link to the actual issued visa
+
+  @@index([passport_number])
+  @@index([embassy_id, status])
+  @@index([assigned_to_id])
+  @@index([tracking_number])
+}
+
+model VisaSponsor {
+  sponsor_id     Int    @id @default(autoincrement())
+  application    VisaApplication @relation(fields: [application_id], references: [application_id], onDelete: Cascade)
+  application_id Int
+  sponsor_type   String // INDIVIDUAL, COMPANY
+  sponsor_name   String
+  relationship   String? // e.g., Employer, Family Member
+  address        String
+  phone          String
+  email          String?
+  id_type        String? // e.g., National ID, Commercial Register
+  id_number      String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([application_id])
+}
+
+model VisaDocument {
+  document_id    Int    @id @default(autoincrement())
+  application    VisaApplication @relation(fields: [application_id], references: [application_id], onDelete: Cascade)
+  application_id Int
+  document_type  String // PASSPORT_COPY, PHOTO, INVITATION_LETTER, BANK_STATEMENT, FLIGHT_BOOKING
+  document_file_url String
+  verification_status String  @default("PENDING") // PENDING, VERIFIED, REJECTED
+  notes          String?
+  uploaded_at    DateTime @default(now())
+
+  @@index([application_id, document_type])
+}
+
+model IssuedVisa {
+  visa_id        Int    @id @default(autoincrement())
+  application    VisaApplication @relation(fields: [application_id], references: [application_id], onDelete: Restrict) // Don't delete application if visa issued
+  application_id Int   @unique // Only one visa per application
+  visa_number    String  @unique
+  issue_date     DateTime @db.Date
+  expiry_date    DateTime @db.Date
+  entry_type     String // SINGLE, MULTIPLE (as granted)
+  duration_of_stay_days Int @map("duration_of_stay_days") // Granted duration
+  issued_by      User    @relation(fields: [issued_by_id], references: [user_id])
+  issued_by_id   Int
+  notes          String? // Any conditions or remarks
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([visa_number])
+  @@index([expiry_date])
+}
+
+// --- Attestation Module ---
+model AttestationRequest {
+  request_id         Int    @id @default(autoincrement())
+  // Requestor Info
+  requestor_name     String
+  requestor_id_type  String // NATIONAL_ID, PASSPORT, COMPANY_REG
+  requestor_id_number String
+  contact_phone      String
+  contact_email      String?
+  // Document Info
+  attestation_type   String // e.g., EDUCATIONAL, COMMERCIAL, PERSONAL, MEDICAL
+  document_type      String // e.g., DEGREE_CERTIFICATE, MARRIAGE_CERTIFICATE, INVOICE
+  document_description String? // More specific details if needed
+  issuing_authority  String? // Authority that issued the original document
+  target_country     String? // Country where the attested doc will be used
+  is_apostille       Boolean @default(false) // Specific type of attestation
+
+  // Processing Info
+  request_date       DateTime @default(now())
+  fee_amount         Float
+  fee_payment_status String  @default("PENDING") // PENDING, PAID, WAIVED
+  fee_receipt_number String?
+  payment_date       DateTime?
+  status             String  @default("PENDING") // PENDING, PROCESSING, AWAITING_PAYMENT, PENDING_VERIFICATION, READY_FOR_COLLECTION, COMPLETED, REJECTED, CANCELLED
+  embassy            Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id         Int
+  assigned_to        User?   @relation(fields: [assigned_to_id], references: [user_id], onDelete: SetNull)
+  assigned_to_id     Int?
+  tracking_number    String  @unique @default(cuid())
+  notes              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Relations
+  documents          AttestationDocument[]
+  steps              AttestationStep[]
+
+  @@index([embassy_id, status])
+  @@index([assigned_to_id])
+  @@index([tracking_number])
+}
+
+model AttestationDocument {
+  document_id             Int    @id @default(autoincrement())
+  request                 AttestationRequest @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
+  request_id              Int
+  original_document_file_url  String // URL to scanned original
+  attested_document_file_url  String? // URL to the final attested doc (scan)
+  verification_status     String  @default("PENDING") // PENDING, VERIFIED_INTERNAL, VERIFIED_EXTERNAL, REJECTED
+  attestation_stamp_ref   String? // Reference number or details of the physical stamp used
+  notes                   String?
+  uploaded_at             DateTime @default(now())
+  attested_at             DateTime?
+  attested_by             User?   @relation(fields: [attested_by_id], references: [user_id], onDelete: SetNull)
+  attested_by_id          Int?
+
+  @@index([request_id])
+  @@index([attested_by_id])
+}
+
+model AttestationStep {
+  step_id        Int    @id @default(autoincrement())
+  request        AttestationRequest @relation(fields: [request_id], references: [request_id], onDelete: Cascade)
+  request_id     Int
+  step_name      String // e.g., Initial Review, Payment Verification, External Verification, Stamping, Final Approval
+  step_order     Int    // To define the workflow sequence
+  step_status    String  @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED, SKIPPED, FAILED
+  completed_by   User?   @relation(fields: [completed_by_id], references: [user_id], onDelete: SetNull)
+  completed_by_id Int?
+  completed_at   DateTime?
+  notes          String? // Comments specific to this step
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@index([request_id, step_order])
+  @@index([completed_by_id])
+}
+
+// --- Legal Proxy Module (Power of Attorney) ---
+model LegalProxy {
+  proxy_id            Int    @id @default(autoincrement())
+  proxy_type          String // GENERAL, SPECIFIC, COMMERCIAL, PROPERTY
+  grantor_citizen     Citizen @relation("GrantorProxy", fields: [grantor_citizen_id], references: [citizen_id], onDelete: Restrict)
+  grantor_citizen_id  Int
+  proxy_holder_name   String
+  proxy_holder_id_type String // NATIONAL_ID, PASSPORT
+  proxy_holder_id_number String
+  proxy_purpose       String // Detailed description of powers granted
+  start_date          DateTime @db.Date
+  end_date            DateTime? @db.Date // Nullable for indefinite proxies
+  is_revocable        Boolean @default(true)
+  authority_limitations String? // Specific limitations or exclusions
+  status              String  @default("PENDING") // PENDING, ACTIVE, REVOKED, EXPIRED, REJECTED
+  verification_status String  @default("PENDING") // PENDING, VERIFIED, REJECTED
+  embassy             Embassy @relation(fields: [embassy_id], references: [embassy_id])
+  embassy_id          Int
+  approved_by         User?   @relation(fields: [approved_by_id], references: [user_id], onDelete: SetNull)
+  approved_by_id      Int?
+  approval_date       DateTime?
+  registration_number String  @unique @default(cuid()) // Official registration number
+  notes               String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  documents           ProxyDocument[]
+  activities          ProxyActivity[] // Log of actions taken using this proxy (optional feature)
+
+  @@index([grantor_citizen_id, status])
+  @@index([proxy_holder_id_number])
+  @@index([embassy_id, status])
+  @@index([registration_number])
+}
+
+model ProxyDocument {
+  document_id         Int    @id @default(autoincrement())
+  proxy               LegalProxy @relation(fields: [proxy_id], references: [proxy_id], onDelete: Cascade)
+  proxy_id            Int
+  document_type       String // PROXY_FORM, GRANTOR_ID, HOLDER_ID, SUPPORTING_DOC
+  document_file_url   String
+  verification_status String  @default("PENDING") // PENDING, VERIFIED, REJECTED
+  notes               String?
+  uploaded_at         DateTime @default(now())
+
+  @@index([proxy_id, document_type])
+}
+
+model ProxyActivity {
+  activity_id         Int    @id @default(autoincrement())
+  proxy               LegalProxy @relation(fields: [proxy_id], references: [proxy_id], onDelete: Cascade)
+  proxy_id            Int
+  activity_type       String // PROPERTY_SALE, BANK_TRANSACTION, LEGAL_REPRESENTATION
+  activity_date       DateTime @db.Date
+  activity_description String
+  performed_by_holder Boolean @default(true) // Was it the holder who performed the action?
+  reference_document_url String? // Link to doc proving the activity (e.g., sale contract)
+  verified_by         User?   @relation(fields: [verified_by_id], references: [user_id], onDelete: SetNull) // Optional verification step
+  verified_by_id      Int?
+  verification_date   DateTime?
+  notes               String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@index([proxy_id])
+  @@index([verified_by_id])
+}
+
+// --- Notifications and Communications ---
+model Notification {
+  notification_id     Int    @id @default(autoincrement())
+  user                User?  @relation(fields: [user_id], references: [user_id], onDelete: Cascade) // Null user_id could mean system-wide admin notification
+  user_id             Int?
+  notification_type   String // INFO, WARNING, ERROR, TASK_ASSIGNMENT, APPROVAL_REQUEST
+  subject             String
+  message             String @db.Text
+  related_record_type String? // e.g., VisaApplication, PassportApplication
+  related_record_id   Int?    // ID of the related record
+  is_read             Boolean @default(false)
+  read_at             DateTime?
+  created_at          DateTime @default(now())
+  expires_at          DateTime? // For temporary notifications
+
+  @@index([user_id, is_read])
+  @@index([created_at])
+}
+
+model EmailLog {
+  email_id           Int    @id @default(autoincrement())
+  recipient_email    String
+  subject            String
+  message            String @db.Text // Store the email body
+  related_record_type String? // e.g., VisaApplication, User
+  related_record_id  Int?
+  status             String  @default("PENDING") // PENDING, SENT, FAILED
+  error_message      String? // Store error if sending failed
+  sent_at            DateTime?
+  created_at         DateTime @default(now())
+  retry_count        Int     @default(0) // Number of send attempts
+
+  @@index([recipient_email, status])
+  @@index([created_at])
+}
+
+// --- System Configuration and Settings ---
+model SystemSetting {
+  setting_id         Int    @id @default(autoincrement())
+  setting_key        String @unique // e.g., 'DEFAULT_TIMEZONE', 'MAX_LOGIN_ATTEMPTS'
+  setting_value      String? @db.Text // Use Text for potentially long values
+  setting_type       String @default("STRING") // STRING, INT, BOOLEAN, JSON
+  setting_description String?
+  is_editable        Boolean @default(true) // Prevent some core settings from UI changes
+  modified_by        User?  @relation(fields: [modified_by_id], references: [user_id], onDelete: SetNull)
+  modified_by_id     Int?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+}
+
+model FeeStructure {
+  fee_id             Int    @id @default(autoincrement())
+  service_type       String // PASSPORT_NEW, VISA_TOURIST, ATTESTATION_EDUCATIONAL, PROXY_GENERAL
+  fee_name           String // e.g., "Standard Passport Fee", "Urgent Visa Processing Fee"
+  fee_amount         Float
+  currency           String  @default("LYD") // ISO currency code
+  is_active          Boolean @default(true)
+  effective_from     DateTime @db.Date
+  effective_to       DateTime? @db.Date // Null if currently active indefinitely
+  notes              String?
+  modified_by        User?  @relation(fields: [modified_by_id], references: [user_id], onDelete: SetNull)
+  modified_by_id     Int?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([service_type, is_active, currency])
+}
+
+// --- Reporting and Analytics ---
+model ReportTemplate {
+  template_id        Int    @id @default(autoincrement())
+  template_name      String @unique
+  template_description String?
+  report_type        String // e.g., VISA_SUMMARY, PASSPORT_EXPIRY, DAILY_STATS
+  template_query     String? @db.Text // Store SQL query or config for generating report (use cautiously)
+  parameters         String? // JSON string defining required params (e.g., date range, embassy)
+  is_system          Boolean @default(false) // System-defined vs User-defined
+  created_by         User?   @relation(fields: [created_by_id], references: [user_id], onDelete: SetNull) // Null if system
+  created_by_id      Int?
+  is_active          Boolean @default(true)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  reportExecutions   ReportExecution[]
+
+  @@index([report_type, is_active])
+}
+
+model ReportExecution {
+  execution_id       Int    @id @default(autoincrement())
+  template           ReportTemplate @relation(fields: [template_id], references: [template_id])
+  template_id        Int
+  executed_by        User    @relation("UserReportExecutions", fields: [executed_by_id], references: [user_id])
+  executed_by_id     Int
+  parameters_used    String? @db.Text // JSON string of parameters actually used for this run
+  execution_start_time DateTime @default(now()) @map("execution_start_time")
+  execution_end_time DateTime? @map("execution_end_time")
+  status             String  @default("RUNNING") // RUNNING, COMPLETED, FAILED
+  output_format      String  @default("PDF") // PDF, CSV, EXCEL
+  result_file_url    String? // URL to the generated report file
+  error_message      String? // If status is FAILED
+  created_at         DateTime @default(now())
+
+  @@index([template_id, status])
+  @@index([executed_by_id])
+  @@index([created_at])
+}
+
+// --- Audit and Logging ---
+model AuditLog {
+  log_id             Int    @id @default(autoincrement())
+  user               User?  @relation(fields: [user_id], references: [user_id], onDelete: SetNull) // Action might be by system
+  user_id            Int?
+  action             String // e.g., CREATE, UPDATE, DELETE, LOGIN, APPROVE, REJECT
+  record_type        String // Model name: e.g., 'User', 'VisaApplication'
+  record_id          Int?   // Primary key of the affected record
+  old_values         Json? @db.Json // Store previous state as JSON
+  new_values         Json? @db.Json // Store new state as JSON
+  ip_address         String? // Record IP if available
+  user_agent         String? // Record client info if available
+  timestamp          DateTime @default(now())
+  embassy            Embassy? @relation(fields: [embassy_id], references: [embassy_id], onDelete: SetNull) // Embassy context if relevant
+  embassy_id         Int?
+  details            String? @db.Text // Additional context or notes
+
+  @@index([timestamp])
+  @@index([user_id])
+  @@index([record_type, record_id])
+  @@index([action])
+}
+
+model SystemLog {
+  log_id             Int    @id @default(autoincrement())
+  log_level          String // INFO, WARN, ERROR, DEBUG, FATAL
+  log_message        String @db.Text
+  source             String // e.g., 'VisaService', 'AuthModule', 'Database'
+  exception_details  String? @db.Text @map("exception_details")
+  stack_trace        String? @db.Text @map("stack_trace")
+  timestamp          DateTime @default(now())
+  server_name        String? // Identify server in multi-instance setups
+  correlation_id     String? // Link related log entries
+
+  @@index([timestamp])
+  @@index([log_level])
+  @@index([source])
+}
+
+// --- Denormalized/Materialized Views for Analytics (Conceptual - managed outside Prisma migrations) ---
+// These tables would typically be populated by background jobs or database triggers
+// for performance reasons. Prisma can query them but doesn't manage their creation/updates.
+model MvDailyServiceMetrics {
+  report_date                DateTime @db.Date
+  embassy                    Embassy @relation(fields: [embassy_id], references: [embassy_id], onDelete: Cascade)
+  embassy_id                 Int
+  passport_applications_new  Int @default(0)
+  passport_applications_renew Int @default(0)
+  passports_issued           Int @default(0)
+  visa_applications_tourist  Int @default(0)
+  visa_applications_work     Int @default(0)
+  visas_issued               Int @default(0)
+  attestations_completed     Int @default(0)
+  birth_registrations        Int @default(0)
+  marriage_registrations     Int @default(0)
+  divorce_registrations      Int @default(0)
+  death_registrations        Int @default(0)
+  proxy_registrations        Int @default(0)
+  last_updated               DateTime @updatedAt
+
+  @@id([report_date, embassy_id]) // Composite primary key
+  @@map("mv_daily_service_metrics") // Map to a specific table name
+}
+
+model MvCitizenDocumentSummary {
+  citizen                    Citizen @relation(fields: [citizen_id], references: [citizen_id], onDelete: Cascade)
+  citizen_id                 Int @id // Primary key matches Citizen
+  active_passport_number     String?
+  passport_expiry_date       DateTime? @db.Date
+  active_visa_count          Int @default(0)
+  last_visa_expiry_date      DateTime? @db.Date
+  attestation_request_count  Int @default(0)
+  active_proxy_count         Int @default(0)
+  last_document_upload_date  DateTime?
+  last_updated               DateTime @updatedAt
+
+  @@map("mv_citizen_document_summary")
+}
+
+model EmbassyServiceStats {
+  stat_id                    Int @id @default(autoincrement()) // Simple ID might be easier
+  embassy                    Embassy @relation(fields: [embassy_id], references: [embassy_id], onDelete: Cascade)
+  embassy_id                 Int
+  stat_period_start          DateTime @db.Date
+  stat_period_end            DateTime @db.Date
+  stat_type                  String // DAILY, WEEKLY, MONTHLY
+  total_citizens_served      Int @default(0)
+  total_passports_issued     Int @default(0)
+  total_visas_processed      Int @default(0)
+  total_documents_attested   Int @default(0)
+  total_proxies_registered   Int @default(0)
+  avg_processing_time_passport_days Float?
+  avg_processing_time_visa_days     Float?
+  avg_processing_time_attestation_days Float?
+  last_updated               DateTime @updatedAt
+
+  @@unique([embassy_id, stat_period_start, stat_type])
+  @@map("mv_embassy_service_stats")
+}
