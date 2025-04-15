@@ -4,23 +4,25 @@ A comprehensive administrative dashboard built with React, TypeScript, and Vite,
 
 ## 🚀 Features
 
-- **Complete Civil Registry Management** - Handle citizen registration, marriages, births, divorces, and deaths
-- **Passport & Visa Processing** - Issue passports, travel documents, add children to passports, and manage visa applications
-- **Document Attestation** - Process both local and international document certifications
-- **Legal Proxy Management** - Handle various types of legal proxies including court, bank, divorce, real estate, and inheritance
-- **Responsive Arabic Interface** - Fully RTL-supported dashboard with dark/light mode
-- **Modern UI/UX** - Built with Framer Motion animations and Tailwind CSS
-- **High Performance** - Optimized with lazy loading and code splitting
+- **Complete Civil Registry Management** – Register citizens, manage marriages, births, divorces, and deaths with full audit trails
+- **Passport & Visa Processing** – Issue and renew passports, handle travel documents, add children to passports, and manage visa applications with status tracking
+- **Document Attestation** – Process local and international document certifications, including apostille and translation workflows
+- **Legal Proxy Management** – Manage court, bank, divorce, real estate, inheritance, document completion, and general proxies
+- **Advanced Reporting & Analytics** – Generate operational and custom reports, visualize trends, and export to PDF/Excel
+- **Responsive Arabic Interface** – Fully RTL-supported dashboard, dark/light mode, and accessibility (WCAG 2.1 AA)
+- **Modern UI/UX** – Built with Framer Motion animations, Tailwind CSS, and feature-based modular components
+- **High Performance & Scalability** – Optimized with Vite, code splitting, lazy loading, and modular backend (Express.js, Prisma, MySQL)
+- **Security & Compliance** – JWT authentication, RBAC, 2FA, audit logging, rate limiting, Zod validation, and S3 encryption
 
 ## ⚙️ Technical Stack
 
-- **Frontend**: React 18, TypeScript, Vite
-- **Routing**: React Router v6 with nested routes
-- **Styling**: Tailwind CSS with dark mode support
-- **UI Components**: Custom components with Framer Motion animations
-- **Icons**: Lucide React for consistent iconography
-- **Form Management**: Custom React hooks for form state
-- **Internationalization**: Full Arabic RTL support
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Framer Motion, Lucide React, i18n (full Arabic RTL)
+- **Routing**: React Router v6 (nested routes)
+- **State Management**: React Context API, custom hooks
+- **Form Management**: react-hook-form, Zod validation
+- **Backend**: Express.js (TypeScript), Prisma ORM (MySQL), modular routing/controllers, JWT, Zod, Multer, AWS S3
+- **Testing**: Vitest/Jest, Cypress/Playwright
+- **CI/CD**: Automated pipeline for build, test, and deployment
 
 ## 💻 Development Setup
 
@@ -78,28 +80,42 @@ src/
 ├── components/          # UI components organized by service type
 │   ├── common/          # Shared components
 │   ├── civil-registry/  # Civil registry components
+│   ├── passports/       # Passport components
+│   ├── visas/           # Visa components
+│   ├── attestations/    # Attestation components
+│   ├── proxies/         # Proxy components
 │   └── forms/           # Form components
 ├── hooks/               # Custom React hooks
 ├── context/             # React context providers
+├── services/            # API and business logic services
 ├── utils/               # Utility functions
 ├── types/               # TypeScript type definitions
 ├── App.tsx              # Main application layout and routing
 └── main.tsx             # Application entry point
+backend/
+├── src/
+│   ├── controllers/     # Business logic by feature
+│   ├── middlewares/     # Auth, validation, logging, error handling
+│   ├── routes/          # Modular API routes by feature
+│   └── server.ts        # Express app entry point
+├── prisma/              # Prisma schema and migrations
+└── package.json         # Backend dependencies
 ```
 
 ## 📱 Responsive Design
 
-This dashboard is fully responsive and optimized for:
-- Desktop administration
-- Tablet use by field officers
-- Mobile viewing for supervisors on the go
+- Optimized for desktop, tablet, and mobile
+- Arabic-first, full RTL layout
+- Accessible (WCAG 2.1 AA), keyboard navigation, and screen reader support
 
 ## 🔒 Security Features
 
-- Role-based access control
-- Form validation and sanitization
-- Secure authentication flow
-- Data encryption for sensitive information
+- JWT authentication and RBAC (role-based access control)
+- Two-factor authentication for admin roles
+- Form validation and sanitization (Zod, react-hook-form)
+- Secure file upload and S3 storage
+- Data encryption at rest and in transit
+- Audit logging and rate limiting
 
 ## 📋 Development Roadmap
 
