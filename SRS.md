@@ -9,10 +9,10 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This Software Requirements Specification (SRS) document describes the functional and non-functional requirements for the Libyan Foreign Ministry Management System. It is intended to be used by the development team to implement the system according to the needs of the Libyan Foreign Ministry offices abroad.
+This Software Requirements Specification (SRS) document describes the functional and non-functional requirements for the Libyan Foreign Ministry Management System (LFMMS). It is intended to be used by the development team to implement the system according to the needs of the Libyan Foreign Ministry offices abroad. This version reflects the latest updates in both frontend and backend architecture, technology stack, and modular structure as of April 2025.
 
 ### 1.2 Project Scope
-The Libyan Foreign Ministry Management System is a comprehensive administrative dashboard designed to manage citizen services at Libyan diplomatic missions worldwide. The system will handle civil registry activities, passport and visa processing, document attestation, and legal proxy management services through a unified interface.
+The LFMMS is a full-stack web application designed to digitize and streamline consular services at Libyan diplomatic missions worldwide. The system manages civil registry, passport and visa processing, document attestation, legal proxy management, and reporting through a unified, Arabic-first interface. The frontend is a SPA (React 18, TypeScript, Vite, Tailwind CSS), and the backend is a modular RESTful API (Express.js, TypeScript, Prisma ORM, MySQL, JWT authentication).
 
 ### 1.3 Definitions, Acronyms, and Abbreviations
 - **LFMMS**: Libyan Foreign Ministry Management System
@@ -36,11 +36,12 @@ This document is organized as follows:
 - Section 5: Non-Functional Requirements
 - Section 6: Interface Requirements
 - Section 7: Other Requirements
+- Section 8: References to supporting documents (TRD, FRD, PRD, QRD, MRD)
 
 ## 2. Overall Description
 
 ### 2.1 Product Perspective
-The LFMMS is a new, standalone system designed to replace paper-based processes currently used in Libyan diplomatic missions. The system will operate within the intranet of each embassy or consulate, with future phases planned to integrate with central ministry systems in Libya.
+The LFMMS is a new, standalone, full-stack system replacing paper-based processes in Libyan diplomatic missions. The frontend is a SPA deployed in embassy/consulate intranets, communicating with a secure backend API. Future phases will integrate with central ministry systems in Libya. The backend is modular, feature-based, and exposes RESTful endpoints for all business domains.
 
 ### 2.2 Product Functions
 At a high level, the system will:
@@ -51,13 +52,15 @@ At a high level, the system will:
 - Authenticate and attest documents
 - Handle legal proxy services
 - Generate reports and statistics
+- Provide secure authentication, RBAC, and audit logging
+- Support document upload, storage (AWS S3), and versioning
 
 ### 2.3 User Classes and Characteristics
 
 #### 2.3.1 System Administrators
 - Technical staff responsible for system maintenance
 - Full access to all system functions and configuration settings
-- Responsible for user management and data backups
+- Responsible for user management, data backups, and monitoring
 
 #### 2.3.2 Embassy/Consulate Staff
 - Process daily transactions and applications
@@ -70,17 +73,21 @@ At a high level, the system will:
 - Varying technical proficiency
 
 ### 2.4 Operating Environment
-- Web-based application accessible through modern browsers
-- Responsive design for use on desktops, tablets, and mobile devices
-- Support for Arabic language and RTL text direction
-- Compatible with Windows 10/11 operating systems
+- Web-based SPA accessible through modern browsers (Chrome, Firefox, Edge, Safari)
+- Responsive design for desktops, tablets, and mobile devices
+- Arabic-first, RTL layout throughout
+- Compatible with Windows 10/11
 - Minimum screen resolution: 1280x720
+- Backend runs on Node.js 18+, MySQL, Prisma ORM, deployed on secure servers (Linux/Windows)
+- .env files for environment-specific configuration (never committed)
 
 ### 2.5 Design and Implementation Constraints
 - Must comply with Libyan government data security standards
 - Must support Arabic as the primary language with English as secondary
 - Must function in environments with inconsistent internet connectivity
 - All dates must support both Gregorian and Hijri calendars
+- Modular folder structure for both frontend (`src/components`, `src/services`, etc.) and backend (`src/routes`, `src/controllers`, `src/middlewares`)
+- Use of ESLint, Prettier, and code review for quality
 
 ### 2.6 User Documentation
 The system will include:
@@ -94,18 +101,19 @@ The system will include:
 - The system assumes each diplomatic mission has stable power supply or backup systems
 - Depends on access to reliable document scanning equipment
 - Assumes staff will receive adequate training before system deployment
+- Assumes backend API is available and secured via HTTPS
 
 ## 3. Specific Requirements
 
 ### 3.1 External Interface Requirements
 
 #### 3.1.1 User Interfaces
-- Arabic-first interface with complete RTL support
+- Arabic-first interface with complete RTL support (Tailwind CSS RTL, i18n library)
 - Accessible design following WCAG 2.1 AA standards
 - Dark/light mode toggle
 - Responsive design for multiple device types
 - Consistent navigation and action buttons
-- Intuitive form design with clear validation messages
+- Intuitive form design with clear validation messages (Zod, react-hook-form)
 
 #### 3.1.2 Hardware Interfaces
 - Support for document scanners
@@ -114,14 +122,18 @@ The system will include:
 - Compatible with standard biometric capture devices
 
 #### 3.1.3 Software Interfaces
-- Future API integration with central ministry databases
+- RESTful API endpoints for all business domains (citizens, passports, visas, proxies, documents, attestations, reports)
+- JWT-based authentication for all protected endpoints
+- Role-based access control (RBAC) enforced on backend and reflected in frontend UI
+- File upload endpoints (Multer, AWS S3 integration)
 - Export capabilities to standard formats (PDF, Excel)
-- Integration with email systems for notifications
+- Integration with email systems for notifications (future phase)
+- Future API integration with central ministry databases
 
 #### 3.1.4 Communications Interfaces
 - HTTPS for all communications
-- Support for WebSockets for real-time notifications
-- REST API design for future extensions
+- REST API design for all modules
+- WebSockets for real-time notifications (future phase)
 
 ## 4. System Features
 
@@ -325,27 +337,30 @@ The system will include:
 ## 5. Non-Functional Requirements
 
 ### 5.1 Performance
-- Page load time < 2 seconds
-- Form submission processing < 3 seconds
+- Page load time < 2 seconds (SPA, Vite, code splitting)
+- Form submission processing < 3 seconds (client-side and API)
 - Search results display < 1 second
 - Support for 50+ concurrent users per installation
 - Document upload handling up to 20MB per file
+- Backend API response time < 500ms for standard operations
 
 ### 5.2 Security
-- Role-based access control
-- Two-factor authentication for administrative access
-- Data encryption at rest and in transit
-- Comprehensive audit logging
+- Role-based access control (RBAC) enforced in backend middleware
+- Two-factor authentication for administrative access (UI and backend endpoints)
+- Data encryption at rest (DB, S3) and in transit (HTTPS)
+- Comprehensive audit logging (backend middleware)
 - Session timeout after 30 minutes of inactivity
-- Password policy enforcement
-- Regular security scanning and testing
+- Password policy enforcement (backend validation)
+- Regular security scanning and testing (`npm audit`, penetration testing)
+- Input validation (Zod on backend, client-side validation)
+- Rate limiting (express-rate-limit middleware)
 
 ### 5.3 Reliability
 - System availability of 99.5% during operational hours
-- Automated backup systems
-- Graceful error handling
-- Fault tolerance for network interruptions
-- Data validation to maintain integrity
+- Automated backup systems (DB, S3)
+- Graceful error handling (centralized error middleware, user-friendly messages)
+- Fault tolerance for network interruptions (frontend status indicators)
+- Data validation to maintain integrity (client and server)
 
 ### 5.4 Usability
 - Intuitive interface requiring minimal training
@@ -356,18 +371,18 @@ The system will include:
 - Save and resume functionality for complex forms
 
 ### 5.5 Maintainability
-- Modular architecture
-- Comprehensive documentation
-- Code standards adherence
-- Well-structured component hierarchy
-- Separation of concerns
+- Modular architecture (feature-based folders, reusable components)
+- Comprehensive documentation (README, ADRs, code comments)
+- Code standards adherence (ESLint, Prettier)
+- Well-structured component and API hierarchy
+- Separation of concerns in design (controllers, services, middlewares)
 
 ### 5.6 Scalability
-- Horizontal scaling support
-- Database partitioning capability
+- Horizontal scaling support (stateless backend, scalable DB)
+- Database partitioning capability (Prisma, MySQL)
 - Load balancing readiness
-- Microservices-ready architecture
-- Caching mechanisms
+- Microservices-ready architecture (modular backend)
+- Caching mechanisms for frequently accessed data (future phase)
 
 ## 6. Implementation Phases
 
@@ -415,3 +430,13 @@ Implementation will follow the phased approach outlined in the Development Roadm
 
 ### 7.3 Issues List
 [To be maintained throughout the project lifecycle]
+
+## 8. References
+- [TRD.md](TRD.md): Technical Requirements Document
+- [FRD.md](FRD.md): Functional Requirements Document
+- [PRD.md](PRD.md): Product Requirements Document
+- [QRD.md](QRD.md): Quality Requirements Document
+- [MRD.md](MRD.md): Market Requirements Document
+- [README.md](README.md): Project Overview
+- [system-architecture.puml](system-architecture.puml): Architecture Diagram
+- [data-flow-diagram.puml](data-flow-diagram.puml): Data Flow Diagram
