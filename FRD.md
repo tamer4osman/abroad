@@ -9,10 +9,10 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This Functional Requirements Document (FRD) defines the detailed functional specifications for the Libyan Foreign Ministry Management System (LFMMS). It translates the business requirements outlined in the Software Requirements Specification (SRS) and Product Requirements Document (PRD) into technical specifications that guide development and testing activities.
+This Functional Requirements Document (FRD) defines the detailed functional specifications for the Libyan Foreign Ministry Management System (LFMMS). It translates the business, system, and product requirements outlined in the SRS, PRD, and MRD into actionable technical specifications for both frontend and backend. This version reflects the latest updates in architecture, modular structure, and technology stack as of April 2025.
 
 ### 1.2 Scope
-This document covers all functional requirements for the LFMMS, including user interface specifications, data processing rules, business logic, integrations, workflows, and reporting functionality across all system modules. It serves as the primary reference for development teams implementing system features.
+This document covers all functional requirements for the LFMMS, including user interface specifications, data processing rules, business logic, integrations, workflows, and reporting functionality across all system modules. It is aligned with the current React 18 + TypeScript SPA frontend (Vite, Tailwind CSS, Framer Motion, i18n, RTL) and modular Express.js + TypeScript backend (Prisma ORM, MySQL, JWT, AWS S3, Zod validation, RESTful API).
 
 ### 1.3 Document Conventions
 - **REQ-XXX-YY**: Unique requirement identifier where XXX represents the module and YY represents the sequence number
@@ -23,16 +23,19 @@ This document covers all functional requirements for the LFMMS, including user i
 ### 1.4 References
 1. Software Requirements Specification (SRS.md)
 2. Product Requirements Document (PRD.md)
-3. Development Roadmap (developmentRoadmap.md)
-4. Libyan Civil Registry Laws and Regulations
-5. Passport Issuance Guidelines for Diplomatic Missions
-6. Document Attestation Protocols
-7. Legal Proxy Documentation Requirements
+3. Technical Requirements Document (TRD.md)
+4. Quality Requirements Document (QRD.md)
+5. Market Requirements Document (MRD.md)
+6. Development Roadmap (developmentRoadmap.md)
+7. Libyan Civil Registry Laws and Regulations
+8. Passport Issuance Guidelines for Diplomatic Missions
+9. Document Attestation Protocols
+10. Legal Proxy Documentation Requirements
 
 ## 2. System Overview
 
 ### 2.1 System Context
-The LFMMS is a comprehensive administrative platform designed to digitize and streamline consular services at Libyan diplomatic missions worldwide. It will replace paper-based processes with an integrated digital solution that supports Arabic language and right-to-left (RTL) interface requirements.
+The LFMMS is a full-stack administrative platform designed to digitize and streamline consular services at Libyan diplomatic missions worldwide. It replaces paper-based processes with an integrated digital solution supporting Arabic language, right-to-left (RTL) interface, and robust security. The frontend is a SPA (React 18, TypeScript, Vite, Tailwind CSS), and the backend is a modular RESTful API (Express.js, TypeScript, Prisma ORM, MySQL, JWT authentication, AWS S3, Zod validation).
 
 ### 2.2 User Roles and Permissions
 
@@ -344,31 +347,33 @@ The LFMMS is a comprehensive administrative platform designed to digitize and st
 ## 12. Integration Requirements (Future Phases)
 
 ### 12.1 External System Integration
-**REQ-INT-01**: The system must provide API architecture for future integration with central ministry systems.
-**REQ-INT-02**: The system must implement standardized data exchange formats.
-**REQ-INT-03**: The system must support secure data transmission protocols.
-**REQ-INT-04**: The system must prepare for citizen database integration.
-**REQ-INT-05**: The system must plan for national ID verification system integration.
-**REQ-INT-06**: The system must support document verification system integration.
-**REQ-INT-07**: The system must implement synchronization mechanisms with central databases.
+**REQ-INT-01**: The system must provide API architecture for future integration with central ministry systems (RESTful, OpenAPI/Swagger documented).
+**REQ-INT-02**: The system must implement standardized data exchange formats (JSON, CSV, XML as required).
+**REQ-INT-03**: The system must support secure data transmission protocols (HTTPS, JWT, OAuth2 for future integrations).
+**REQ-INT-04**: The system must prepare for citizen database integration (modular backend, API endpoints).
+**REQ-INT-05**: The system must plan for national ID verification system integration (API-ready, extensible data models).
+**REQ-INT-06**: The system must support document verification system integration (API endpoints, webhook support).
+**REQ-INT-07**: The system must implement synchronization mechanisms with central databases (scheduled jobs, event-driven updates).
 
 ### 12.2 Third-Party Services
-**REQ-TPP-01**: The system must support integration with email notification services.
-**REQ-TPP-02**: The system must allow integration with document scanning services.
-**REQ-TPP-03**: The system must prepare for biometric capture device integration.
-**REQ-TPP-04**: The system must support integration with payment processing services.
-**REQ-TPP-05**: The system must implement document verification service integration.
-**REQ-TPP-06**: The system must support SMS notification service integration.
+**REQ-TPP-01**: The system must support integration with email notification services (SMTP, transactional email APIs).
+**REQ-TPP-02**: The system must allow integration with document scanning services (TWAIN, REST APIs).
+**REQ-TPP-03**: The system must prepare for biometric capture device integration (API endpoints, modular UI components).
+**REQ-TPP-04**: The system must support integration with payment processing services (REST APIs, PCI DSS compliance).
+**REQ-TPP-05**: The system must implement document verification service integration (API endpoints, webhook support).
+**REQ-TPP-06**: The system must support SMS notification service integration (SMS gateway APIs).
 
 ## 13. Implementation Constraints and Dependencies
 
 ### 13.1 Technical Constraints
-**REQ-TECH-01**: The system must be implemented using React 18, TypeScript, and Vite.
+**REQ-TECH-01**: The system must be implemented using React 18, TypeScript, and Vite for the frontend.
 **REQ-TECH-02**: The system must use React Router v6 for navigation and routing.
 **REQ-TECH-03**: The system must implement Tailwind CSS for styling with dark mode support.
 **REQ-TECH-04**: The system must utilize custom components with Framer Motion for animations.
-**REQ-TECH-05**: The system must use custom React hooks for form state management.
+**REQ-TECH-05**: The system must use custom React hooks for form state management and validation (Zod).
 **REQ-TECH-06**: The system must provide full Arabic RTL support throughout the application.
+**REQ-TECH-07**: The backend must use Express.js (TypeScript), Prisma ORM (MySQL), JWT authentication, Zod validation, and AWS S3 for document storage.
+**REQ-TECH-08**: The backend must implement modular routing, controllers, services, and middleware for maintainability.
 
 ### 13.2 Dependencies
 **REQ-DEP-01**: The system depends on access to reliable document scanning equipment.
@@ -376,6 +381,8 @@ The LFMMS is a comprehensive administrative platform designed to digitize and st
 **REQ-DEP-03**: The system depends on appropriate staff training before deployment.
 **REQ-DEP-04**: The system must function in environments with inconsistent internet connectivity.
 **REQ-DEP-05**: The system implementation depends on phased approach outlined in development roadmap.
+**REQ-DEP-06**: The system depends on secure, scalable hosting for backend and database.
+**REQ-DEP-07**: The system depends on regular updates to dependencies and security patches.
 
 ## 14. Appendices
 
