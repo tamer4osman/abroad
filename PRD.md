@@ -191,111 +191,69 @@ To create a modern, efficient, and secure platform that revolutionizes how Libya
 ## 4. Technical Requirements
 
 ### 4.1 User Interface Requirements
-- Arabic-first interface with complete RTL support
-- Responsive design supporting desktop and tablet devices
-- Accessibility compliance with WCAG 2.1 AA standards
+- Arabic-first interface with complete RTL support (Tailwind CSS RTL, i18n library)
+- Responsive design supporting desktop, tablet, and mobile devices (Tailwind CSS breakpoints)
+- Accessibility compliance with WCAG 2.1 AA standards (semantic HTML, ARIA, keyboard navigation)
 - Consistent navigation paradigms across all modules
-- Intuitive form design with clear validation feedback
+- Intuitive form design with real-time validation feedback (Zod, react-hook-form)
 - Dark/light mode support for all interfaces
 
 ### 4.2 Functional Requirements
-
-#### 4.2.1 Form Processing
-- Real-time form validation
-- Multi-step form workflows
-- Document upload and preview
-- Form progress saving
+- All modules (civil registry, passport, visa, attestation, proxy, reporting) implemented as feature-based components (frontend) and modular routes/controllers (backend)
+- Real-time form validation (frontend: Zod, backend: Zod)
+- Multi-step form workflows with progress saving
+- Document upload, preview, and secure storage (AWS S3, Multer)
 - Input normalization for Arabic text
 - Field dependencies and conditional logic
-
-#### 4.2.2 Document Management
-- Secure document storage
-- Document categorization
-- Version control for documents
-- PDF generation for certificates and official documents
-- Batch processing capabilities
-- Document expiration tracking
-
-#### 4.2.3 Workflow Management
-- Customizable approval workflows
-- Task assignment and reassignment
-- SLA monitoring and alerts
-- Status tracking throughout process lifecycle
-- Automated notifications at key workflow stages
-
-#### 4.2.4 Search and Retrieval
-- Advanced search across all records
-- Filtering by multiple criteria
-- History of previous searches
-- Saved search templates
-- Bulk operation support on search results
+- Advanced search, filtering, and bulk operations
+- Customizable approval workflows and status tracking
+- Automated notifications (in-app, email for key events)
+- Comprehensive audit logging (backend middleware)
+- User authentication and RBAC (JWT, backend middleware, frontend UI)
+- Session management with automatic timeouts
+- Password reset and two-factor authentication for admin roles
 
 ### 4.3 Non-Functional Requirements
-
-#### 4.3.1 Performance
-- Page load times < 2 seconds
-- Form submission processing < 3 seconds
+- Page load times < 2 seconds (SPA, Vite, code splitting)
+- Form submission processing < 3 seconds (client and API)
 - Search results display < 1 second
 - Support for 50+ concurrent users per installation
 - Document upload handling up to 20MB per file
-
-#### 4.3.2 Security
-- Data encryption at rest and in transit
-- Regular security scanning and testing
-- Comprehensive audit logging
-- Role-based access control
-- Compliance with Libyan government data security standards
-- Protection against common web vulnerabilities (OWASP Top 10)
-
-#### 4.3.3 Reliability
+- Data encryption at rest (DB, S3) and in transit (HTTPS)
+- Regular security scanning and testing (`npm audit`, penetration testing)
 - System availability of 99.5% during operational hours
-- Automated backup systems
-- Graceful error handling
-- Fault tolerance for network interruptions
-- Data validation to maintain integrity
-
-#### 4.3.4 Scalability
-- Horizontal scaling support
-- Database partitioning capability
-- Load balancing readiness
-- Microservices-ready architecture
-- Caching mechanisms for frequently accessed data
-
-#### 4.3.5 Maintainability
-- Modular architecture for easier updates
-- Comprehensive documentation
-- Code standards adherence
-- Well-structured component hierarchy
-- Separation of concerns in design
-
-#### 4.3.6 Localization
-- Full Arabic language support
-- Support for Gregorian and Hijri calendars
-- Locale-specific formatting for dates, names, and addresses
-- Bilingual interface elements (Arabic primary, English secondary)
+- Automated backup and disaster recovery
+- Modular, maintainable codebase (feature-based structure, ESLint, Prettier)
+- Comprehensive documentation and training materials
+- Full Arabic language and RTL support, with locale-specific formatting (Gregorian/Hijri)
 
 ### 4.4 Technical Architecture
 
 #### 4.4.1 Front-end Architecture
-- React with TypeScript for component development
-- Tailwind CSS for responsive UI components
+- React 18 with TypeScript for component development
+- Tailwind CSS for responsive UI components and RTL support
 - Framer Motion for UI animations
-- React Router for navigation
-- RTL layout support throughout
+- React Router v6 for navigation
+- Context API and custom hooks for state management
+- Feature-based folder structure (`src/components/[feature]`, `src/hooks/`, `src/services/`)
 
-#### 4.4.2 Back-end Architecture (Future Implementation)
-- RESTful API design
-- Secure authentication mechanisms
-- Database abstraction layer
-- File storage service integration
-- Notification service
+#### 4.4.2 Back-end Architecture
+- Express.js (TypeScript) with modular routing (`src/routes/[feature]`)
+- Controllers and services for business logic separation
+- Prisma ORM with MySQL for database access
+- JWT authentication and RBAC middleware
+- Zod for request validation
+- Multer and AWS S3 SDK for file uploads and storage
+- Centralized error, logging, and rate limiting middleware
+- Environment variables managed via `.env` (not committed)
 
 #### 4.4.3 Integration Requirements
-- Preparation for future integration with central ministry systems
-- Standardized API for data exchange
-- Secure data transmission protocols
-- Citizen database integration capabilities
-- National ID verification system integration
+- RESTful API endpoints for all modules
+- JWT authentication and RBAC enforced on backend
+- File upload endpoints (Multer, S3 integration)
+- Export to PDF/Excel
+- Future integration with central ministry systems (API-ready)
+- WebSockets for real-time notifications (future phase)
 
 ## 5. Implementation Roadmap
 
