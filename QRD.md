@@ -9,17 +9,18 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This Quality Requirements Document (QRD) defines the specific quality attributes, standards, and metrics that the Libyan Foreign Ministry Management System (LFMMS) must meet. It elaborates on the non-functional requirements outlined in the SRS and TRD, providing clear, measurable criteria to guide development, testing, and acceptance activities, ensuring the final product meets the Ministry's expectations for quality.
+This Quality Requirements Document (QRD) defines the specific quality attributes, standards, and metrics that the Libyan Foreign Ministry Management System (LFMMS) must meet. It elaborates on the non-functional requirements outlined in the SRS and TRD, providing clear, measurable criteria to guide development, testing, and acceptance activities, ensuring the final product meets the Ministry's expectations for quality. This version reflects the latest updates in both frontend and backend architecture, modular structure, and deployment practices as of April 2025.
 
 ### 1.2 Scope
-This document covers quality requirements related to the LFMMS frontend application and its interaction with the backend API. It includes aspects such as performance, security, reliability, usability, maintainability, scalability, compatibility, and internationalization.
+This document covers quality requirements for the LFMMS full-stack application, including frontend (React 18, TypeScript, Vite, Tailwind CSS) and backend (Express.js, TypeScript, Prisma ORM, MySQL, JWT). It addresses performance, security, reliability, usability, maintainability, scalability, compatibility, internationalization, and operational quality for both client and server.
 
 ### 1.3 References
 1.  Software Requirements Specification ([`SRS.md`](SRS.md )) - Especially Section 5 (Non-Functional Requirements)
 2.  Technical Requirements Document ([`TRD.md`](TRD.md )) - Especially Section 5 (NFRs) and Section 4 (UI/UX)
 3.  Functional Requirements Document ([`FRD.md`](FRD.md ))
-4.  Business Requirements Document ([`BRD.md`](BRD.md )) - Especially Section 2 (Goals/Objectives) and Section 6 (Success Criteria)
-5.  Project README ([`README.md`](README.md ))
+4.  Product Requirements Document ([`PRD.md`](PRD.md ))
+5.  Business Requirements Document ([`BRD.md`](BRD.md ))
+6.  Project README ([`README.md`](README.md ))
 
 ## 2. Overall Quality Goals
 
@@ -48,19 +49,20 @@ Based on the project's business goals ([`BRD.md`](BRD.md #L36)), the primary qua
 
 ### 3.2 Security
 
-*(Ref: [`SRS.md`](SRS.md #L321), [`TRD.md`](TRD.md #L148), [`FRD.md`](FRD.md #L68))*
+*(Ref: [`SRS.md`](SRS.md #L321), [`TRD.md`](TRD.md #L148), [`FRD.md`](FRD.md #L68), [`PRD.md`](PRD.md #L225))* 
 
 | Req ID | Requirement Description | Acceptance Criteria | Measurement Method |
 |---|---|---|---|
 | QR-SEC-01 | Secure Authentication | Token-based authentication implemented securely (e.g., secure storage, short expiry, refresh tokens). No sensitive info in URLs. | Code review, Security audit, Penetration testing. |
 | QR-SEC-02 | Role-Based Access Control (RBAC) | UI elements and routes are hidden/disabled based on user role. All access control rigorously enforced by the backend API. | Manual testing with different roles, Code review, Penetration testing. |
 | QR-SEC-03 | Secure Data Transmission | All communication between frontend and backend uses HTTPS. No mixed content. | Network inspection, SSL Labs test, Code review. |
-| QR-SEC-04 | Protection Against Common Web Vulnerabilities | Frontend code mitigates risks of XSS, CSRF (if applicable, depending on auth method), and insecure direct object references (by relying on backend validation). | OWASP ZAP scan, Security code review, Penetration testing. |
+| QR-SEC-04 | Protection Against Common Web Vulnerabilities | Frontend and backend code mitigate risks of XSS, CSRF, SQL injection, and insecure direct object references. Backend validation is mandatory. | OWASP ZAP scan, Security code review, Penetration testing. |
 | QR-SEC-05 | Session Management | User sessions automatically time out after 30 minutes of inactivity, requiring re-login. | Manual testing, Automated session tests. |
 | QR-SEC-06 | Secure Dependency Management | Project dependencies regularly scanned for known vulnerabilities using `npm audit` or similar tools. Critical/High vulnerabilities must be addressed. | CI/CD pipeline checks, Manual audit reports. |
-| QR-SEC-07 | Password Security | Frontend supports strong password policies (complexity, length, history) during user creation/reset, enforced by backend. | Manual testing, Code review. |
-| QR-SEC-08 | Two-Factor Authentication (2FA) | Frontend UI correctly handles 2FA prompts and verification flow for designated roles. | Manual testing with 2FA enabled accounts. |
-| QR-SEC-09 | Input Validation | Basic client-side input validation implemented to prevent trivial injection attempts, complementing mandatory backend validation. | Code review, Manual testing with malicious inputs. |
+| QR-SEC-07 | Password Security | Strong password policies (complexity, length, history) enforced by backend and supported by frontend. | Manual testing, Code review. |
+| QR-SEC-08 | Two-Factor Authentication (2FA) | UI and backend endpoints support 2FA for designated roles. | Manual testing with 2FA enabled accounts. |
+| QR-SEC-09 | Input Validation | Client-side and backend input validation implemented to prevent injection and data corruption. | Code review, Manual testing with malicious inputs. |
+| QR-SEC-10 | Audit Logging | All critical actions and authentication events are logged by the backend. | Log review, Security audit. |
 
 ### 3.3 Reliability
 
@@ -91,26 +93,28 @@ Based on the project's business goals ([`BRD.md`](BRD.md #L36)), the primary qua
 
 ### 3.5 Maintainability
 
-*(Ref: [`SRS.md`](SRS.md #L347), [`TRD.md`](TRD.md #L178))*
+*(Ref: [`SRS.md`](SRS.md #L347), [`TRD.md`](TRD.md #L178), [`PRD.md`](PRD.md #L253))*
 
 | Req ID | Requirement Description | Acceptance Criteria | Measurement Method |
 |---|---|---|---|
-| QR-MAIN-01 | Code Quality & Standards | Code adheres to ESLint/Prettier rules defined in the project. Follows React/TypeScript best practices. Cyclomatic complexity kept low. | Static code analysis tools (ESLint), Code reviews, SonarQube (optional). |
-| QR-MAIN-02 | Modularity | Application follows modular architecture (per [`TRD.md`](TRD.md #L60)). Components have single responsibilities and low coupling. | Code review, Architectural review. |
-| QR-MAIN-03 | Testability & Code Coverage | Components, hooks, and utilities are designed to be testable. Unit test coverage > 70%. | Code coverage reports (Vitest/Jest coverage). |
-| QR-MAIN-04 | Documentation | Code includes JSDoc comments for complex functions/components. READMEs updated. Architectural decisions documented. | Manual review of code comments and documentation files. |
+| QR-MAIN-01 | Code Quality & Standards | Code adheres to ESLint/Prettier rules defined in the project. Follows React/TypeScript/Express/Prisma best practices. Cyclomatic complexity kept low. | Static code analysis tools (ESLint), Code reviews, SonarQube (optional). |
+| QR-MAIN-02 | Modularity | Application follows modular architecture (per [`TRD.md`](TRD.md #L60)). Components, controllers, and services have single responsibilities and low coupling. | Code review, Architectural review. |
+| QR-MAIN-03 | Testability & Code Coverage | Components, hooks, utilities, controllers, and services are designed to be testable. Unit test coverage > 70%. | Code coverage reports (Vitest/Jest coverage). |
+| QR-MAIN-04 | Documentation | Code includes JSDoc comments for complex functions/components. READMEs and ADRs updated. | Manual review of code comments and documentation files. |
 | QR-MAIN-05 | Readability | Code is well-formatted, uses meaningful names, and is easy to understand by new developers. | Peer code reviews. |
-| QR-MAIN-06 | Configurability | Environment-specific settings (API URLs) managed via environment variables, not hardcoded. | Code review, Configuration file review. |
+| QR-MAIN-06 | Configurability | Environment-specific settings (API URLs, DB credentials) managed via environment variables, not hardcoded. | Code review, Configuration file review. |
+| QR-MAIN-07 | Separation of Concerns | Clear separation between controllers, services, middlewares, and routes in backend; components, hooks, and services in frontend. | Code review, Architectural review. |
 
-### 3.6 Scalability (Frontend Perspective)
+### 3.6 Scalability (Full-Stack Perspective)
 
-*(Ref: [`SRS.md`](SRS.md #L351), [`TRD.md`](TRD.md #L140))*
+*(Ref: [`SRS.md`](SRS.md #L351), [`TRD.md`](TRD.md #L140), [`PRD.md`](PRD.md #L225))*
 
 | Req ID | Requirement Description | Acceptance Criteria | Measurement Method |
 |---|---|---|---|
-| QR-SCAL-01 | Modular Growth | Architecture allows adding new consular service modules without major refactoring of existing code. | Architectural review, Ease of implementing a sample new module. |
-| QR-SCAL-02 | State Management Performance | State management approach (Context, Hooks) does not introduce performance bottlenecks as application size increases. | Profiling with large datasets/component trees. |
-| QR-SCAL-03 | API Interaction Efficiency | Frontend minimizes unnecessary API calls and handles responses efficiently to reduce backend load. | Network request analysis, Code review of API interaction logic. |
+| QR-SCAL-01 | Modular Growth | Architecture allows adding new consular service modules or backend features without major refactoring. | Architectural review, Ease of implementing a sample new module. |
+| QR-SCAL-02 | State Management Performance | State management (Context, Hooks, DB transactions) does not introduce performance bottlenecks as application size increases. | Profiling with large datasets/component trees, DB load testing. |
+| QR-SCAL-03 | API Interaction Efficiency | Frontend minimizes unnecessary API calls and handles responses efficiently; backend endpoints are optimized for batch and filtered queries. | Network request analysis, Code review of API and DB interaction logic. |
+| QR-SCAL-04 | Database Scalability | Database schema and queries support partitioning, indexing, and horizontal scaling. | DB profiling, Query analysis, Load testing. |
 
 ### 3.7 Compatibility & Portability
 
@@ -134,22 +138,24 @@ Based on the project's business goals ([`BRD.md`](BRD.md #L36)), the primary qua
 
 ## 4. Quality Assurance & Testing Strategy
 
-*(Ref: [`TRD.md`](TRD.md #L218))*
+*(Ref: [`TRD.md`](TRD.md #L218), [`PRD.md`](PRD.md #L183), [`PRD.md`](PRD.md #L320), [`PRD.md`](PRD.md #L372))*
 
--   **Testing Levels:** Unit, Integration, and End-to-End (E2E) tests will be implemented as defined in the TRD.
--   **Test Automation:** Tests will be automated and integrated into the CI/CD pipeline. Build failures occur on test failures.
--   **Code Coverage:** Unit test code coverage target is >70%.
--   **Manual Testing:** Exploratory testing, usability testing, and accessibility testing will be performed manually.
--   **User Acceptance Testing (UAT):** Conducted with key stakeholders and end-users at predefined milestones ([`developmentRoadmap.md`](developmentRoadmap.md #L143)) to validate requirements.
--   **Defect Management:** A structured process for reporting, tracking, prioritizing, and resolving defects will be used (e.g., using GitHub Issues, Jira).
--   **Regression Testing:** Automated and manual regression testing performed before each release to ensure new changes haven't broken existing functionality.
+-   **Testing Levels:** Unit, Integration, and End-to-End (E2E) tests for both frontend and backend.
+-   **Test Automation:** Automated tests integrated into the CI/CD pipeline. Build failures occur on test failures.
+-   **Code Coverage:** Unit test code coverage target is >70% for both frontend and backend.
+-   **Manual Testing:** Exploratory, usability, and accessibility testing performed manually.
+-   **User Acceptance Testing (UAT):** Conducted with key stakeholders and end-users at predefined milestones ([`developmentRoadmap.md`](developmentRoadmap.md #L143)).
+-   **Defect Management:** Structured process for reporting, tracking, prioritizing, and resolving defects (e.g., GitHub Issues, Jira).
+-   **Regression Testing:** Automated and manual regression testing before each release.
+-   **Deployment Verification:** Post-deployment smoke tests and monitoring setup as per [`PRD.md`](PRD.md #L372).
 
 ## 5. Quality Standards
 
--   **Coding Standards:** Adherence to ESLint/Prettier rules and React/TypeScript best practices ([`TRD.md`](TRD.md #L211)).
--   **Documentation Standards:** Code comments (JSDoc), README updates, architectural decision records (ADRs).
+-   **Coding Standards:** Adherence to ESLint/Prettier rules, React/TypeScript/Express/Prisma best practices ([`TRD.md`](TRD.md #L211)).
+-   **Documentation Standards:** Code comments (JSDoc), README updates, ADRs, and deployment/operation guides ([`PRD.md`](PRD.md #L372)).
 -   **Security Standards:** Compliance with Libyan government data security standards ([`SRS.md`](SRS.md #L75)), OWASP Top 10 mitigation practices.
 -   **Accessibility Standards:** WCAG 2.1 Level AA ([`SRS.md`](SRS.md #L97)).
+-   **Deployment Standards:** Automated CI/CD, environment configuration, backup, and recovery as per [`PRD.md`](PRD.md #L372).
 
 ## 6. Quality Metrics & Measurement
 
@@ -157,13 +163,14 @@ Based on the project's business goals ([`BRD.md`](BRD.md #L36)), the primary qua
 -   **Defect Density:** Number of defects found per KLOC (thousand lines of code) or per feature.
 -   **Defect Resolution Time:** Average time taken to fix reported bugs based on priority.
 -   **Test Pass Rate:** Percentage of automated tests passing in CI builds.
--   **Performance Metrics:** Measured using performance monitoring tools (Lighthouse, WebPageTest, browser profiling).
+-   **Performance Metrics:** Measured using performance monitoring tools (Lighthouse, WebPageTest, browser profiling, backend profiling).
 -   **Uptime:** Measured by monitoring services.
 -   **User Satisfaction:** Measured via surveys (e.g., System Usability Scale - SUS).
 -   **Task Completion Rate:** Measured during usability testing sessions.
+-   **Deployment Success Rate:** Percentage of successful deployments without rollback or critical post-deployment issues.
 
 ---
 
 **Contact:** Project Manager: [Name] - [email@example.com]  
-**Last Updated:** April 14, 2025
+**Last Updated:** April 16, 2025
 
