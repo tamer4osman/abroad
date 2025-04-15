@@ -9,7 +9,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This Business Requirements Document (BRD) outlines the high-level business needs and objectives for the development and implementation of the Libyan Foreign Ministry Management System (LFMMS). It defines the business rationale for the project, the expected benefits, and the key success factors from a business perspective. This document serves as a foundational agreement between the Ministry of Foreign Affairs and the project team regarding the project's goals and scope.
+This Business Requirements Document (BRD) outlines the high-level business needs and objectives for the development and implementation of the Libyan Foreign Ministry Management System (LFMMS). It defines the business rationale for the project, the expected benefits, and the key success factors from a business perspective. This document serves as a foundational agreement between the Ministry of Foreign Affairs and the project team regarding the project's goals and scope. This version reflects the latest updates in both frontend and backend architecture, modular structure, and technology stack as of April 2025.
 
 ### 1.2 Project Background
 The Libyan Ministry of Foreign Affairs currently relies heavily on manual, paper-based processes for delivering consular services through its diplomatic missions worldwide. These processes are often inconsistent, inefficient, prone to errors, and lack adequate security and auditability. This results in long processing times for citizens, high operational costs for the Ministry, and limited ability to gather accurate data for strategic decision-making. The LFMMS project aims to address these challenges by introducing a modern, integrated digital platform.
@@ -23,7 +23,7 @@ The implementation of the LFMMS presents a significant opportunity for the Minis
 - **Strengthen Security:** Implement robust security measures to protect sensitive citizen information and ensure data integrity.
 
 ### 1.4 Document Scope
-This BRD covers the high-level business requirements for the LFMMS, encompassing all core consular service areas: Civil Registry, Passport Services, Visa Processing, Document Attestation, and Legal Proxy Management. It focuses on the business needs and outcomes, not the specific technical implementation details (which are covered in the FRD, SRS, and PRD).
+This BRD covers the high-level business requirements for the LFMMS, encompassing all core consular service areas: Civil Registry, Passport Services, Visa Processing, Document Attestation, and Legal Proxy Management. It focuses on the business needs and outcomes, not the specific technical implementation details (which are covered in the FRD, SRS, PRD, TRD, and QRD). The system is implemented as a full-stack solution: a React 18 + TypeScript SPA frontend (Vite, Tailwind CSS, Framer Motion, i18n, RTL) and a modular Express.js + TypeScript backend (Prisma ORM, MySQL, JWT, AWS S3, Zod validation, robust middleware, RESTful API).
 
 ## 2. Business Goals and Objectives
 
@@ -35,12 +35,12 @@ This BRD covers the high-level business requirements for the LFMMS, encompassing
 5.  **Enable Data-Driven Decision Making:** Provide Ministry leadership with accurate, timely data and analytics on consular operations.
 
 ### 2.2 Measurable Business Objectives
-- Reduce average application processing time by 40% within 12 months of full deployment.
-- Decrease operational costs related to paper, printing, and manual handling by 30% within 18 months.
-- Achieve an 80% citizen satisfaction rating for consular services within 24 months.
-- Ensure 100% adoption and utilization of the LFMMS across all diplomatic missions within 24 months.
-- Reduce data entry errors by 90% compared to the previous manual system.
-- Generate comprehensive monthly operational reports automatically, reducing manual reporting effort by 95%.
+- Reduce average application processing time by 40% within 12 months of full deployment (measured via analytics dashboard).
+- Decrease operational costs related to paper, printing, and manual handling by 30% within 18 months (tracked via financial reports).
+- Achieve an 80% citizen satisfaction rating for consular services within 24 months (measured via user surveys).
+- Ensure 100% adoption and utilization of the LFMMS across all diplomatic missions within 24 months (tracked via system usage metrics).
+- Reduce data entry errors by 90% compared to the previous manual system (measured via audit logs and error reports).
+- Generate comprehensive monthly operational reports automatically, reducing manual reporting effort by 95% (tracked via reporting module).
 
 ## 3. Project Scope
 
@@ -51,12 +51,14 @@ This BRD covers the high-level business requirements for the LFMMS, encompassing
     - Visa Processing (Application, Management, Reporting)
     - Document Attestation (Local and International)
     - Legal Proxy Management (Court, Bank, Specific Types)
-- User authentication, role-based access control, and audit logging.
-- Centralized dashboard, search, document management, and notification features.
+- User authentication, JWT-based role-based access control, and audit logging (frontend and backend).
+- Centralized dashboard, advanced search, document management, and notification features.
 - Reporting and analytics capabilities for operational and strategic insights.
-- Full Arabic language and RTL support.
-- Training materials and initial user training.
-- Data migration strategy for existing critical records (where feasible).
+- Full Arabic language and RTL support, with locale-specific formatting (Gregorian/Hijri).
+- Training materials, contextual help, and initial user training.
+- Data migration strategy for existing critical records (manual entry interfaces and bulk import tools).
+- Modular, maintainable codebase (feature-based structure, ESLint, Prettier, automated testing).
+- Secure document upload, preview, and storage (AWS S3, Multer, backend validation).
 
 ### 3.2 Out of Scope
 - Public-facing portal for online citizen applications (potential future phase).
@@ -84,29 +86,29 @@ This BRD covers the high-level business requirements for the LFMMS, encompassing
 
 The LFMMS must enable the Ministry and its diplomatic missions to perform the following core business functions digitally:
 
-**BR-01: Centralized Citizen Record Management:** The system must provide a single, secure source of truth for Libyan citizen information relevant to consular services.
-**BR-02: Standardized Service Processing:** The system must enforce consistent workflows and documentation requirements for all consular services across all missions.
-**BR-03: Efficient Application Handling:** The system must streamline the intake, processing, tracking, and completion of all service applications.
-**BR-04: Secure Document Management:** The system must securely store, manage, and generate official documents and certificates related to consular services.
-**BR-05: Role-Based Access and Security:** The system must ensure that only authorized personnel can access specific data and functions based on their roles and responsibilities.
-**BR-06: Comprehensive Audit Trail:** The system must log all significant actions performed within the system for accountability and compliance.
-**BR-07: Automated Fee Calculation and Recording:** The system must accurately calculate and record fees associated with different consular services.
-**BR-08: Real-time Status Tracking:** The system must provide authorized staff with real-time visibility into the status of any application or request.
-**BR-09: Operational Reporting:** The system must generate standard reports on service volumes, processing times, and operational efficiency.
-**BR-10: Management Analytics:** The system must provide dashboards and tools for analyzing trends, identifying bottlenecks, and supporting strategic decisions.
-**BR-11: Arabic Language Support:** The system must fully support the Arabic language, including RTL interface and Hijri calendar conversions where necessary.
-**BR-12: Scalability and Reliability:** The system must be capable of handling the workload of all diplomatic missions reliably and scale for future growth.
+**BR-01: Centralized Citizen Record Management:** The system must provide a single, secure source of truth for Libyan citizen information relevant to consular services, accessible via a modular RESTful API and managed through a React-based SPA.
+**BR-02: Standardized Service Processing:** The system must enforce consistent workflows and documentation requirements for all consular services across all missions, implemented as feature-based modules in both frontend and backend.
+**BR-03: Efficient Application Handling:** The system must streamline the intake, processing, tracking, and completion of all service applications, with real-time validation, status tracking, and notifications.
+**BR-04: Secure Document Management:** The system must securely store, manage, and generate official documents and certificates related to consular services, using AWS S3, Multer, and backend validation.
+**BR-05: Role-Based Access and Security:** The system must ensure that only authorized personnel can access specific data and functions based on their roles and responsibilities, enforced by JWT authentication and RBAC middleware.
+**BR-06: Comprehensive Audit Trail:** The system must log all significant actions performed within the system for accountability and compliance, with audit logging implemented in backend middleware and accessible to authorized users.
+**BR-07: Automated Fee Calculation and Recording:** The system must accurately calculate and record fees associated with different consular services, with logic implemented in backend services and reflected in frontend forms.
+**BR-08: Real-time Status Tracking:** The system must provide authorized staff with real-time visibility into the status of any application or request, with status updates and notifications integrated throughout the workflow.
+**BR-09: Operational Reporting:** The system must generate standard reports on service volumes, processing times, and operational efficiency, with export to PDF/Excel and analytics dashboards.
+**BR-10: Management Analytics:** The system must provide dashboards and tools for analyzing trends, identifying bottlenecks, and supporting strategic decisions, leveraging the reporting and analytics modules.
+**BR-11: Arabic Language Support:** The system must fully support the Arabic language, including RTL interface, i18n, and Hijri calendar conversions where necessary.
+**BR-12: Scalability and Reliability:** The system must be capable of handling the workload of all diplomatic missions reliably and scale for future growth, with modular architecture, automated testing, and CI/CD.
 
 ## 6. Success Criteria
 
 The success of the LFMMS project will be measured by:
 
-- **Achievement of Business Objectives:** Meeting or exceeding the measurable objectives outlined in Section 2.2.
-- **Stakeholder Satisfaction:** Positive feedback from key stakeholders, particularly consular staff and Ministry leadership.
-- **User Adoption Rate:** Successful rollout and consistent usage of the system across all designated diplomatic missions.
-- **System Stability and Performance:** Meeting defined uptime, response time, and reliability targets.
-- **Data Quality Improvement:** Demonstrable reduction in errors and inconsistencies in consular records.
-- **On-Time and On-Budget Delivery:** Completion of the project phases within the agreed timelines and budget constraints.
+- **Achievement of Business Objectives:** Meeting or exceeding the measurable objectives outlined in Section 2.2, tracked via analytics and reporting modules.
+- **Stakeholder Satisfaction:** Positive feedback from key stakeholders, particularly consular staff and Ministry leadership, measured via surveys and feedback tools.
+- **User Adoption Rate:** Successful rollout and consistent usage of the system across all designated diplomatic missions, tracked via system usage analytics.
+- **System Stability and Performance:** Meeting defined uptime, response time, and reliability targets (99.5% uptime, <2s page load, <500ms API response).
+- **Data Quality Improvement:** Demonstrable reduction in errors and inconsistencies in consular records, measured via audit logs and error reports.
+- **On-Time and On-Budget Delivery:** Completion of the project phases within the agreed timelines and budget constraints, as tracked in the development roadmap.
 
 ## 7. Assumptions
 
@@ -121,7 +123,7 @@ The success of the LFMMS project will be measured by:
 
 - **Budget:** The project must be delivered within the allocated budget of [Specify Budget Amount, if known, otherwise state 'defined budget'].
 - **Timeline:** The core system modules must be deployed according to the phased schedule outlined in the Development Roadmap, with full deployment targeted by [Specify Target Date, e.g., Q1 2027].
-- **Technology Stack:** The system must be developed using the approved technology stack (React, TypeScript, Vite, Tailwind CSS).
+- **Technology Stack:** The system must be developed using the approved technology stack (React 18, TypeScript, Vite, Tailwind CSS, Express.js, Prisma ORM, MySQL, AWS S3, JWT, Zod, modular architecture).
 - **Regulatory Compliance:** The system must strictly adhere to all relevant Libyan laws and Ministry regulations regarding data privacy, security, and consular procedures.
 - **Infrastructure Variability:** The system must be designed to function adequately across varying levels of internet connectivity and IT infrastructure present at different diplomatic missions.
 - **Language:** The primary interface language must be Arabic, with English support as a secondary option where appropriate.
