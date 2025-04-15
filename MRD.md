@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-The Libyan Foreign Ministry Management System (LFMMS) is a comprehensive digital solution designed to modernize and streamline consular services at Libyan diplomatic missions worldwide. This web-based application will replace the current paper-based processes with an integrated platform that supports all aspects of consular operations, from civil registry management to passport issuance, visa processing, document attestation, and legal proxy services.
+The Libyan Foreign Ministry Management System (LFMMS) is a comprehensive digital solution designed to modernize and streamline consular services at Libyan diplomatic missions worldwide. This web-based application replaces paper-based processes with an integrated platform supporting all aspects of consular operations, including civil registry management, passport issuance, visa processing, document attestation, legal proxy services, and advanced reporting. The system is implemented as a full-stack solution: a React 18 + TypeScript SPA frontend (Vite, Tailwind CSS, Framer Motion, i18n, RTL) and a modular Express.js + TypeScript backend (Prisma ORM, MySQL, JWT, AWS S3, Zod validation, robust middleware, RESTful API).
 
 The LFMMS addresses critical market needs for improved efficiency, enhanced security, standardized processes, and digital transformation in Libya's diplomatic services. It will improve service delivery to Libyan citizens abroad while providing the Ministry with robust data management and reporting capabilities.
 
@@ -42,8 +42,8 @@ Libyan diplomatic missions face significant challenges in providing efficient co
 The LFMMS is designed for:
 
 - **Primary Users:** Libyan diplomatic missions (embassies and consulates) worldwide, estimated at 150+ locations
-- **End Beneficiaries:** Libyan citizens living abroad (approximately 1.5 million people)
-- **Government Stakeholders:** Ministry of Foreign Affairs headquarters, Civil Registry Authority, Passport Authority
+- **End Beneficiaries:** Libyan citizens living abroad (approx. 1.5 million people)
+- **Government Stakeholders:** Ministry of Foreign Affairs HQ, Civil Registry Authority, Passport Authority, IT and Security teams
 
 ## 3. Market Analysis
 
@@ -72,12 +72,13 @@ The market for consular digital services is growing at approximately 15% annuall
 
 ### 3.3 Market Trends
 
-- **Cloud Adoption:** Increasing comfort with cloud infrastructure for government services
-- **Mobile Access:** Growing demand for mobile-compatible interfaces for staff and officials
-- **Biometric Integration:** Rising implementation of biometric verification in identity management
-- **Analytics Focus:** Greater emphasis on data-driven decision making in diplomatic operations
-- **Digital Sovereignty:** Preference for systems with local hosting and control options
-- **Paperless Workflows:** Accelerating transition to fully digital document processing
+- **Cloud Adoption:** Growing use of cloud and hybrid infrastructure for government services, with LFMMS supporting both on-premises and cloud deployments.
+- **Mobile Access:** Responsive SPA frontend ensures compatibility with tablets and mobile devices for staff and officials.
+- **Biometric Integration:** Backend and frontend are architected for future biometric data capture and verification.
+- **Analytics Focus:** Built-in analytics and reporting modules for data-driven decision making.
+- **Digital Sovereignty:** System supports local hosting, data sovereignty, and compliance with Libyan regulations.
+- **Paperless Workflows:** End-to-end digital document management, upload, and attestation.
+- **Security & Compliance:** Full-stack security (JWT, RBAC, HTTPS, audit logging, rate limiting, Zod validation, S3 encryption) and compliance with Libyan and international standards.
 
 ## 4. User Profiles and Needs
 
@@ -90,10 +91,11 @@ The market for consular digital services is growing at approximately 15% annuall
 
 **Key Needs:**
 - Comprehensive system configuration tools
-- User management and security controls
-- Performance monitoring and optimization
-- System backup and recovery mechanisms
-- Integration with ministry infrastructure
+- User management and security controls (RBAC, JWT, 2FA)
+- Performance monitoring and optimization (monitoring tools, logs)
+- System backup and recovery mechanisms (automated, documented)
+- Integration with ministry infrastructure and future central systems
+- Access to technical documentation and support
 
 ### 4.2 Embassy/Consulate Staff
 
@@ -104,12 +106,13 @@ The market for consular digital services is growing at approximately 15% annuall
 - Variable workloads based on local Libyan population
 
 **Key Needs:**
-- Intuitive user interface with minimal training requirements
-- Efficient application processing workflows
-- Quick access to citizen information
-- Document generation and management
-- Clear status tracking for applications
-- Support for high-volume processing in certain locations
+- Intuitive, Arabic-first user interface with RTL and accessibility
+- Efficient, validated workflows for all consular services
+- Quick access to citizen information and application status
+- Document upload, preview, and management
+- Real-time notifications and status tracking
+- Support for high-volume processing and bulk operations
+- Training materials and contextual help
 
 ### 4.3 Diplomatic Officials
 
@@ -124,6 +127,7 @@ The market for consular digital services is growing at approximately 15% annuall
 - Approval interfaces for sensitive or exceptional cases
 - Statistical insights into mission operations
 - Compliance and audit evidence
+- Secure, role-based access to sensitive data
 
 ### 4.4 Libyan Citizens Abroad
 
@@ -133,11 +137,11 @@ The market for consular digital services is growing at approximately 15% annuall
 - Expecting efficient and transparent government services
 
 **Key Needs:**
-- Predictable processing times
+- Predictable processing times and transparent status updates
 - Consistent service quality across all missions
-- Clear requirements for applications
-- Efficient status communication
-- Professional documentation output
+- Clear requirements and documentation guidance
+- Efficient status communication (in-app/email notifications)
+- Professional, standardized documentation output
 
 ## 5. Market Requirements
 
@@ -146,11 +150,11 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Libyan citizens abroad require accurate and accessible records of vital civil events.
 
 **Requirements:**
-- Digital citizen registration with comprehensive biographical data
-- Marriage registration with full spouse information and documentation
-- Birth registration for children born to Libyan citizens abroad
-- Divorce documentation with appropriate legal verification
-- Death registration with proper certification and notification
+- Digital citizen registration with comprehensive biographical data (validated, multi-step forms)
+- Marriage, birth, divorce, and death registration with full documentation and legal compliance
+- Family relationship management and historical record search
+- Document upload, preview, and secure storage (S3)
+- Change history and audit logging for all records
 
 **Market Metrics:**
 - Estimated 50,000+ civil registry transactions annually
@@ -162,11 +166,12 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Secure, efficient passport processing for citizens requiring new or renewed travel documents.
 
 **Requirements:**
-- Streamlined passport application processing
-- Emergency travel document issuance for urgent cases
+- Streamlined passport application and renewal workflows
+- Emergency travel document issuance
 - Child addition to existing passports
-- Comprehensive tracking of all passport applications
-- Secure handling of biometric and identity data
+- Application status tracking and notifications
+- Secure handling of biometric and identity data (future integration)
+- Approval/rejection workflows and completed requests archive
 
 **Market Metrics:**
 - Approximately 80,000 passport applications annually
@@ -178,11 +183,11 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Efficient management of visa applications for individuals seeking to enter Libya.
 
 **Requirements:**
-- Structured collection of applicant information
-- Support for various visa types and purposes
-- Document verification and validation
-- Approval workflow management
-- Visa issuance tracking and reporting
+- Structured visa application forms for multiple types
+- Document upload and verification
+- Approval/rejection workflows and pending/completed request management
+- Fee calculation and payment tracking
+- Statistical reporting and analytics
 
 **Market Metrics:**
 - Estimated 40,000 visa applications annually
@@ -194,11 +199,10 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Authentication of official documents for use in Libya and internationally.
 
 **Requirements:**
-- Verification of document authenticity
-- Processing of local attestation requirements
-- Handling of international attestation standards
-- Fee calculation and collection
-- Document tracking throughout the attestation process
+- Local and international attestation workflows
+- Document verification, stamping, and certificate generation
+- Apostille and translation management
+- Fee calculation and document tracking
 
 **Market Metrics:**
 - Approximately 30,000 document attestations annually
@@ -210,11 +214,9 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Secure and verifiable delegation of legal authority for citizens unable to conduct transactions in person.
 
 **Requirements:**
-- Management of court proxies for legal representation
-- Processing of bank proxies for financial transactions
-- Handling of specialized proxies (divorce, real estate, inheritance)
-- Verification of proxy validity and limitations
-- Expiration tracking and renewal processing
+- Management of court, bank, divorce, real estate, inheritance, document completion, and general proxies
+- Verification of proxy validity, expiration, and renewal
+- Secure documentation and approval workflows
 
 **Market Metrics:**
 - Estimated 25,000 proxy transactions annually
@@ -226,11 +228,10 @@ The market for consular digital services is growing at approximately 15% annuall
 **Market Need:** Data-driven insights for operational improvement and strategic planning.
 
 **Requirements:**
-- Operational statistics by service type and location
-- Performance metrics on processing times
-- Resource utilization reporting
-- Trend analysis for service demand
-- Custom report generation capabilities
+- Operational and administrative dashboards
+- Custom and standard report generation
+- Data export (PDF, Excel)
+- Trend analysis, performance metrics, and resource utilization
 
 **Market Metrics:**
 - Critical for measuring consular performance
@@ -245,12 +246,13 @@ The Libyan Foreign Ministry Management System delivers comprehensive digital tra
 
 ### 6.2 Unique Selling Points
 
-- **Complete Solution:** Covers all consular service areas in a single integrated platform
-- **Arabic-First Design:** Built from the ground up with Arabic language and RTL support
-- **Libya-Specific:** Fully aligned with Libyan regulations and procedural requirements
-- **Modern Technology:** Implemented with current web technologies for performance and sustainability
-- **Scalable Architecture:** Designed to accommodate both small and large diplomatic missions
-- **Progressive Deployment:** Phased implementation approach to manage transition risks
+- **Complete Solution:** Covers all consular service areas in a single integrated platform (frontend and backend)
+- **Arabic-First Design:** Full RTL, i18n, and locale-specific formatting
+- **Libya-Specific:** Aligned with Libyan regulations, legal templates, and procedural requirements
+- **Modern Technology:** React 18, TypeScript, Vite, Tailwind CSS, Express.js, Prisma, MySQL, AWS S3, JWT, Zod, modular architecture
+- **Security & Compliance:** End-to-end security, audit logging, RBAC, 2FA, and compliance with Libyan and international standards
+- **Scalable & Maintainable:** Modular, feature-based codebase, CI/CD, automated testing, and documentation
+- **Progressive Deployment:** Phased rollout, pilot programs, and comprehensive training/support
 
 ### 6.3 Positioning Statement
 
@@ -276,11 +278,11 @@ For the Libyan Foreign Ministry, which needs to modernize and standardize consul
 
 ### 7.3 Technical Performance Metrics
 
-- **Response Time:** Page load under 2 seconds, form submission under 3 seconds
-- **Scalability:** Support for 50+ concurrent users per installation
-- **Data Integrity:** Zero data loss incidents
-- **Security Compliance:** 100% adherence to Libyan government security standards
-- **Mobile Compatibility:** Full functionality on tablets for staff mobility
+- **Response Time:** Page load under 2 seconds, form submission under 3 seconds (SPA, Vite, optimized API)
+- **Scalability:** Support for 50+ concurrent users per installation (stateless backend, scalable DB)
+- **Data Integrity:** Zero data loss incidents (validation, audit logging, backup)
+- **Security Compliance:** 100% adherence to Libyan government security standards (OWASP, encryption, RBAC)
+- **Mobile Compatibility:** Full functionality on tablets and mobile devices (responsive SPA)
 
 ## 8. Market Risks and Mitigation
 
@@ -306,13 +308,13 @@ For the Libyan Foreign Ministry, which needs to modernize and standardize consul
 
 ### 9.1 Implementation Phases
 
-The system will be implemented according to the phased approach outlined in the Development Roadmap:
+The system will be implemented according to the phased approach outlined in the Development Roadmap and PRD:
 
-1. **Phase 1 (June 2025):** Core Civil Registry and Passport Services
-2. **Phase 2 (August 2025):** Visa Processing and Document Attestation
-3. **Phase 3 (October 2025):** Legal Proxy Management and Reporting
-4. **Phase 4 (December 2025):** API Integration with Ministry Backend Systems
-5. **Phase 5 (February 2026):** Advanced Analytics and Monitoring Features
+1. **Phase 1 (June 2025):** Core Civil Registry and Passport Services (frontend/backend, authentication, dashboard, core modules)
+2. **Phase 2 (August 2025):** Visa Processing and Document Attestation (frontend/backend, workflows, search, document management)
+3. **Phase 3 (October 2025):** Legal Proxy Management and Reporting (frontend/backend, analytics, print optimization)
+4. **Phase 4 (December 2025):** API Integration with Ministry Backend Systems (integration architecture, synchronization, secure data transmission)
+5. **Phase 5 (February 2026):** Advanced Analytics and Monitoring Features (dashboards, predictive modeling, optimization tools)
 
 ### 9.2 Rollout Strategy
 
@@ -392,7 +394,7 @@ The system will be implemented according to the phased approach outlined in the 
 
 ### 13.1 Glossary of Terms
 
-A comprehensive list of market terminology, technical terms, and domain-specific concepts relevant to the Libyan Foreign Ministry context.
+A comprehensive list of market, technical, and domain-specific terms is maintained in SRS.md, FRD.md, and TRD.md for consistency across all documentation.
 
 ### 13.2 Market Research Data
 
