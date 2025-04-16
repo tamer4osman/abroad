@@ -1,0 +1,212 @@
+name: MinIO Deployment
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - "backend/**"
+      - ".github/workflows/minio-deployment.yml"
+  pull_request:
+    branches: [main, development]
+    paths:
+      - "backend/**"
+      - ".github/workflows/minio-deployment.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy to"
+        required: true
+        default: "development"
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  setup-minio:
+    name: Setup MinIO Server
+    runs-on: ubuntu-latest
+    env:
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER || 'minioadmin' }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD || 'minioadmin' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set environment variables
+        id: set-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "ENV_NAME=production" >> $GITHUB_ENV
+            echo "MINIO_PORT=9000" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/development" || "${{ github.event.inputs.environment }}" == "development" ]]; then
+            echo "ENV_NAME=development" >> $GITHUB_ENV
+            echo "MINIO_PORT=9000" >> $GITHUB_ENV
+          else
+            echo "ENV_NAME=staging" >> $GITHUB_ENV
+            echo "MINIO_PORT=9000" >> $GITHUB_ENV
+          fi
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Docker Compose setup for MinIO
+      - name: Create docker-compose.yml for MinIO
+        run: |
+          cat > docker-compose.minio.yml << EOF
+          version: '3.8'
+
+          services:
+            minio:
+              image: minio/minio:latest
+              container_name: minio-${{ env.ENV_NAME }}
+              ports:
+                - "${{ env.MINIO_PORT }}:9000"
+                - "9001:9001"
+              environment:
+                MINIO_ROOT_USER: ${{ env.MINIO_ROOT_USER }}
+                MINIO_ROOT_PASSWORD: ${{ env.MINIO_ROOT_PASSWORD }}
+              command: server /data --console-address ":9001"
+              volumes:
+                - minio-data:/data
+              restart: unless-stopped
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+
+          volumes:
+            minio-data:
+              driver: local
+          EOF
+
+      - name: Start MinIO
+        run: docker-compose -f docker-compose.minio.yml up -d
+
+      - name: Wait for MinIO to be ready
+        run: |
+          echo "Waiting for MinIO to be ready..."
+          timeout=60
+          counter=0
+          while ! curl -s http://localhost:${{ env.MINIO_PORT }}/minio/health/live; do
+            if [ $counter -eq $timeout ]; then
+              echo "Timed out waiting for MinIO to start"
+              exit 1
+            fi
+            echo "MinIO is not ready yet. Waiting..."
+            sleep 5
+            counter=$((counter + 5))
+          done
+          echo "MinIO is ready!"
+
+      - name: Set up MinIO Client (mc)
+        run: |
+          wget https://dl.min.io/client/mc/release/linux-amd64/mc
+          chmod +x mc
+          ./mc --version
+
+      - name: Configure MinIO Client
+        run: |
+          ./mc alias set myminio http://localhost:${{ env.MINIO_PORT }} ${{ env.MINIO_ROOT_USER }} ${{ env.MINIO_ROOT_PASSWORD }}
+
+      - name: Create bucket and set policies
+        run: |
+          # Create the default bucket
+          ./mc mb --ignore-existing myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}
+
+          # Make bucket public for read access if needed
+          # ./mc policy set download myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}
+
+          # For better security, we'll keep it private and use pre-signed URLs
+          ./mc policy set private myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}
+
+          # Create additional buckets for different document types if needed
+          ./mc mb --ignore-existing myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}-passports
+          ./mc mb --ignore-existing myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}-visas
+          ./mc mb --ignore-existing myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}-proxies
+          ./mc mb --ignore-existing myminio/libyan-foreign-ministry-${{ env.ENV_NAME }}-attestations
+
+          # List all buckets to verify
+          ./mc ls myminio
+
+      - name: Create service user for application
+        run: |
+          # Create a specific user for the application with limited permissions
+          ./mc admin user add myminio libyan-app-${{ env.ENV_NAME }} ${{ secrets.MINIO_APP_PASSWORD || 'complexPassword123!' }}
+
+          # Create policy file
+          cat > app-policy.json << EOF
+          {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "s3:GetObject",
+                  "s3:PutObject",
+                  "s3:ListBucket"
+                ],
+                "Resource": [
+                  "arn:aws:s3:::libyan-foreign-ministry-${{ env.ENV_NAME }}/*",
+                  "arn:aws:s3:::libyan-foreign-ministry-${{ env.ENV_NAME }}",
+                  "arn:aws:s3:::libyan-foreign-ministry-${{ env.ENV_NAME }}-*/*",
+                  "arn:aws:s3:::libyan-foreign-ministry-${{ env.ENV_NAME }}-*"
+                ]
+              }
+            ]
+          }
+          EOF
+
+          # Create the policy
+          ./mc admin policy add myminio app-policy-${{ env.ENV_NAME }} app-policy.json
+
+          # Assign policy to user
+          ./mc admin policy set myminio app-policy-${{ env.ENV_NAME }} user=libyan-app-${{ env.ENV_NAME }}
+
+      - name: Update deployment configuration
+        if: ${{ env.ENV_NAME == 'production' }}
+        run: |
+          # For a production deployment, add additional security measures
+          # Set up TLS for MinIO (would require certificates in production)
+          echo "Additional production security configuration would go here"
+
+          # Output the MinIO service details for deployment
+          echo "MinIO has been successfully deployed for ${{ env.ENV_NAME }} environment"
+          echo "Endpoint: localhost:${{ env.MINIO_PORT }}"
+          echo "Admin Console: http://localhost:9001"
+
+          # Generate .env file template for the backend
+          cat > .env.minio.${{ env.ENV_NAME }} << EOF
+          # MinIO Configuration for ${{ env.ENV_NAME }} environment
+          MINIO_ENDPOINT=storage.${{ env.ENV_NAME }}.libyan-foreign-ministry.gov.ly
+          MINIO_PORT=443
+          MINIO_USE_SSL=true
+          MINIO_ACCESS_KEY=libyan-app-${{ env.ENV_NAME }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_APP_PASSWORD || 'complexPassword123!' }}
+          MINIO_BUCKET=libyan-foreign-ministry-${{ env.ENV_NAME }}
+          EOF
+
+      - name: Store MinIO configuration
+        uses: actions/upload-artifact@v3
+        with:
+          name: minio-config-${{ env.ENV_NAME }}
+          path: .env.minio.${{ env.ENV_NAME }}
+          retention-days: 5
+
+      - name: Output next steps
+        run: |
+          echo "MinIO has been set up successfully for the ${{ env.ENV_NAME }} environment."
+          echo "For production deployments, ensure to:"
+          echo "1. Configure proper TLS certificates"
+          echo "2. Set up a more secure password policy"
+          echo "3. Configure proper networking and firewalls"
+          echo "4. Set up backup policies for the MinIO data"
