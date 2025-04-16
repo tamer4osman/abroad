@@ -18,6 +18,6 @@ router.post('/upload', upload.single('document'), documentController.uploadDocum
  * @route   GET /api/documents/download/:key
  * @desc    Get a download URL for a document
  */
-router.get('/download/:key(*)', documentController.getDocumentDownloadUrl);
+router.get('/download/:key', documentController.getDocumentDownloadUrl);
 
 export default router;
