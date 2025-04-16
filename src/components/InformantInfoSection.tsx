@@ -1,7 +1,8 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import InputField from "./common/InputField";
 import SelectField from "./common/SelectField";
-import Section from "./common/Section";import { INFORMANT_TYPE } from "../constants/BirthRegistration.constants";
+import Section from "./common/Section";
+import { INFORMANT_TYPE } from "../constants/BirthRegistration.constants";
 
 
 interface InformantInfo {
