@@ -1,3 +1,16 @@
 node_modules
 # Keep environment variables out of version control
 .env
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose.yml
+.docker/
+
+# Docker build context
+build/
+dist/
+
+# Docker volumes
+data/
