@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { registerCitizen, CitizenRegistrationData } from "../services/api";
 
 // --- Interfaces ---
 interface FamilyMember {
@@ -197,6 +198,8 @@ const RegisterCitizen: React.FC = () => {
     date: "",
   });
 
+  const [submitStatus, setSubmitStatus] = useState<null | { type: 'success' | 'error', message: string }>(null);
+
   const handleChange = useCallback((name: string, value: string) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
@@ -257,10 +260,9 @@ const RegisterCitizen: React.FC = () => {
   );
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log(formData);
-
+      // Basic validation
       if (
         !formData.firstName ||
         !formData.fatherName ||
@@ -269,6 +271,28 @@ const RegisterCitizen: React.FC = () => {
       ) {
         alert("Please fill in all name fields.");
         return;
+      }
+      try {
+        // Map frontend fields to the backend schema
+        const apiData: CitizenRegistrationData = {
+          firstName: formData.firstName,
+          lastName: formData.familyName, // Map familyName to lastName
+          email: formData.email,
+          // Add other required fields if needed
+        };
+        
+        await registerCitizen(apiData);
+        setSubmitStatus({ type: 'success', message: 'تم حفظ البيانات بنجاح' });
+      } catch (err: unknown) {
+        const errorMessage = 
+          err && 
+          typeof err === 'object' && 
+          'error' in err && 
+          typeof err.error === 'string' 
+            ? err.error 
+            : 'حدث خطأ أثناء الحفظ';
+        
+        setSubmitStatus({ type: 'error', message: errorMessage });
       }
     },
     [formData]
@@ -284,6 +308,12 @@ const RegisterCitizen: React.FC = () => {
             </h1>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+        {/* Show submit status */}
+        {submitStatus && (
+          <div className={`text-center py-2 rounded ${submitStatus.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            {submitStatus.message}
+          </div>
+        )}
         {/* Photo Upload */}
         <div className="text-center border border-black p-2">
           <label htmlFor="photo" className="block">
