@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../../utils/prisma";
 
 /**
  * Controller for Legal Proxy operations
@@ -30,8 +28,11 @@ export const proxyController = {
       const proxies = await prisma.legalProxy.findMany({
         orderBy: { created_at: "desc" },
         include: {
-          grantor: true,
-          agent: true,
+          grantor_citizen: true,
+          embassy: true,
+          approved_by: true,
+          documents: true,
+          activities: true
         },
       });
       res.json(proxies);
@@ -50,9 +51,11 @@ export const proxyController = {
       const proxy = await prisma.legalProxy.findUnique({
         where: { proxy_id: parseInt(id, 10) },
         include: {
-          grantor: true,
-          agent: true,
-          proxyDocuments: true // Include related documents
+          grantor_citizen: true,
+          embassy: true,
+          approved_by: true,
+          documents: true,
+          activities: true
         }
       });
       
