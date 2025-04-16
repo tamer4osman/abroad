@@ -25,7 +25,7 @@ interface ChildInfoSectionProps {
   onChange: (name: string, value: string) => void;
 }
 
-import React from 'react';
+// Removed unused React import
 
 // Removing unused SectionContainer component
 const ChildInfoSection = memo(({ childInfo, onChange }: ChildInfoSectionProps) => (
