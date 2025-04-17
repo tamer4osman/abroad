@@ -7,6 +7,7 @@ import citizenRoutes from "./routes/citizens/citizenRoutes";
 import passportRoutes from "./routes/passports/passportRoutes";
 import proxyRoutes from "./routes/proxies/proxyRoutes";
 import documentRoutes from "./routes/documents/documentRoutes";
+import visaRoutes from "./routes/visas/visaRoutes"; // Corrected path assuming 'visas' directory
 
 // Import middleware
 import { requestLogger } from "./middlewares/loggingMiddleware";
@@ -38,6 +39,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/citizens", citizenRoutes);
 app.use("/api/passports", passportRoutes);
 app.use("/api/proxies", proxyRoutes);
+app.use("/api/visa", visaRoutes); // Corrected route path to match import
 
 // Apply upload rate limiting specifically to document routes
 app.use("/api/documents", uploadRateLimit, documentRoutes);
