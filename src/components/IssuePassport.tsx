@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Upload } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments";
+import { registerPassport } from "../services/api";
 
 // --- Interfaces ---
 interface FormData {
@@ -373,27 +374,124 @@ const IssuePassport: React.FC = () => {
     removeAttachment,
   } = usePassportFormState();
 
+  // Add status state for API feedback
+  const [submitStatus, setSubmitStatus] = useState<{
+    isSubmitting: boolean;
+    success?: boolean;
+    message?: string;
+  }>({
+    isSubmitting: false,
+  });
+
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log("Form Data:", formData);
-      console.log("Uploaded Attachments:", uploadedAttachments);
+      
+      // Reset submission status
+      setSubmitStatus({
+        isSubmitting: true,
+        message: undefined,
+        success: undefined
+      });
 
       // Validation
       if (!formData.firstName || !formData.nationalNumber) {
-        alert("يرجى ملء جميع الحقول الإلزامية");
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى ملء جميع الحقول الإلزامية",
+        });
         return;
       }
 
       if (!formData.agreesToTerms) {
-        alert("يرجى الموافقة على الشروط والأحكام");
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى الموافقة على الشروط والأحكام",
+        });
         return;
       }
 
-      // Here you would typically send the data to an API
-      alert("تم تقديم طلب إصدار جواز السفر بنجاح");
+      try {
+        // Prepare the data for backend
+        const passportData = {
+          // Add placeholder required fields to satisfy PassportRegistrationData type
+          // These might be ignored or handled by the backend for a new passport request.
+          passportNumber: "", // Placeholder for new passport
+          issueDate: "",      // Placeholder for new passport
+          expiryDate: "",     // Placeholder for new passport
+
+          citizenId: formData.nationalNumber, // Using national number as citizen ID
+          holderName: `${formData.firstName} ${formData.fatherName} ${formData.grandfatherName} ${formData.familyName}`,
+          passportType: formData.passportType,
+          pages: formData.numberOfPages,
+          processingType: formData.processingType,
+          birthPlace: formData.birthPlace,
+          birthDate: formData.birthDate,
+          gender: formData.gender,
+          contactInfo: {
+            addressLibya: formData.addressLibya,
+            phoneLibya: formData.phoneLibya,
+            addressAbroad: formData.addressAbroad || undefined,
+            phoneAbroad: formData.phoneAbroad || undefined,
+            email: formData.email || undefined,
+          },
+          emergencyContact: {
+            name: formData.emergencyContactName,
+            relationship: formData.emergencyContactRelation,
+            phone: formData.emergencyContactPhone,
+          },
+          parentInfo: {
+            fatherName: formData.fatherFullName || undefined,
+            fatherNationality: formData.fatherNationality || undefined,
+            motherName: formData.motherFullName || undefined,
+            motherNationality: formData.motherNationality || undefined,
+          },
+          previousPassport: formData.hasCurrentPassport ? {
+            number: formData.currentPassportNumber,
+            issueDate: formData.currentPassportIssueDate,
+            expiryDate: formData.currentPassportExpiryDate,
+            issuePlace: formData.currentPassportIssuePlace,
+          } : undefined,
+          additionalInfo: {
+            travelReason: formData.travelReason || undefined,
+            travelDestination: formData.travelDestination || undefined,
+            previousLost: formData.previousPassportLost,
+            previousLostDetails: formData.previousPassportLostDetails || undefined,
+          }
+        };
+
+        // Call the API to register the passport
+        const result = await registerPassport(passportData);
+        
+        // Set success status
+        setSubmitStatus({
+          isSubmitting: false,
+          success: true,
+          message: "تم تقديم طلب إصدار جواز السفر بنجاح. رقم الطلب: " + result.applicationId,
+        });
+
+        // Reset form if needed
+        // resetForm();
+        
+      } catch (error: unknown) {
+        // Handle errors from the API
+        console.error("Error submitting passport application:", error);
+        let errorMessage = "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى.";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: errorMessage,
+        });
+      }
     },
-    [formData, uploadedAttachments]
+    [formData] // Removed uploadedAttachments as it's not used directly in the callback
   );
 
   // Memoize form sections to prevent unnecessary re-renders
@@ -883,12 +981,40 @@ const IssuePassport: React.FC = () => {
             attachmentTypeOptions={ATTACHMENT_TYPE_OPTIONS}
           />
         </Section>
+        
+        {/* Submission Status */}
+        {submitStatus.message && (
+          <div className={`p-4 rounded-md ${
+            submitStatus.success 
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }`}>
+            <p className="text-center font-semibold">{submitStatus.message}</p>
+          </div>
+        )}
+        
+        {/* Terms and Conditions */}
+        <div className="mb-4">
+          <CheckboxField
+            label="أوافق على الشروط والأحكام المتعلقة بإصدار جواز السفر"
+            id="agreesToTerms"
+            name="agreesToTerms"
+            checked={formData.agreesToTerms}
+            onChange={(checked) => handleChange("agreesToTerms", checked)}
+            required
+          />
+        </div>
 
         <button
           type="submit"
-          className="py-2 bg-green-600 hover:bg-green-700 text-white border-none rounded-md font-semibold transition-colors duration-200"
+          disabled={submitStatus.isSubmitting}
+          className={`py-2 ${
+            submitStatus.isSubmitting 
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-green-600 hover:bg-green-700"
+          } text-white border-none rounded-md font-semibold transition-colors duration-200`}
         >
-          تقديم الطلب
+          {submitStatus.isSubmitting ? "جاري الإرسال..." : "تقديم الطلب"}
         </button>
       </form>
     </div>
