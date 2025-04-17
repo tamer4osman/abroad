@@ -1,4 +1,5 @@
 import { FormData } from '../types/BirthRegistration.types';
+import { isValidPhone, EMAIL_REGEX } from '../constants/VisaForm.constants';
 
 export interface VisaFormData {
   // Personal Information
@@ -225,14 +226,11 @@ export class ValidationService {
 
   // Helper validation methods
   isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+    return EMAIL_REGEX.test(email);
   }
 
   isValidPhoneNumber(phone: string): boolean {
-    // This is a simple validation for demonstration
-    // It checks for a minimum length of 10 digits and allows for country codes
-    return /^[\d+\-()\s]{10,20}$/.test(phone);
+    return isValidPhone(phone);
   }
 
   isValidDate(dateString: string): boolean {
