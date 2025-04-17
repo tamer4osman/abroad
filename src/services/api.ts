@@ -3,7 +3,7 @@
 
 import axios from "axios";
 
-const API_BASE_URL = "/api";
+const API_BASE_URL = import.meta.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -24,12 +24,19 @@ export async function registerCitizen(
   data: CitizenRegistrationData,
   token?: string
 ) {
-  const response = await api.post("/citizens", data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.post(
+    "/citizens",
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
 export async function getCitizens(token?: string) {
-  const response = await api.get("/citizens", token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.get(
+    "/citizens",
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -38,12 +45,19 @@ export async function updateCitizen(
   data: Partial<CitizenRegistrationData>,
   token?: string
 ) {
-  const response = await api.put(`/citizens/${id}`, data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.put(
+    `/citizens/${id}`,
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
 export async function deleteCitizen(id: string, token?: string) {
-  const response = await api.delete(`/citizens/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.delete(
+    `/citizens/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -60,7 +74,11 @@ export async function registerPassport(
   data: PassportRegistrationData,
   token?: string
 ) {
-  const response = await api.post("/passports", data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.post(
+    "/passports",
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -69,12 +87,19 @@ export async function updatePassport(
   data: Partial<PassportRegistrationData>,
   token?: string
 ) {
-  const response = await api.put(`/passports/${id}`, data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.put(
+    `/passports/${id}`,
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
 export async function deletePassport(id: string, token?: string) {
-  const response = await api.delete(`/passports/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.delete(
+    `/passports/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -92,7 +117,11 @@ export async function registerProxy(
   data: ProxyRegistrationData,
   token?: string
 ) {
-  const response = await api.post("/proxies", data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.post(
+    "/proxies",
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -101,12 +130,19 @@ export async function updateProxy(
   data: Partial<ProxyRegistrationData>,
   token?: string
 ) {
-  const response = await api.put(`/proxies/${id}`, data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.put(
+    `/proxies/${id}`,
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
 export async function deleteProxy(id: string, token?: string) {
-  const response = await api.delete(`/proxies/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.delete(
+    `/proxies/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -124,7 +160,11 @@ export async function registerDocument(
   data: DocumentRegistrationData,
   token?: string
 ) {
-  const response = await api.post("/documents", data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.post(
+    "/documents",
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
@@ -133,11 +173,62 @@ export async function updateDocument(
   data: Partial<DocumentRegistrationData>,
   token?: string
 ) {
-  const response = await api.put(`/documents/${id}`, data, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.put(
+    `/documents/${id}`,
+    data,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
 
 export async function deleteDocument(id: string, token?: string) {
-  const response = await api.delete(`/documents/${id}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
+  const response = await api.delete(
+    `/documents/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
   return response.data;
 }
+
+// Define the shape of attestation request data
+export interface AttestationRequestData {
+  // Add relevant fields for attestation request
+  // For example:
+  citizenId: string;
+  attestationType: string;
+  details?: string;
+  // Add other fields as needed
+}
+
+export async function registerAttestationRequest(
+  data: AttestationRequestData
+): Promise<{ applicationId: string }> {
+  const response = await api.post(
+    "/attestation",
+    data
+  );
+  return response.data;
+}
+
+// Define the shape of visa registration data
+export interface VisaRegistrationData {
+  citizenId: string;
+  visaType: string;
+  country: string;
+  applicationDate: string;
+  expiryDate?: string;
+  status?: string;
+  // Add other relevant visa fields as needed
+}
+
+// Visa services
+export const registerVisa = async (visaData: VisaRegistrationData, token?: string) => {
+  const response = await api.post(
+    '/visas', 
+    visaData,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return response.data;
+};
+
+// Export default api instance
+export default api;
