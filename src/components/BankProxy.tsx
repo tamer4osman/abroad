@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useMemo, ChangeEvent } from 'react';
 import { FileText, User, Send, Hash, MapPin, Calendar, CreditCard, Building } from 'lucide-react';
 import AttachmentDocuments from './common/AttachmentDocuments';
+import { registerProxy } from '../services/api';
 
 // --- Interfaces ---
 interface FormData {
@@ -190,14 +191,66 @@ const BankProxy: React.FC = () => {
       e.preventDefault();
       setIsSubmitting(true);
       setSubmitStatus('idle');
-      console.log("بيانات طلب التوكيل المصرفي:", formData);
-      console.log("المرفقات:", uploadedAttachments);
-
+      
       try {
-        // Placeholder for API call:
-        // const response = await submitBankProxy(formData);
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+        // Format data for the API according to backend expectations
+        const proxyData = {
+          type: "bank",
+          purpose: "banking",
+          expiryDate: null, // Most bank proxies don't have expiry dates
+          
+          // Add required properties for ProxyRegistrationData
+          citizenId: formData.grantorIdOrLicense,
+          proxyHolderId: formData.granteePassportOrId, 
+          proxyType: "bank",
+          startDate: new Date().toISOString(),
+          
+          grantor: {
+            title: formData.grantorTitle,
+            name: formData.grantorName,
+            passportNumber: formData.grantorPassportNumber,
+            passportIssueDate: formData.grantorPassportIssueDate,
+            idNumber: formData.grantorIdOrLicense,
+            residency: formData.grantorResidency
+          },
+          
+          grantee: {
+            title: formData.granteeTitle,
+            name: formData.granteeName,
+            idOrPassportNumber: formData.granteePassportOrId,
+            idOrPassportIssueDate: formData.granteePassportIssueDate,
+            residency: formData.granteeResidency
+          },
+          
+          bankDetails: {
+            bankName: formData.bankName,
+            accountNumber: formData.accountNumber,
+            actions: [
+              "withdraw",
+              "deposit",
+              "checkbooks",
+              "cards",
+              "maintenance"
+            ]
+          },
+          
+          // Convert attachments to format expected by backend
+          attachments: uploadedAttachments.map(attachment => ({
+            type: attachment.type,
+            filename: attachment.file.name,
+            fileType: attachment.file.type,
+            fileSize: attachment.file.size
+          }))
+        };
+
+        // Call the API to register the proxy
+        const response = await registerProxy(proxyData);
+        
+        console.log("API Response:", response);
         setSubmitStatus('success');
+        
+        // Optional: Reset form or redirect user
+        // resetForm();
       } catch (error) {
         console.error('Submission Error:', error);
         setSubmitStatus('error');
