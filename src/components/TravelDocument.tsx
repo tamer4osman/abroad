@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Upload } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments";
+import { registerPassport } from "../services/api";
 
 // --- Interfaces ---
 interface FormData {
@@ -365,27 +366,144 @@ const TravelDocument: React.FC = () => {
     removeAttachment,
   } = useTravelDocumentFormState();
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      console.log("Form Data:", formData);
-      console.log("Uploaded Attachments:", uploadedAttachments);
+  // Add status state for API feedback
+  const [submitStatus, setSubmitStatus] = useState<{
+    isSubmitting: boolean;
+    success?: boolean;
+    message?: string;
+  }>({
+    isSubmitting: false,
+  });
 
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      // Reset submission status
+      setSubmitStatus({
+        isSubmitting: true,
+        message: undefined,
+        success: undefined
+      });
+      
       // Basic validation
       if (!formData.firstName || !formData.familyName || !formData.nationalNumber) {
-        alert("يرجى ملء جميع الحقول الإلزامية");
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى ملء جميع الحقول الإلزامية الشخصية"
+        });
+        return;
+      }
+
+      if (!formData.documentLossDetails) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى ذكر سبب طلب وثيقة السفر المؤقتة"
+        });
+        return;
+      }
+
+      if (!formData.photo) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى إرفاق الصورة الشخصية"
+        });
         return;
       }
 
       if (!formData.agreesToTerms) {
-        alert("يرجى الموافقة على الشروط والأحكام");
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى الموافقة على الشروط والأحكام"
+        });
         return;
       }
 
-      // Here you would typically send the data to an API
-      alert("تم تقديم طلب إصدار وثيقة السفر المؤقتة بنجاح");
+      try {
+        // Prepare data for API
+        const travelDocData = {
+          // Required fields by PassportRegistrationData type
+          citizenId: formData.nationalNumber,
+          passportNumber: formData.previousDocumentNumber || "",
+          issueDate: formData.previousDocumentIssueDate || new Date().toISOString().split('T')[0],
+          expiryDate: new Date().toISOString().split('T')[0], // Default to today
+          
+          // Additional travel document specific fields
+          personalInfo: {
+            fullName: `${formData.firstName} ${formData.fatherName} ${formData.grandfatherName} ${formData.familyName}`,
+            nationalNumber: formData.nationalNumber,
+            birthPlace: formData.birthPlace,
+            birthDate: formData.birthDate,
+            gender: formData.gender,
+            maritalStatus: formData.maritalStatus,
+            occupation: formData.occupation,
+          },
+          documentInfo: {
+            previousDocumentNumber: formData.previousDocumentNumber,
+            previousDocumentIssueDate: formData.previousDocumentIssueDate,
+            previousDocumentIssuePlace: formData.previousDocumentIssuePlace,
+            lossDetails: formData.documentLossDetails,
+            lossLocation: formData.documentLossLocation,
+            lossDate: formData.documentLossDate,
+            reportedLoss: formData.documentLossReported,
+            reportNumber: formData.documentLossReportNumber,
+            reportDate: formData.documentLossReportDate,
+          },
+          contactInfo: {
+            addressLibya: formData.addressLibya,
+            phoneLibya: formData.phoneLibya,
+            addressAbroad: formData.addressAbroad,
+            phoneAbroad: formData.phoneAbroad,
+            email: formData.email,
+            emergencyContact: {
+              name: formData.emergencyContactName,
+              relation: formData.emergencyContactRelation,
+              phone: formData.emergencyContactPhone,
+            }
+          },
+          travelInfo: {
+            reason: formData.travelReason,
+            reasonDetails: formData.travelReasonDetails,
+            destination: formData.travelDestination,
+            requestedValidity: formData.requestedValidity,
+            processingType: formData.processingType,
+          },
+          operation: "travelDocument"
+        };
+          
+        // Call API to register travel document application
+        const result = await registerPassport(travelDocData);
+        
+        // Set success status
+        setSubmitStatus({
+          isSubmitting: false,
+          success: true,
+          message: "تم تقديم طلب إصدار وثيقة السفر المؤقتة بنجاح. رقم الطلب: " + result.applicationId,
+        });
+        
+      } catch (error: unknown) {
+        // Handle API errors
+        console.error("Error submitting travel document request:", error);
+        let errorMessage = "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى.";
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        // You could add more specific error handling here if needed
+
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: errorMessage,
+        });
+      }
     },
-    [formData, uploadedAttachments]
+    [formData]
   );
 
   // Memoize form sections to prevent unnecessary re-renders
@@ -827,12 +945,40 @@ const TravelDocument: React.FC = () => {
             attachmentTypeOptions={ATTACHMENT_TYPE_OPTIONS}
           />
         </Section>
+        
+        {/* Submission Status */}
+        {submitStatus.message && (
+          <div className={`p-4 rounded-md ${
+            submitStatus.success 
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }`}>
+            <p className="text-center font-semibold">{submitStatus.message}</p>
+          </div>
+        )}
+        
+        {/* Terms and Conditions */}
+        <div className="mb-4">
+          <CheckboxField
+            label="أوافق على الشروط والأحكام المتعلقة بإصدار وثيقة السفر المؤقتة"
+            id="agreesToTerms"
+            name="agreesToTerms"
+            checked={formData.agreesToTerms}
+            onChange={(checked) => handleChange("agreesToTerms", checked)}
+            required
+          />
+        </div>
 
         <button
           type="submit"
-          className="py-2 bg-green-600 hover:bg-green-700 text-white border-none rounded-md font-semibold transition-colors duration-200"
+          disabled={submitStatus.isSubmitting}
+          className={`py-2 ${
+            submitStatus.isSubmitting 
+              ? "bg-gray-400 cursor-not-allowed" 
+              : "bg-green-600 hover:bg-green-700"
+          } text-white border-none rounded-md font-semibold transition-colors duration-200`}
         >
-          تقديم الطلب
+          {submitStatus.isSubmitting ? "جاري الإرسال..." : "تقديم الطلب"}
         </button>
       </form>
     </div>
