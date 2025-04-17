@@ -12,6 +12,12 @@ import {
   COUNTRIES 
 } from '../constants/VisaForm.constants';
 import AttachmentDocuments from './common/AttachmentDocuments';
+import PhoneNumberField from './common/PhoneNumberField';
+// Update the import to match the actual exported function name from '../services/api'
+import { registerVisa } from '../services/api';
+// If registerVisa is a named export, use the above line.
+// If it's a named export with a different name, use:
+// import { correctExportName as registerVisa } from '../services/api';
 
 // Define visa document types
 const VISA_DOCUMENT_TYPES = [
@@ -371,13 +377,166 @@ const NewRequestVisas: React.FC = () => {
     resetForm
   } = useVisaFormState();
 
-  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+  // Add state for submission status
+  const [submitStatus, setSubmitStatus] = useState<{
+    isSubmitting: boolean;
+    success?: boolean;
+    message?: string;
+  }>({
+    isSubmitting: false,
+  });
+
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Visa Application Data:', formData);
-    alert('تم استلام طلب التأشيرة (راجع وحدة التحكم للمعلومات)');
-    // Reset form after submission
-    resetForm();
-  }, [formData, resetForm]);
+    
+    // Begin submission - set loading state
+    setSubmitStatus({
+      isSubmitting: true,
+      message: "جاري تقديم الطلب...",
+      success: undefined
+    });
+
+    // Basic validation
+    if (
+      !formData.firstName || 
+      !formData.surname || 
+      !formData.passportNumber || 
+      !formData.purposeOfVisit
+    ) {
+      setSubmitStatus({
+        isSubmitting: false,
+        success: false,
+        message: "يرجى ملء جميع الحقول الإلزامية"
+      });
+      return;
+    }
+
+    // Check for ID photo specifically
+    if (!formData.picture) {
+      setSubmitStatus({
+        isSubmitting: false,
+        success: false,
+        message: "يرجى إرفاق صورة شخصية"
+      });
+      return;
+    }
+
+    try {
+      // Create visa application data object
+      const visaApplication = {
+        // Required fields from VisaRegistrationData type
+        citizenId: formData.passportNumber, // Using passport number as citizen ID
+        visaType: formData.purposeOfVisit,
+        country: formData.nationality,
+        applicationDate: new Date().toISOString(),
+        
+        // Applicant personal information
+        applicant: {
+          firstName: formData.firstName,
+          surname: formData.surname,
+          fatherName: formData.fatherName,
+          motherName: formData.motherName,
+          nationality: formData.nationality,
+          formerNationality: formData.formerNationality || undefined,
+          dob: formData.dob,
+          placeOfBirth: formData.placeOfBirth,
+          sex: formData.sex,
+          occupation: formData.occupation || undefined,
+          qualifications: formData.qualifications || undefined,
+          maritalStatus: formData.maritalStatus,
+          religion: formData.religion || undefined
+        },
+        
+        // Contact information
+        contactInfo: {
+          address: formData.address,
+          unitOrApt: formData.unitOrApt || undefined,
+          city: formData.city,
+          country: formData.country,
+          postalCode: formData.postalCode,
+          phone: formData.phone,
+          email: formData.email
+        },
+        
+        // Travel document information
+        travelDocument: {
+          passportNumber: formData.passportNumber,
+          documentType: formData.documentType,
+          issuedOn: formData.issuedOn,
+          validTo: formData.validTo
+        },
+        
+        // Visa request details
+        visaDetails: {
+          purposeOfVisit: formData.purposeOfVisit,
+          requiredPeriod: formData.requiredPeriod,
+          transitDestination: formData.purposeOfVisit === 'transit' ? formData.transitDestination : undefined
+        },
+        
+        // Sponsor information
+        sponsor: {
+          sponsorType: formData.sponsorType,
+          sponsorName: formData.sponsorName,
+          sponsorAddress: formData.sponsorAddressInLibya,
+          sponsorPhone: formData.sponsorPhone
+        },
+        
+        // Previous entries information
+        previousEntries: formData.everBeenToLibya === 'yes' ? {
+          lastEntryDate: formData.lastEntryDate,
+          lastDepartureDate: formData.lastDepartureDate,
+          previousVisitPurpose: formData.previousVisitPurpose,
+          lastAddressInLibya: formData.lastAddressInLibya,
+          previousEntryNature: formData.previousEntryNature || undefined,
+          previousMeansOfTravel: formData.previousMeansOfTravel || undefined
+        } : undefined,
+        
+        // Additional information
+        additionalInfo: {
+          referencesInLibya: formData.referencesInLibya || undefined
+        },
+        
+        // Prepare attachments metadata
+        attachments: [
+          // Add ID photo as a primary attachment
+          {
+            type: "photo_id",
+            filename: formData.picture?.name,
+            fileType: formData.picture?.type,
+            fileSize: formData.picture?.size
+          },
+          // Add all other uploaded attachments
+          ...attachments.map(attachment => ({
+            type: attachment.type,
+            filename: attachment.file.name,
+            fileType: attachment.file.type,
+            fileSize: attachment.file.size
+          }))
+        ]
+      };
+      
+      const response = await registerVisa(visaApplication); // Use the correct function name
+      
+      // Set success status
+      setSubmitStatus({
+        isSubmitting: false,
+        success: true,
+        message: `تم تقديم طلب التأشيرة بنجاح! رقم الطلب: ${response.applicationId || response.id}`
+      });
+      
+      // Reset form after successful submission
+      resetForm();
+      
+    } catch (error: unknown) {
+      // Set error status
+      console.error("Error submitting visa application:", error);
+      setSubmitStatus({
+        isSubmitting: false,
+        success: false,
+        message: error instanceof Error ? error.message : "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى."
+      });
+    }
+  }, [formData, attachments, resetForm]);
 
   // Memoized form sections
   const personalInfoSection = useMemo(() => (
@@ -564,13 +723,12 @@ const NewRequestVisas: React.FC = () => {
           onChange={(value) => handleChange('postalCode', value)}
           required
         />
-        <InputField
+        <PhoneNumberField
           label="الهاتف"
           id="phone"
           name="phone"
           value={formData.phone}
           onChange={(value) => handleChange('phone', value)}
-          type="tel"
           required
         />
         <InputField
@@ -699,13 +857,12 @@ const NewRequestVisas: React.FC = () => {
           onChange={(value) => handleChange('sponsorAddressInLibya', value)}
           required
         />
-        <InputField
+        <PhoneNumberField
           label="رقم الهاتف"
           id="sponsorPhone"
           name="sponsorPhone"
           value={formData.sponsorPhone}
           onChange={(value) => handleChange('sponsorPhone', value)}
-          type="tel"
           required
         />
       </div>
@@ -845,14 +1002,32 @@ const NewRequestVisas: React.FC = () => {
         {additionalInfoSection}
         {attachmentsSection}
 
+        {/* Submission Status Message */}
+        {submitStatus.message && (
+          <div className={`p-4 rounded-md mb-4 ${
+            submitStatus.success 
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+              : submitStatus.success === false
+                ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
+          }`}>
+            <p className="text-center font-semibold">{submitStatus.message}</p>
+          </div>
+        )}
+
         {/* Submit Button */}
         <div className="flex justify-center mt-6">
           <button
             type="submit"
-            className="py-2 px-6 bg-green-600 hover:bg-green-700 text-white border-none rounded-md font-semibold transition-colors duration-200"
+            disabled={submitStatus.isSubmitting}
+            className={`py-2 px-6 ${
+              submitStatus.isSubmitting 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-green-600 hover:bg-green-700"
+            } text-white border-none rounded-md font-semibold transition-colors duration-200`}
           >
-            تقديم الطلب
-            <Send className="mr-2 inline-block" size={16} />
+            {submitStatus.isSubmitting ? "جاري تقديم الطلب..." : "تقديم الطلب"}
+            {!submitStatus.isSubmitting && <Send className="mr-2 inline-block" size={16} />}
           </button>
         </div>
       </form>
