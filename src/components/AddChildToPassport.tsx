@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { Upload } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments";
+import { registerPassport } from "../services/api";
 
 interface Attachment {
     id: string;
@@ -296,31 +297,130 @@ const AddChildToPassport: React.FC = () => {
         removeAttachment,
     } = useChildPassportFormState();
 
+    // Add status state for API feedback
+    const [submitStatus, setSubmitStatus] = useState<{
+        isSubmitting: boolean;
+        success?: boolean;
+        message?: string;
+    }>({
+        isSubmitting: false,
+    });
+
     const handleSubmit = useCallback(
-        (e: React.FormEvent) => {
+        async (e: React.FormEvent) => {
             e.preventDefault();
+            
+            // Reset submission status
+            setSubmitStatus({
+                isSubmitting: true,
+                message: undefined,
+                success: undefined
+            });
             
             // Basic validation
             if (!formData.childName || !formData.childBirthDate || !formData.childGender) {
-                alert("يرجى ملء جميع الحقول الإلزامية الخاصة بالمولود");
+                setSubmitStatus({
+                    isSubmitting: false,
+                    success: false,
+                    message: "يرجى ملء جميع الحقول الإلزامية الخاصة بالمولود",
+                });
                 return;
             }
 
             if (!formData.photo) {
-                alert("يرجى إرفاق صورة شخصية للمولود");
+                setSubmitStatus({
+                    isSubmitting: false,
+                    success: false,
+                    message: "يرجى إرفاق صورة شخصية للمولود",
+                });
                 return;
             }
 
             if (!formData.agreesToTerms) {
-                alert("يرجى الموافقة على الشروط والأحكام");
+                setSubmitStatus({
+                    isSubmitting: false,
+                    success: false,
+                    message: "يرجى الموافقة على الشروط والأحكام",
+                });
                 return;
             }
 
-            // Here you would typically send the data to an API
-            console.log("Form Data:", formData);
-            console.log("Uploaded Attachments:", uploadedAttachments);
-            
-            alert("تم تقديم طلب إضافة المولود بنجاح");
+            try {
+                // Prepare data for API submission
+                const childAdditionData = {
+                    // Required fields for PassportRegistrationData
+                    citizenId: formData.fatherPassportNumber || formData.motherPassportNumber || "UNKNOWN", // Use a real citizen ID if available
+                    passportNumber: formData.fatherPassportNumber || formData.motherPassportNumber || "",
+                    issueDate: formData.fatherPassportIssueDate || formData.motherPassportIssueDate || new Date().toISOString().split('T')[0],
+                    expiryDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)).toISOString().split('T')[0], // Example: 5 years from now
+
+                    // Custom fields for child addition
+                    parentPassportNumber: formData.fatherPassportNumber || formData.motherPassportNumber,
+                    childInfo: {
+                        name: `${formData.childName} ${formData.childFatherName} ${formData.childGrandfatherName} ${formData.childSurname}`,
+                        latinName: formData.childLatinName,
+                        birthDate: formData.childBirthDate,
+                        birthPlace: formData.childBirthPlace,
+                        gender: formData.childGender,
+                        nationality: formData.childNationality,
+                    },
+                    fatherInfo: {
+                        name: `${formData.fatherName} ${formData.fatherGrandfatherName} ${formData.fatherSurname}`,
+                        latinName: formData.fatherLatinName,
+                        birthDate: formData.fatherBirthDate,
+                        birthPlace: formData.fatherBirthPlace,
+                        passportNumber: formData.fatherPassportNumber,
+                        passportIssueDate: formData.fatherPassportIssueDate,
+                        passportIssuePlace: formData.fatherPassportIssuePlace,
+                    },
+                    motherInfo: {
+                        name: formData.motherNameAndSurname,
+                        nationality: formData.motherNationality,
+                        passportNumber: formData.motherPassportNumber,
+                        passportIssueDate: formData.motherPassportIssueDate,
+                        passportIssuePlace: formData.motherPassportIssuePlace,
+                    },
+                    applicationInfo: {
+                        applicantName: formData.applicantName,
+                        relationship: formData.applicantRelationship,
+                        submissionDate: formData.submissionDate,
+                        familyPaperNumber: formData.familyPaperNumber,
+                        familyRecordNumber: formData.familyRecordNumber,
+                    },
+                    contactInfo: {
+                        addressAbroad: formData.addressAbroad,
+                        phoneAbroad: formData.phoneAbroad,
+                        addressLibya: formData.addressLibya,
+                        phoneLibya: formData.phoneLibya,
+                        email: formData.email,
+                    },
+                    requestType: "child_addition",
+                };
+
+                // Call the API to register the passport child addition
+                const result = await registerPassport(childAdditionData);
+                
+                // Set success status
+                setSubmitStatus({
+                    isSubmitting: false,
+                    success: true,
+                    message: "تم تقديم طلب إضافة المولود بنجاح. رقم الطلب: " + result.applicationId,
+                });
+                
+                // Could reset form here if needed
+                // resetForm();
+                
+            } catch (error: unknown) {
+                console.error("Error submitting child addition request:", error);
+                setSubmitStatus({
+                    isSubmitting: false,
+                    success: false,
+                    message:
+                        typeof error === "object" && error !== null && "message" in error
+                            ? (error as { message?: string }).message || "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى."
+                            : "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى.",
+                });
+            }
         },
         [formData, uploadedAttachments]
     );
@@ -781,13 +881,47 @@ const AddChildToPassport: React.FC = () => {
                     </div>
                 </Section>
 
+                {/* Submission Status */}
+                {submitStatus.message && (
+                  <div className={`p-4 rounded-md ${
+                    submitStatus.success 
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  }`}>
+                    <p className="text-center font-semibold">{submitStatus.message}</p>
+                  </div>
+                )}
+
+                {/* Terms and Conditions */}
+                <div className="mb-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="agreesToTerms"
+                      name="agreesToTerms"
+                      checked={formData.agreesToTerms}
+                      onChange={(e) => handleChange("agreesToTerms", e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      required
+                    />
+                    <label htmlFor="agreesToTerms" className="text-gray-700 dark:text-gray-300 cursor-pointer">
+                      أوافق على الشروط والأحكام المتعلقة بإضافة مولود إلى جواز السفر
+                      <span className="text-red-500 mr-1">*</span>
+                    </label>
+                  </div>
+                </div>
 
                 {/* Submit Button */}
                 <button
                     type="submit"
-                    className="py-2 bg-green-600 hover:bg-green-700 text-white border-none rounded-md font-semibold transition-colors duration-200"
+                    disabled={submitStatus.isSubmitting}
+                    className={`py-2 ${
+                        submitStatus.isSubmitting 
+                          ? "bg-gray-400 cursor-not-allowed" 
+                          : "bg-green-600 hover:bg-green-700"
+                    } text-white border-none rounded-md font-semibold transition-colors duration-200`}
                 >
-                    تقديم الطلب
+                    {submitStatus.isSubmitting ? "جاري الإرسال..." : "تقديم الطلب"}
                 </button>
             </form>
         </div>
