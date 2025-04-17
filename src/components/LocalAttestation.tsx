@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Upload, File, XCircle } from 'lucide-react';
+import PhoneNumberField from './common/PhoneNumberField';
 
 // --- Interfaces ---
 interface FormData {
@@ -534,19 +535,17 @@ const LocalAttestation: React.FC = () => {
             onChange={(value) => handleChange("addressAbroad", value)}
             required
           />
-          <InputField
+          <PhoneNumberField
             label="رقم الهاتف في ليبيا"
             id="phoneLibya"
             name="phoneLibya"
-            type="tel"
             value={formData.phoneLibya}
             onChange={(value) => handleChange("phoneLibya", value)}
           />
-          <InputField
+          <PhoneNumberField
             label="رقم الهاتف في الخارج"
             id="phoneAbroad"
             name="phoneAbroad"
-            type="tel"
             value={formData.phoneAbroad}
             onChange={(value) => handleChange("phoneAbroad", value)}
             required
