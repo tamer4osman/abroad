@@ -147,7 +147,36 @@ export const SEX_OPTIONS = [
 export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // Phone number validation regex (international format)
-export const PHONE_REGEX = /^\+?[0-9\s\-()]{8,20}$/;
+// Matches formats like:
+// +218-91-1234567
+// +1 (555) 123-4567
+// 00218911234567
+// +218 91 123 4567
+export const PHONE_REGEX = /^(\+|00)[0-9\s\-().]{8,20}$/;
+
+// Function to clean phone number and count actual digits
+export const getDigitsFromPhone = (phone: string): string => {
+  return phone.replace(/\D/g, '');
+};
+
+// Simple validation for international phone numbers
+export const isValidPhone = (phone: string): boolean => {
+  if (!phone) return false;
+  
+  // Remove common formatting characters for normalization
+  const normalizedPhone = phone.replace(/[\s\-()]/g, '');
+  
+  // Check if it starts with + or 00 (international format)
+  const hasInternationalPrefix = normalizedPhone.startsWith('+') || normalizedPhone.startsWith('00');
+  
+  // Must have international prefix and be of reasonable length
+  if (!hasInternationalPrefix) return false;
+  if (normalizedPhone.length < 8) return false;
+  if (normalizedPhone.length > 15) return false;
+  
+  // Check against regex pattern
+  return PHONE_REGEX.test(phone);
+};
 
 // Date validation helper function
 export const isValidDate = (dateString: string): boolean => {
