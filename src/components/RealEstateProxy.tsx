@@ -11,6 +11,7 @@ import {
   Map,
 } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments"; // Assuming this path is correct
+import { registerProxy } from '../services/api';
 
 // --- Interfaces ---
 interface FormData {
@@ -234,51 +235,82 @@ const RealEstateProxy: React.FC = () => {
       e.preventDefault();
       setIsSubmitting(true);
       setSubmitStatus("idle");
-      console.log("Real Estate Proxy Data:", formData);
-      console.log("Attachments:", uploadedAttachments);
-
-      // Basic validation example: Check if required attachments are selected
-      const requiredAttachmentTypes = [
-        "grantor_id",
-        "agent_id",
-        "property_deed",
-      ];
-      const providedTypes = new Set(uploadedAttachments.map((a) => a.type));
-      const missingRequired = requiredAttachmentTypes.filter(
-        (type) => !providedTypes.has(type)
-      );
-
-      if (missingRequired.length > 0) {
-        console.error("Missing required attachment types:", missingRequired);
-        alert(
-          `يرجى تحديد نوع المرفقات الإلزامية: ${missingRequired.join(", ")}`
-        );
+      
+      // Basic validation
+      if (!formData.grantorName || !formData.agentName || 
+          !formData.propertyDescription || !formData.propertyLocation) {
         setSubmitStatus("error");
         setIsSubmitting(false);
-        return; // Stop submission
+        alert("يرجى ملء جميع الحقول الإلزامية");
+        return;
       }
-      // Validate if any attachment still has the default empty type ""
-      if (uploadedAttachments.some((a) => a.type === "")) {
-        alert("يرجى تحديد نوع لجميع المرفقات.");
+
+      // Validate attachments
+      if (uploadedAttachments.length === 0) {
         setSubmitStatus("error");
         setIsSubmitting(false);
-        return; // Stop submission
+        alert("يرجى إرفاق المستندات المطلوبة");
+        return;
       }
 
       try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        // In a real app, you'd send data to a backend here
-        // const apiFormData = new FormData();
-        // apiFormData.append('jsonData', JSON.stringify(formData));
-        // uploadedAttachments.forEach(att => {
-        //    apiFormData.append(att.type || 'other_attachment', att.file, att.file.name);
-        // });
-        // const response = await api.submitRealEstateProxy(apiFormData);
+        // Format data for the API according to backend expectations
+        const proxyData = {
+          type: "real_estate",
+          purpose: "property_management",
+          
+          // Add required properties for ProxyRegistrationData
+          citizenId: formData.grantorIdNumber,
+          proxyHolderId: formData.agentIdNumber,
+          proxyType: "real_estate",
+          startDate: new Date().toISOString(),
+          
+          grantor: {
+            name: formData.grantorName,
+            idType: formData.grantorIdType,
+            idNumber: formData.grantorIdNumber,
+            residency: formData.grantorResident
+          },
+          
+          grantee: {
+            name: formData.agentName,
+            idType: formData.agentIdType,
+            idNumber: formData.agentIdNumber,
+            idIssueDate: formData.agentIssueDate,
+            residency: formData.agentResident
+          },
+          
+          propertyDetails: {
+            description: formData.propertyDescription,
+            location: formData.propertyLocation,
+            // Add other optional property details if needed
+          },
+          
+          // Define the authorized actions for this real estate proxy
+          authorizedActions: [
+            "buy", 
+            "sell", 
+            "rent", 
+            "manage", 
+            "represent_in_court",
+            "register_property"
+          ],
+          
+          // Convert attachments to format expected by backend
+          attachments: uploadedAttachments.map(attachment => ({
+            type: attachment.type,
+            filename: attachment.file.name,
+            fileType: attachment.file.type,
+            fileSize: attachment.file.size
+          }))
+        };
 
-        console.log("Form submitted successfully (simulated)");
+        // Call the API to register the proxy
+        const response = await registerProxy(proxyData);
+        
+        console.log("API Response:", response);
         setSubmitStatus("success");
-        // Optionally reset form or redirect
+        
       } catch (error) {
         console.error("Submission Error:", error);
         setSubmitStatus("error");
@@ -286,7 +318,7 @@ const RealEstateProxy: React.FC = () => {
         setIsSubmitting(false);
       }
     },
-    [formData, uploadedAttachments, setIsSubmitting, setSubmitStatus] // Add uploadedAttachments dependency
+    [formData, uploadedAttachments, setIsSubmitting, setSubmitStatus]
   );
 
   // --- Section Memos ---
