@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Upload, File, XCircle, Globe } from 'lucide-react';
+import { registerAttestationRequest } from '../services/api';
+import PhoneNumberField from './common/PhoneNumberField';
 
 // --- Interfaces ---
 interface FormData {
@@ -310,7 +312,7 @@ const AttachmentsForm: React.FC<{
 
 // --- Form State Hook ---
 const useInternationalAttestationFormState = () => {
-  const [formData, setFormData] = useState<FormData>({
+  const initialFormData = useMemo<FormData>(() => ({
     fullName: "",
     nationalId: "",
     passportNumber: "",
@@ -339,7 +341,9 @@ const useInternationalAttestationFormState = () => {
     representativePhone: "",
     representativeEmail: "",
     notes: "",
-  });
+  }), []);
+
+  const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const [uploadedAttachments, setUploadedAttachments] = useState<
     AttachmentData[]
@@ -357,6 +361,24 @@ const useInternationalAttestationFormState = () => {
       if (!event.target.files?.length) return;
 
       const file = event.target.files[0];
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+
+      // Check file size
+      if (file.size > maxSizeInBytes) {
+        alert(`الملف ${file.name} يتجاوز الحد المسموح به (5 ميجا بايت). يرجى اختيار ملف أصغر.`);
+        // Clear input value
+        event.target.value = "";
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        alert(`نوع الملف ${file.name} غير مدعوم. الأنواع المدعومة هي: PDF, JPG, PNG.`);
+        // Clear input value
+        event.target.value = "";
+        return;
+      }
 
       setUploadedAttachments((prev) => [
         ...prev,
@@ -384,6 +406,11 @@ const useInternationalAttestationFormState = () => {
     setUploadedAttachments((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
+  const resetForm = useCallback(() => {
+    setFormData(initialFormData);
+    setUploadedAttachments([]);
+  }, [initialFormData]); // setFormData/setUploadedAttachments are stable
+
   return {
     formData,
     uploadedAttachments,
@@ -391,6 +418,7 @@ const useInternationalAttestationFormState = () => {
     handleAttachmentUpload,
     handleAttachmentTypeChange,
     removeAttachment,
+    resetForm, // Return resetForm
   };
 };
 
@@ -403,17 +431,204 @@ const InternationalAttestation: React.FC = () => {
     handleAttachmentUpload,
     handleAttachmentTypeChange,
     removeAttachment,
+    resetForm, // Destructure resetForm
   } = useInternationalAttestationFormState();
 
+  // Add state for submission status
+  const [submitStatus, setSubmitStatus] = useState<{
+    isSubmitting: boolean;
+    success?: boolean;
+    message?: string;
+  }>({
+    isSubmitting: false,
+  });
+
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      console.log("بيانات طلب التصديق الدولي:", formData);
-      console.log("المرفقات:", uploadedAttachments);
-      // Here you would typically send the data to a server
-      alert("تم إرسال الطلب بنجاح");
+      
+      // Set submitting state
+      setSubmitStatus({
+        isSubmitting: true,
+        message: undefined,
+        success: undefined
+      });
+      
+      // Comprehensive validation
+      const requiredFields: {field: keyof FormData, label: string}[] = [
+        {field: 'fullName', label: 'الاسم الكامل'},
+        {field: 'passportNumber', label: 'رقم جواز السفر'},
+        {field: 'nationality', label: 'الجنسية'},
+        {field: 'documentType', label: 'نوع المستند'},
+        {field: 'documentNumber', label: 'رقم المستند'},
+        {field: 'documentIssueDate', label: 'تاريخ إصدار المستند'},
+        {field: 'documentIssueAuthority', label: 'جهة إصدار المستند'},
+        {field: 'documentLanguage', label: 'لغة المستند'},
+        {field: 'documentPurpose', label: 'الغرض من التصديق'},
+        {field: 'targetCountry', label: 'الدولة المستهدفة'},
+        {field: 'destinationAuthority', label: 'الجهة المستلمة'},
+        {field: 'addressAbroad', label: 'العنوان في الخارج'},
+        {field: 'phoneAbroad', label: 'رقم الهاتف في الخارج'},
+        {field: 'email', label: 'البريد الإلكتروني'}
+      ];
+      
+      // Add representative fields if representative is used
+      if (formData.useRepresentative) {
+        requiredFields.push(
+          {field: 'representativeName', label: 'اسم الوكيل'},
+          {field: 'representativeRelationship', label: 'صلة القرابة'},
+          {field: 'representativePhone', label: 'رقم هاتف الوكيل'}
+        );
+      }
+      
+      // Check all required fields
+      const missingFields = requiredFields.filter(({field}) => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: `يرجى ملء الحقول الإلزامية التالية: ${missingFields.map(f => f.label).join('، ')}`
+        });
+        return;
+      }
+      
+      // Validate email format if provided
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (formData.email && !emailRegex.test(formData.email)) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى إدخال بريد إلكتروني صحيح"
+        });
+        return;
+      }
+      
+      // Validate representative email if provided
+      if (formData.useRepresentative && formData.representativeEmail && 
+          !emailRegex.test(formData.representativeEmail)) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى إدخال بريد إلكتروني صحيح للوكيل"
+        });
+        return;
+      }
+      
+      // Validate at least one document is attached
+      if (uploadedAttachments.length === 0) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يرجى إرفاق المستند المطلوب تصديقه على الأقل"
+        });
+        return;
+      }
+      
+      // Check if an original document is included
+      const hasOriginalDoc = uploadedAttachments.some(
+        attachment => attachment.type === "originalDocument"
+      );
+      
+      if (!hasOriginalDoc) {
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: "يجب إرفاق المستند الأصلي المراد تصديقه"
+        });
+        return;
+      }
+
+      try {
+        // Format data for the API
+        const attestationData = {
+          type: "international",
+          citizenId: formData.nationalId, // Add required citizenId property
+          attestationType: "international", // Add required attestationType property
+          
+          // Applicant information
+          applicant: {
+            fullName: formData.fullName,
+            nationalId: formData.nationalId,
+            passportNumber: formData.passportNumber,
+            nationality: formData.nationality,
+            birthDate: formData.birthDate,
+            birthPlace: formData.birthPlace
+          },
+          
+          // Document information
+          document: {
+            type: formData.documentType,
+            number: formData.documentNumber,
+            issueDate: formData.documentIssueDate,
+            issueAuthority: formData.documentIssueAuthority,
+            purpose: formData.documentPurpose,
+            language: formData.documentLanguage
+          },
+          
+          // International attestation details
+          internationalDetails: {
+            targetCountry: formData.targetCountry,
+            translationRequired: formData.translationRequired,
+            apostilleRequired: formData.apostilleRequired,
+            destinationAuthority: formData.destinationAuthority,
+            urgentProcessing: formData.urgentProcessing
+          },
+          
+          // Contact information
+          contactInfo: {
+            addressInLibya: formData.addressInLibya,
+            addressAbroad: formData.addressAbroad,
+            phoneLibya: formData.phoneLibya,
+            phoneAbroad: formData.phoneAbroad,
+            email: formData.email
+          },
+          
+          // Representative information (if applicable)
+          representative: formData.useRepresentative ? {
+            name: formData.representativeName,
+            relationship: formData.representativeRelationship,
+            phone: formData.representativePhone,
+            email: formData.representativeEmail
+          } : null,
+          
+          // Additional information
+          notes: formData.notes,
+          
+          // Attachments metadata
+          attachments: uploadedAttachments.map(attachment => ({
+            type: attachment.type,
+            filename: attachment.file.name,
+            fileSize: attachment.file.size,
+            fileType: attachment.file.type
+          }))
+        };
+
+        // Call the API to register the attestation request
+        const response = await registerAttestationRequest(attestationData);
+        
+        // Set success status
+        setSubmitStatus({
+          isSubmitting: false,
+          success: true,
+          message: `تم إرسال طلب التصديق بنجاح. رقم الطلب: ${response.applicationId}`
+        });
+        
+        // Reset form after successful submission
+        resetForm();
+        
+      } catch (error: unknown) {
+        console.error("Error submitting attestation request:", error);
+        const errorMessage = "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى.";
+        // Set error status
+        setSubmitStatus({
+          isSubmitting: false,
+          success: false,
+          message: errorMessage
+        });
+      }
     },
-    [formData, uploadedAttachments]
+    [formData, uploadedAttachments, resetForm] // Add resetForm to dependency array
   );
 
   const DOCUMENT_TYPES = useMemo(
@@ -679,6 +894,19 @@ const InternationalAttestation: React.FC = () => {
               مطلوب للدول المنضمة لاتفاقية لاهاي لعام 1961
             </p>
           </div>
+          
+          <div className="col-span-full mt-2">
+            <CheckboxField
+              label="معاملة مستعجلة (رسوم إضافية)"
+              id="urgentProcessing"
+              name="urgentProcessing"
+              checked={formData.urgentProcessing}
+              onChange={(checked) => handleChange("urgentProcessing", checked)}
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 pr-6 mt-1">
+              اختر هذا الخيار لإنجاز التصديق بصفة عاجلة (خلال 2-3 أيام عمل) مقابل رسوم إضافية
+            </p>
+          </div>
         </div>
       </Section>
     ),
@@ -687,6 +915,7 @@ const InternationalAttestation: React.FC = () => {
       formData.destinationAuthority,
       formData.translationRequired,
       formData.apostilleRequired,
+      formData.urgentProcessing,
       handleChange,
       TARGET_COUNTRIES,
     ]
@@ -711,19 +940,17 @@ const InternationalAttestation: React.FC = () => {
             onChange={(value) => handleChange("addressAbroad", value)}
             required
           />
-          <InputField
+          <PhoneNumberField
             label="رقم الهاتف في ليبيا"
             id="phoneLibya"
             name="phoneLibya"
-            type="tel"
             value={formData.phoneLibya}
             onChange={(value) => handleChange("phoneLibya", value)}
           />
-          <InputField
+          <PhoneNumberField
             label="رقم الهاتف في الخارج"
             id="phoneAbroad"
             name="phoneAbroad"
-            type="tel"
             value={formData.phoneAbroad}
             onChange={(value) => handleChange("phoneAbroad", value)}
             required
@@ -782,11 +1009,10 @@ const InternationalAttestation: React.FC = () => {
               options={RELATIONSHIP_TYPES}
               required={formData.useRepresentative}
             />
-            <InputField
+            <PhoneNumberField
               label="رقم هاتف الوكيل"
               id="representativePhone"
               name="representativePhone"
-              type="tel"
               value={formData.representativePhone}
               onChange={(value) => handleChange("representativePhone", value)}
               required={formData.useRepresentative}
@@ -865,12 +1091,31 @@ const InternationalAttestation: React.FC = () => {
 
         {additionalInfoSection}
 
+        {/* Submission Status */}
+        {submitStatus.message && (
+          <div className={`p-4 rounded-md mb-4 ${
+            submitStatus.success 
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" 
+              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }`}>
+            <p className="text-center font-semibold">{submitStatus.message}</p>
+          </div>
+        )}
+
         <div className="flex justify-center mt-6">
           <button
             type="submit"
-            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200"
+            disabled={submitStatus.isSubmitting}
+            className={`px-6 py-2 ${
+              submitStatus.isSubmitting 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-green-600 hover:bg-green-700"
+            } text-white rounded-md transition-colors duration-200`}
           >
-            تقديم طلب التصديق الدولي
+            {submitStatus.isSubmitting
+              ? "جاري تقديم الطلب..."
+              : "إرسال الطلب"
+            }
           </button>
         </div>
       </form>
