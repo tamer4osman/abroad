@@ -1,8 +1,8 @@
 # Technical Requirements Document (TRD)
 # Libyan Foreign Ministry Management System
 
-**Document Version:** 1.1  
-**Date:** April 16, 2025  
+**Document Version:** 1.2  
+**Date:** April 19, 2025  
 **Status:** Updated  
 **Prepared by:** Senior Software Architecture Team
 
@@ -244,5 +244,5 @@ The LFMMS is implemented as a full-stack web application with a modular, service
 ---
 
 **Contact:** Project Manager: [Name] - [email@example.com]  
-**Last Updated:** April 16, 2025
+**Last Updated:** April 19, 2025
 

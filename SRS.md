@@ -1,9 +1,9 @@
 # Software Requirements Specification (SRS)
 # Libyan Foreign Ministry Management System
 
-**Document Version:** 1.0  
-**Date:** April 12, 2025  
-**Status:** Draft  
+**Document Version:** 1.1  
+**Date:** April 19, 2025  
+**Status:** Updated  
 **Prepared by:** Project Architect Team
 
 ## 1. Introduction
