@@ -1,9 +1,9 @@
 # Quality Requirements Document (QRD)
 # Libyan Foreign Ministry Management System
 
-**Document Version:** 1.0  
-**Date:** April 14, 2025  
-**Status:** Draft  
+**Document Version:** 1.1  
+**Date:** April 19, 2025  
+**Status:** Updated  
 **Prepared by:** Senior Software Architecture Team
 
 ## 1. Introduction
@@ -172,5 +172,5 @@ Based on the project's business goals ([`BRD.md`](BRD.md #L36)), the primary qua
 ---
 
 **Contact:** Project Manager: [Name] - [email@example.com]  
-**Last Updated:** April 16, 2025
+**Last Updated:** April 19, 2025
 

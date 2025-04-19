@@ -1,9 +1,9 @@
 # Functional Requirements Document (FRD)
 # Libyan Foreign Ministry Management System
 
-**Document Version:** 1.0  
-**Date:** April 14, 2025  
-**Status:** Draft  
+**Document Version:** 1.1  
+**Date:** April 19, 2025  
+**Status:** Updated  
 **Prepared by:** Senior Software Architecture Team
 
 ## 1. Introduction
@@ -404,5 +404,5 @@ Detailed specifications for all APIs to be developed for future integrations.
 ---
 
 **Contact:** Project Manager: [Name] - [email@example.com]  
-**Last Updated:** April 14, 2025
+**Last Updated:** April 19, 2025
 
