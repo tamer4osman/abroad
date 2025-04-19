@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState, useEffect } from 'react';
 import { Upload, File, XCircle } from 'lucide-react';
 
 interface AttachmentData {
@@ -14,8 +14,6 @@ interface AttachmentDocumentsProps {
     onAttachmentUpload: (event: ChangeEvent<HTMLInputElement>) => void;
     attachmentTypeOptions?: readonly { value: string; label: string }[];
 };
-
-// Remove the unused Section component and its interface
 
 interface SelectFieldProps {
   label: string;
@@ -75,6 +73,56 @@ const AttachmentDocuments: React.FC<AttachmentDocumentsProps> = ({
     { value: "أخرى", label: "أخرى" },
   ],
 }) => {
+  // State for tracking file preview URLs
+  const [fileURLs, setFileURLs] = useState<Record<string, string>>({});
+  
+  // Update URLs when attachments change
+  useEffect(() => {
+    // Create object URLs for new attachments
+    const newURLs: Record<string, string> = {};
+    uploadedAttachments.forEach(attachment => {
+      if (!fileURLs[attachment.id]) {
+        // Only create new URLs for attachments that don't have one yet
+        newURLs[attachment.id] = URL.createObjectURL(attachment.file);
+      }
+    });
+    
+    if (Object.keys(newURLs).length > 0) {
+      // Update state with new URLs
+      setFileURLs(prev => ({...prev, ...newURLs}));
+    }
+    
+    // Cleanup function to revoke URLs when component unmounts or attachments change
+    return () => {
+      // We only revoke URLs for attachments that no longer exist
+      Object.entries(fileURLs).forEach(([id, url]) => {
+        if (!uploadedAttachments.find(att => att.id === id)) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [uploadedAttachments, fileURLs]);
+  
+  // Cleanup all URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      Object.values(fileURLs).forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [fileURLs]);
+  
+  // Safely remove an attachment with proper URL cleanup
+  const handleRemoveAttachment = (id: string) => {
+    if (fileURLs[id]) {
+      URL.revokeObjectURL(fileURLs[id]);
+      setFileURLs(prev => {
+        const newURLs = {...prev};
+        delete newURLs[id];
+        return newURLs;
+      });
+    }
+    onRemoveAttachment(id);
+  };
+  
   return (
     <div>
       <div>
@@ -133,7 +181,7 @@ const AttachmentDocuments: React.FC<AttachmentDocumentsProps> = ({
                     <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
                       <button
                         type="button"
-                        onClick={() => onRemoveAttachment(attachment.id)}
+                        onClick={() => handleRemoveAttachment(attachment.id)}
                         className="px-2 py-1 text-white rounded-md"
                       >
                         <XCircle
