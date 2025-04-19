@@ -117,14 +117,28 @@ backend/
 - Data encryption at rest and in transit
 - Audit logging and rate limiting
 
-## 📋 Development Roadmap
+## 📋 Development Roadmap and Current Status
 
-- **Phase 1**: Core civil registry and passport services
-- **Phase 2**: Visa processing and document attestation
-- **Phase 3**: Legal proxy management and reporting
-- **Phase 4**: API integration with ministry backend systems
-- **Phase 5**: Advanced analytics and monitoring features
+Current Status: **Phase 1** (as of April 19, 2025)
+
+### Progress Overview
+- **Civil Registry Management**: 75% complete
+- **Passport Services**: 65% complete
+- **Reports & Analytics**: 35% complete
+- **Visa Processing**: Initial implementation (10%)
+- **Document Attestation**: Initial implementation (5%)
+- **Legal Proxy Management**: Initial implementation (5%)
+
+### Development Phases
+- **Phase 1** (Current): Core civil registry and passport services - Target: June 15, 2025
+- **Phase 2**: Visa processing and document attestation - Target: August 30, 2025
+- **Phase 3**: Legal proxy management and reporting - Target: October 15, 2025
+- **Phase 4**: API integration with ministry backend systems - Target: December 10, 2025
+- **Phase 5**: Advanced analytics and monitoring features - Target: February 28, 2026
+
+For detailed progress tracking and feature status, see the [Development Roadmap](./developmentRoadmap.md).
 
 ---
 
+Last Updated: April 19, 2025  
 Built with ❤️ for the Libyan Foreign Ministry
