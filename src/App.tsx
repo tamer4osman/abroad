@@ -33,6 +33,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ErrorBoundary from "./components/common/ErrorBoundary";
 
 // Lazy-loaded components (same as original)
 //const Dashboard = lazy(() => import("./components/Dashboard"));
@@ -758,12 +759,12 @@ function App() {
   return (
     <Router>
       <div className={`flex flex-col h-dvh font-sans ${theme === "dark" ? "bg-gray-900" : "bg-gray-100"}`}>
-        {/* Hide Topbar and Sidebar on login/signup pages */}
         <Routes>
+          {/* Public routes (login/signup) */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-        </Routes>
-        <Routes>
+          
+          {/* Protected routes with layout */}
           <Route path="/*" element={
             <>
               <Topbar
@@ -783,33 +784,48 @@ function App() {
                     transition={{ duration: 0.3 }}
                   >
                     <Suspense fallback={<LoadingScreen />}>
-                      <Routes>
-                        <Route path="dashboard" element={<DashboardPlaceholder />} />
-                        <Route path="civil-registry/register-citizen" element={<RegisterCitizen />} />
-                        <Route path="civil-registry/register-foreign" element={<RegisterForeign />} />
-                        <Route path="civil-registry/marriage" element={<MarriageRegistration />} />
-                        <Route path="civil-registry/birth" element={<BirthRegistration />} />
-                        <Route path="civil-registry/divorce" element={<DivorceRegistration />} />
-                        <Route path="civil-registry/death" element={<DeathRegistration />} />
-                        <Route path="reports" element={<Reports />} />
-                        <Route path="settings" element={<SettingsComponent />} />
-                        <Route path="passports/issue-passport" element={<IssuePassport />} />
-                        <Route path="passports/travel-document" element={<TravelDocument />} />
-                        <Route path="passports/add-child" element={<AddChildToPassport />} />
-                        <Route path="passports/completed-requests" element={<CompletedRequestsPassports />} />
-                        <Route path="visas/new-request" element={<NewRequestVisas />} />
-                        <Route path="visas/pending-requests" element={<PendingRequestsVisas />} />
-                        <Route path="visas/completed-requests" element={<CompletedRequestsVisas />} />
-                        <Route path="attestations/local" element={<LocalAttestation />} />
-                        <Route path="attestations/international" element={<InternationalAttestation />} />
-                        <Route path="proxies/court" element={<CourtProxy />} />
-                        <Route path="proxies/bank" element={<BankProxy />} />
-                        <Route path="proxies/divorce" element={<DivorceProxy />} />
-                        <Route path="proxies/real-estate" element={<RealEstateProxy />} />
-                        <Route path="proxies/inheritance" element={<InheritanceProxy />} />
-                        <Route path="proxies/document-completion" element={<DocumentCompletionProxy />} />
-                        <Route path="proxies/general" element={<GeneralProxy />} />
-                      </Routes>
+                      <ErrorBoundary>
+                        <Routes>
+                          {/* Dashboard route */}
+                          <Route path="dashboard" element={<DashboardPlaceholder />} />
+
+                          {/* Civil Registry routes */}
+                          <Route path="civil-registry/register-citizen" element={<RegisterCitizen />} />
+                          <Route path="civil-registry/register-foreign" element={<RegisterForeign />} />
+                          <Route path="civil-registry/marriage" element={<MarriageRegistration />} />
+                          <Route path="civil-registry/birth" element={<BirthRegistration />} />
+                          <Route path="civil-registry/divorce" element={<DivorceRegistration />} />
+                          <Route path="civil-registry/death" element={<DeathRegistration />} />
+                          
+                          {/* Reports and Settings routes */}
+                          <Route path="reports" element={<Reports />} />
+                          <Route path="settings" element={<SettingsComponent />} />
+                          
+                          {/* Passport routes */}
+                          <Route path="passports/issue-passport" element={<IssuePassport />} />
+                          <Route path="passports/travel-document" element={<TravelDocument />} />
+                          <Route path="passports/add-child" element={<AddChildToPassport />} />
+                          <Route path="passports/completed-requests" element={<CompletedRequestsPassports />} />
+                          
+                          {/* Visa routes */}
+                          <Route path="visas/new-request" element={<NewRequestVisas />} />
+                          <Route path="visas/pending-requests" element={<PendingRequestsVisas />} />
+                          <Route path="visas/completed-requests" element={<CompletedRequestsVisas />} />
+                          
+                          {/* Attestation routes */}
+                          <Route path="attestations/local" element={<LocalAttestation />} />
+                          <Route path="attestations/international" element={<InternationalAttestation />} />
+                          
+                          {/* Proxy routes */}
+                          <Route path="proxies/court" element={<CourtProxy />} />
+                          <Route path="proxies/bank" element={<BankProxy />} />
+                          <Route path="proxies/divorce" element={<DivorceProxy />} />
+                          <Route path="proxies/real-estate" element={<RealEstateProxy />} />
+                          <Route path="proxies/inheritance" element={<InheritanceProxy />} />
+                          <Route path="proxies/document-completion" element={<DocumentCompletionProxy />} />
+                          <Route path="proxies/general" element={<GeneralProxy />} />
+                        </Routes>
+                      </ErrorBoundary>
                     </Suspense>
                   </motion.div>
                 </AnimatePresence>
