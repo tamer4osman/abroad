@@ -24,6 +24,45 @@ const s3Client = new S3Client({
 });
 
 /**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UploadResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           description: Status message of the upload operation
+ *         key:
+ *           type: string
+ *           description: Unique key identifying the document in storage
+ *         originalName:
+ *           type: string
+ *           description: Original filename of the uploaded document
+ *         size:
+ *           type: integer
+ *           description: Size of the file in bytes
+ *         mimetype:
+ *           type: string
+ *           description: MIME type of the uploaded file
+ *       example:
+ *         message: "File uploaded successfully"
+ *         key: "passport/123/a1b2c3d4-e5f6-7890-abcd-ef1234567890.pdf"
+ *         originalName: "passport_photo.pdf"
+ *         size: 254879
+ *         mimetype: "application/pdf"
+ *     
+ *     DownloadUrlResponse:
+ *       type: object
+ *       properties:
+ *         downloadUrl:
+ *           type: string
+ *           description: Pre-signed URL for downloading the document
+ *       example:
+ *         downloadUrl: "https://minio.abroad-app.com:9000/documents/passport/123/a1b2c3d4-e5f6-7890-abcd-ef1234567890.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=..."
+ */
+
+/**
  * Helper function to generate pre-signed URL for downloading a document
  */
 async function getPresignedDownloadUrl(key: string): Promise<string> {
@@ -40,7 +79,41 @@ async function getPresignedDownloadUrl(key: string): Promise<string> {
  */
 export const documentController = {
   /**
-   * Upload a document to MinIO
+   * @swagger
+   * /api/documents/upload:
+   *   post:
+   *     summary: Upload a document
+   *     tags: [Documents]
+   *     description: Upload a document file to the storage system with associated metadata
+   *     consumes:
+   *       - multipart/form-data
+   *     parameters:
+   *       - in: formData
+   *         name: file
+   *         type: file
+   *         required: true
+   *         description: The file to upload
+   *       - in: formData
+   *         name: documentType
+   *         type: string
+   *         required: true
+   *         description: Type of document (e.g., passport, visa, proxy)
+   *       - in: formData
+   *         name: relatedRecordId
+   *         type: string
+   *         required: false
+   *         description: ID of the related record (e.g., passport ID, visa application ID)
+   *     responses:
+   *       201:
+   *         description: Document uploaded successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/UploadResponse'
+   *       400:
+   *         description: No file uploaded or invalid request
+   *       500:
+   *         description: Server error
    */
   uploadDocument: async (req: Request, res: Response): Promise<void> => {
     if (!req.file) {
@@ -87,7 +160,30 @@ export const documentController = {
   },
 
   /**
-   * Get a download URL for a document
+   * @swagger
+   * /api/documents/{key}/download-url:
+   *   get:
+   *     summary: Get a download URL for a document
+   *     tags: [Documents]
+   *     description: Generate a pre-signed URL for downloading a specific document
+   *     parameters:
+   *       - in: path
+   *         name: key
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The storage key of the document to download
+   *     responses:
+   *       200:
+   *         description: Download URL generated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/DownloadUrlResponse'
+   *       404:
+   *         description: Document not found
+   *       500:
+   *         description: Server error
    */
   getDocumentDownloadUrl: async (req: Request, res: Response): Promise<void> => {
     const { key } = req.params;
