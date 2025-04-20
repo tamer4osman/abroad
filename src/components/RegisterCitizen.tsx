@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import { registerCitizen, CitizenRegistrationData } from "../services/api";
+import { registerCitizen } from "../services/api";
+import { mapCitizenFormToApiSchema } from "../utils/dataTransformer";
 
 // --- Interfaces ---
 interface FamilyMember {
@@ -266,30 +267,50 @@ const RegisterCitizen: React.FC = () => {
       if (
         !formData.firstName ||
         !formData.fatherName ||
-        !formData.grandfatherName ||
         !formData.familyName
       ) {
-        alert("Please fill in all name fields.");
+        setSubmitStatus({ type: 'error', message: "الرجاء ملء جميع حقول الاسم المطلوبة" });
         return;
       }
+
       try {
-        // Map frontend fields to the backend schema
-        const apiData: CitizenRegistrationData = {
-          firstName: formData.firstName,
-          lastName: formData.familyName, // Map familyName to lastName
+        // Use the data transformer utility to map frontend fields to backend schema
+        const apiData = mapCitizenFormToApiSchema({
+          // Map specific fields to match backend expectations
+          first_name_ar: formData.firstName,
+          father_name_ar: formData.fatherName,
+          grandfather_name_ar: formData.grandfatherName,
+          last_name_ar: formData.familyName,
+          // Use English names when available, or use Arabic names as fallback
+          first_name_en: formData.firstName, 
+          father_name_en: formData.fatherName,
+          last_name_en: formData.familyName,
+          // Personal details
+          national_id: formData.idNumber,
+          date_of_birth: formData.birthDate,
+          place_of_birth: formData.birthPlace,
+          gender: formData.familyMembers.length > 0 ? formData.familyMembers[0].gender : "male", // Default to male if not specified
+          occupation: formData.occupation,
+          // Contact information
           email: formData.email,
-          // Add other required fields if needed
-        };
+          // Additional fields needed by the backend
+          mother_name_ar: formData.motherName,
+          mother_name_en: formData.motherName,
+          nationality: "Libyan", // Default nationality
+          marital_status: "SINGLE", // Default status if not provided
+          is_alive: true, // Default to alive
+        });
         
         await registerCitizen(apiData);
         setSubmitStatus({ type: 'success', message: 'تم حفظ البيانات بنجاح' });
       } catch (err: unknown) {
+        console.error("Error registering citizen:", err);
         const errorMessage = 
           err && 
           typeof err === 'object' && 
-          'error' in err && 
-          typeof err.error === 'string' 
-            ? err.error 
+          'message' in err && 
+          typeof err.message === 'string' 
+            ? err.message 
             : 'حدث خطأ أثناء الحفظ';
         
         setSubmitStatus({ type: 'error', message: errorMessage });
