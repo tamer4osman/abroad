@@ -29,7 +29,7 @@ model User {
   authLogs      AuthLog[]
   uploadedDocuments CitizenDocument[]
   birthRegistrationsRegistered BirthRegistration[] @relation("UserBirthRegistrations")
-  marriageRegistrationsRegistered MarriageRegistration[] @relation("UserMarriageRegistrations") // Added relation name
+  marriageRegistrationsRegistered MarriageRegistration[] @relation("UserMarriageRegistrations")
   divorceRegistrationsRegistered DivorceRegistration[] @relation("UserDivorceRegistrations")
   deathRegistrationsRegistered DeathRegistration[] @relation("UserDeathRegistrations")
   auditLogs AuditLog[]
@@ -178,6 +178,7 @@ model Citizen {
   custodyArrangements CustodyArrangement[] @relation("ChildCustody") // Relation name added
   divorceParties      DivorceParty[] // Relation for DivorceParty
   mvCitizenDocumentSummary MvCitizenDocumentSummary?
+  attestations       Attestation[]  // Adding the relation to Attestation model
 
   @@index([national_id])
   @@index([first_name_en, last_name_en])
@@ -485,7 +486,7 @@ model PassportChild {
   status           String  @default("ACTIVE") // ACTIVE, REMOVED
   notes            String?
   created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  updated_at       DateTime @default(now())
 
   @@unique([passport_id, child_citizen_id]) // Child can only be on a passport once
   @@index([child_citizen_id])
@@ -693,6 +694,7 @@ model AttestationRequest {
   // Relations
   documents          AttestationDocument[]
   steps              AttestationStep[]
+  attestations       Attestation[]
 
   @@index([embassy_id, status])
   @@index([assigned_to_id])
@@ -712,9 +714,14 @@ model AttestationDocument {
   attested_at             DateTime?
   attested_by             User?   @relation(fields: [attested_by_id], references: [user_id], onDelete: SetNull)
   attested_by_id          Int?
+  
+  // Relations to Attestation model
+  attestation             Attestation? @relation(fields: [attestation_id], references: [attestation_id])
+  attestation_id          Int?
 
   @@index([request_id])
   @@index([attested_by_id])
+  @@index([attestation_id])
 }
 
 model AttestationStep {
@@ -730,9 +737,46 @@ model AttestationStep {
   notes          String? // Comments specific to this step
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+  
+  // Relations to Attestation model
+  attestation    Attestation? @relation(fields: [attestation_id], references: [attestation_id])
+  attestation_id Int?
 
   @@index([request_id, step_order])
   @@index([completed_by_id])
+  @@index([attestation_id])
+}
+
+// --- Attestation Model ---
+model Attestation {
+  attestation_id      Int       @id @default(autoincrement())
+  document_type       String    // BIRTH_CERTIFICATE, MARRIAGE_CERTIFICATE, DEGREE, COMMERCIAL_DOC, LEGAL_DOC, MEDICAL_DOC, OTHER
+  document_number     String?
+  document_issue_date DateTime? @db.Date
+  citizen             Citizen   @relation(fields: [citizen_id], references: [citizen_id])
+  citizen_id          Int
+  foreign_entity      String?
+  country_of_use      String?
+  attestation_type    String    // LOCAL, INTERNATIONAL, APOSTILLE
+  status              String    @default("SUBMITTED") // SUBMITTED, IN_REVIEW, APPROVED, REJECTED, COMPLETED
+  rejection_reason    String?
+  application_date    DateTime  @default(now())
+  completion_date     DateTime?
+  document_key        String?   // Reference to the uploaded document file
+  attested_document_key String? // Reference to the attested document file
+  fee_amount          Float
+  payment_status      String    @default("PENDING") // PENDING, PAID, WAIVED
+  notes               String?
+  
+  // Relations
+  request             AttestationRequest   @relation(fields: [request_id], references: [request_id])
+  request_id          Int
+  attestationDocuments AttestationDocument[]
+  attestationSteps    AttestationStep[]
+
+  @@index([citizen_id])
+  @@index([status])
+  @@index([application_date])
 }
 
 // --- Legal Proxy Module (Power of Attorney) ---
