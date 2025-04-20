@@ -1,5 +1,11 @@
 // Centralized API service for frontend-backend communication
 import axios from "axios";
+import { 
+  transformToCamelCase, 
+  transformToSnakeCase, 
+  mapCitizenFormToApiSchema, 
+  mapApiToCitizenForm 
+} from "../utils/dataTransformer";
 
 const API_BASE_URL = import.meta.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
@@ -12,24 +18,52 @@ const api = axios.create({
   timeout: 30000, // 30 seconds
 });
 
+// Response interceptor to convert snake_case to camelCase
+api.interceptors.response.use((response) => {
+  if (response.data && typeof response.data === 'object') {
+    response.data = transformToCamelCase(response.data);
+  }
+  return response;
+});
+
+// Request interceptor to convert camelCase to snake_case
+api.interceptors.request.use((config) => {
+  if (config.data && typeof config.data === 'object' && !(config.data instanceof FormData)) {
+    config.data = transformToSnakeCase(config.data);
+  }
+  return config;
+});
+
 // Define the shape of citizen registration data
 export interface CitizenRegistrationData {
   firstName: string;
   lastName: string;
   email: string;
-  // Add other required fields based on your application needs
+  fatherName?: string;
+  grandfatherName?: string;
+  birthPlace?: string;
+  birthDate?: string;
+  nationalId?: string;
+  gender?: string;
+  maritalStatus?: string;
+  occupation?: string;
+  // Add other fields that match the frontend form
 }
 
 export async function registerCitizen(
   data: CitizenRegistrationData,
   token?: string
 ) {
+  // Transform specific fields that don't follow standard conversion
+  const apiData = mapCitizenFormToApiSchema(data);
+  
   const response = await api.post(
     "/citizens",
-    data,
+    apiData,
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
-  return response.data;
+  
+  return mapApiToCitizenForm(response.data);
 }
 
 export async function getCitizens(token?: string) {
@@ -37,7 +71,9 @@ export async function getCitizens(token?: string) {
     "/citizens",
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
-  return response.data;
+  
+  // Transform the array of citizens
+  return response.data.map((citizen: Citizen) => mapApiToCitizenForm(citizen));
 }
 
 export async function updateCitizen(
@@ -45,12 +81,16 @@ export async function updateCitizen(
   data: Partial<CitizenRegistrationData>,
   token?: string
 ) {
+  // Transform specific fields that don't follow standard conversion
+  const apiData = mapCitizenFormToApiSchema(data);
+  
   const response = await api.put(
     `/citizens/${id}`,
-    data,
+    apiData,
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
-  return response.data;
+  
+  return mapApiToCitizenForm(response.data);
 }
 
 export async function deleteCitizen(id: string, token?: string) {
@@ -58,6 +98,109 @@ export async function deleteCitizen(id: string, token?: string) {
     `/citizens/${id}`,
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
+  return response.data;
+}
+
+// Define the shape of citizen search parameters
+export interface CitizenSearchParams {
+  nameAr?: string;
+  nameEn?: string;
+  nationalId?: string;
+  passportNumber?: string;
+  gender?: string;
+  maritalStatus?: string;
+  birthDateFrom?: string;
+  birthDateTo?: string;
+  registrationDateFrom?: string;
+  registrationDateTo?: string;
+  isAlive?: boolean | string;
+  familyMemberId?: string;
+  relationship?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+// Define the shape of a Citizen object (adjust fields as needed based on your backend response)
+export interface Citizen {
+  id: string;
+  citizen_id?: number;  // Adding this to match backend schema
+  firstName: string;
+  lastName: string;
+  email: string;
+  nameAr?: string;
+  nameEn?: string;
+  nationalId?: string;
+  passportNumber?: string;
+  familyMemberId?: string;
+  relationship?: string;
+  birthDate?: string;
+  date_of_birth?: string; // Adding date_of_birth to match backend field name
+  registrationDate?: string;
+  registration_date?: string; // Adding registration_date to match backend field name
+  gender?: string;
+  maritalStatus?: string;
+  marital_status?: string; // Adding marital_status to match backend field name
+  isAlive?: boolean;
+  is_alive?: boolean; // Adding is_alive to match backend field name
+  occupation?: string;
+  place_of_birth?: string;
+  birthPlace?: string;
+  father_name_ar?: string;
+  father_name_en?: string;
+  first_name_ar?: string; // Adding snake_case properties from backend
+  first_name_en?: string;
+  last_name_ar?: string;
+  last_name_en?: string;
+  mother_name_ar?: string;
+  mother_name_en?: string;
+  fatherNameAr?: string;
+  fatherNameEn?: string;
+  motherNameAr?: string;
+  motherNameEn?: string;
+  contactInfo?: Array<{
+    type: string;
+    value: string;
+  }>;
+  passports?: Array<{
+    passport_number: string;
+    issue_date: string;
+    expiry_date: string;
+  }>;
+  // Add other fields returned by your API
+}
+
+// Define the search results interface
+export interface CitizenSearchResults {
+  data: Citizen[];
+  pagination: {
+    currentPage: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
+export async function searchCitizens(
+  params: CitizenSearchParams,
+  token?: string
+): Promise<CitizenSearchResults> {
+  // Convert params to URL query parameters
+  const queryParams = new URLSearchParams();
+  
+  // Add all non-undefined parameters to the query
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      queryParams.append(key, String(value));
+    }
+  });
+  
+  const response = await api.get(
+    `/citizens/search?${queryParams.toString()}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
   return response.data;
 }
 
@@ -196,10 +339,13 @@ export async function registerPassport(
     return submitFormData("/passports", data, token);
   }
   
-  // Otherwise handle as regular JSON submission
+  // Otherwise handle as regular JSON submission with data transformation
   const { signal, cleanup } = createAbortableRequest();
   try {
-    const response = await api.post("/passports", data, {
+    // Apply data transformation for JSON data
+    const transformedData = transformToSnakeCase(data);
+    
+    const response = await api.post("/passports", transformedData, {
       headers: {
         "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -207,7 +353,8 @@ export async function registerPassport(
       signal
     });
     cleanup();
-    return response.data;
+    const transformed = transformToCamelCase(response.data);
+    return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
   } catch (error) {
     cleanup();
     if (axios.isCancel(error)) {
@@ -222,23 +369,46 @@ export async function updatePassport(
   data: Partial<PassportRegistrationData> | FormData,
   token?: string
 ) {
-  let headers = {};
-  
-  // Check if we're dealing with FormData
+  // If FormData, handle as is
   if (data instanceof FormData) {
-    headers = {
+    const headers = {
       "Content-Type": "multipart/form-data",
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     };
-  } else {
-    headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
+    const response = await api.put(`/passports/${id}`, data, { headers });
+    const transformed = transformToCamelCase(response.data);
+    return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
   }
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(data);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.put(`/passports/${id}`, transformedData, { headers });
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
+}
 
-  const response = await api.put(`/passports/${id}`, data, { headers });
-  return response.data;
+export async function getPassport(id: string, token?: string) {
+  const response = await api.get(
+    `/passports/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
+}
+
+export async function getPassports(citizenId: string, token?: string) {
+  const response = await api.get(
+    `/passports?citizen_id=${citizenId}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  return Array.isArray(response.data) 
+    ? response.data.map(passport => transformToCamelCase(passport)) 
+    : [];
 }
 
 export async function deletePassport(id: string, token?: string) {
@@ -272,12 +442,38 @@ export async function registerProxy(
   data: ProxyRegistrationData,
   token?: string
 ) {
+  // Transform data to snake_case for backend
+  const transformedData = transformToSnakeCase(data);
+  
   const response = await api.post(
     "/proxies",
-    data,
+    transformedData,
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
-  return response.data;
+  
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
+}
+
+export async function getProxies(citizenId: string, token?: string) {
+  const response = await api.get(
+    `/proxies?citizen_id=${citizenId}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return Array.isArray(response.data) 
+    ? response.data.map(proxy => transformToCamelCase(proxy)) 
+    : [];
+}
+
+export async function getProxy(id: string, token?: string) {
+  const response = await api.get(
+    `/proxies/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
 }
 
 export async function updateProxy(
@@ -285,12 +481,17 @@ export async function updateProxy(
   data: Partial<ProxyRegistrationData>,
   token?: string
 ) {
+  // Transform data to snake_case for backend
+  const transformedData = transformToSnakeCase(data);
+  
   const response = await api.put(
     `/proxies/${id}`,
-    data,
+    transformedData,
     token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
   );
-  return response.data;
+  
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
 }
 
 export async function deleteProxy(id: string, token?: string) {
@@ -315,23 +516,48 @@ export async function registerDocument(
   data: DocumentRegistrationData | FormData,
   token?: string
 ) {
-  let headers = {};
-  
-  // Check if we're dealing with FormData
+  // If FormData, handle as is
   if (data instanceof FormData) {
-    headers = {
+    const headers = {
       "Content-Type": "multipart/form-data",
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     };
-  } else {
-    headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
+    const response = await api.post("/documents", data, { headers });
+    const transformed = transformToCamelCase(response.data);
+    return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
   }
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(data);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.post("/documents", transformedData, { headers });
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
+}
 
-  const response = await api.post("/documents", data, { headers });
-  return response.data;
+export async function getDocuments(citizenId: string, token?: string) {
+  const response = await api.get(
+    `/documents?citizen_id=${citizenId}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return Array.isArray(response.data) 
+    ? response.data.map(document => transformToCamelCase(document)) 
+    : [];
+}
+
+export async function getDocument(id: string, token?: string) {
+  const response = await api.get(
+    `/documents/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
 }
 
 export async function updateDocument(
@@ -339,23 +565,27 @@ export async function updateDocument(
   data: Partial<DocumentRegistrationData> | FormData,
   token?: string
 ) {
-  let headers = {};
-  
-  // Check if we're dealing with FormData
+  // If FormData, handle as is
   if (data instanceof FormData) {
-    headers = {
+    const headers = {
       "Content-Type": "multipart/form-data",
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     };
-  } else {
-    headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
+    const response = await api.put(`/documents/${id}`, data, { headers });
+    const transformed = transformToCamelCase(response.data);
+    return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
   }
-
-  const response = await api.put(`/documents/${id}`, data, { headers });
-  return response.data;
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(data);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.put(`/documents/${id}`, transformedData, { headers });
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
 }
 
 export async function deleteDocument(id: string, token?: string) {
@@ -377,19 +607,75 @@ export interface AttestationRequestData {
 }
 
 export async function registerAttestationRequest(
-  data: AttestationRequestData | FormData
+  data: AttestationRequestData | FormData,
+  token?: string
 ): Promise<{ applicationId: string }> {
-  let headers = {};
-  
-  // Check if we're dealing with FormData
+  // If FormData, handle as is
   if (data instanceof FormData) {
-    headers = { "Content-Type": "multipart/form-data" };
-  } else {
-    headers = { "Content-Type": "application/json" };
+    const headers = {
+      "Content-Type": "multipart/form-data",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+    const response = await api.post("/attestation", data, { headers });
+    const transformed = transformToCamelCase(response.data);
+    return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
   }
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(data);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  const response = await api.post("/attestation", transformedData, { headers });
+  const transformed = transformToCamelCase(response.data);
+  return { applicationId: String(transformed.applicationId ?? transformed.id ?? "") };
+}
 
-  const response = await api.post("/attestation", data, { headers });
-  return response.data;
+export async function getAttestations(citizenId: string, token?: string) {
+  const response = await api.get(
+    `/attestation?citizen_id=${citizenId}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return Array.isArray(response.data) 
+    ? response.data.map(attestation => transformToCamelCase(attestation)) 
+    : [];
+}
+
+export async function getAttestation(id: string, token?: string) {
+  const response = await api.get(
+    `/attestation/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return transformToCamelCase(response.data);
+}
+
+export async function updateAttestation(
+  id: string,
+  data: Partial<AttestationRequestData> | FormData,
+  token?: string
+) {
+  // If FormData, handle as is
+  if (data instanceof FormData) {
+    const headers = {
+      "Content-Type": "multipart/form-data",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+    const response = await api.put(`/attestation/${id}`, data, { headers });
+    return transformToCamelCase(response.data);
+  }
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(data);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.put(`/attestation/${id}`, transformedData, { headers });
+  return transformToCamelCase(response.data);
 }
 
 // Define the shape of visa registration data
@@ -405,22 +691,93 @@ export interface VisaRegistrationData {
 
 // Visa services
 export const registerVisa = async (visaData: VisaRegistrationData | FormData, token?: string) => {
-  let headers = {};
-  
-  // Check if we're dealing with FormData
+  // If FormData, handle as is
   if (visaData instanceof FormData) {
-    headers = {
+    const headers = {
       "Content-Type": "multipart/form-data",
       ...(token ? { Authorization: `Bearer ${token}` } : {})
     };
-  } else {
-    headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    };
+    const response = await api.post('/visas', visaData, { headers });
+    return transformToCamelCase(response.data);
   }
   
-  const response = await api.post('/visas', visaData, { headers });
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(visaData);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.post('/visas', transformedData, { headers });
+  return transformToCamelCase(response.data);
+};
+
+export const getVisa = async (id: string, token?: string) => {
+  const response = await api.get(
+    `/visas/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return transformToCamelCase(response.data);
+};
+
+export const getVisas = async (citizenId?: string, status?: string, token?: string) => {
+  const queryParams = new URLSearchParams();
+  
+  if (citizenId) {
+    queryParams.append('citizen_id', citizenId);
+  }
+  
+  if (status) {
+    queryParams.append('status', status);
+  }
+  
+  const endpoint = queryParams.toString() 
+    ? `/visas?${queryParams.toString()}` 
+    : '/visas';
+  
+  const response = await api.get(
+    endpoint,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
+  return Array.isArray(response.data) 
+    ? response.data.map(visa => transformToCamelCase(visa)) 
+    : [];
+};
+
+export const updateVisa = async (
+  id: string, 
+  visaData: Partial<VisaRegistrationData> | FormData, 
+  token?: string
+) => {
+  // If FormData, handle as is
+  if (visaData instanceof FormData) {
+    const headers = {
+      "Content-Type": "multipart/form-data",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+    const response = await api.put(`/visas/${id}`, visaData, { headers });
+    return transformToCamelCase(response.data);
+  }
+  
+  // For JSON data, transform to snake_case
+  const transformedData = transformToSnakeCase(visaData);
+  const headers = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
+  
+  const response = await api.put(`/visas/${id}`, transformedData, { headers });
+  return transformToCamelCase(response.data);
+};
+
+export const deleteVisa = async (id: string, token?: string) => {
+  const response = await api.delete(
+    `/visas/${id}`,
+    token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+  );
+  
   return response.data;
 };
 
