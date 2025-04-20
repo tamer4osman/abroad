@@ -289,10 +289,10 @@ const useTravelDocumentFormState = () => {
 
   const [uploadedAttachments, setUploadedAttachments] = useState<AttachmentData[]>([]);
 
-  const handleChange = useCallback((name: keyof FormData, value: string | boolean | null) => {
+  const handleChange = useCallback((name: keyof FormData, value: string | boolean | null | undefined) => {
     setFormData((prevFormData) => ({
       ...prevFormData,
-      [name]: value,
+      [name]: value === undefined ? "" : value,
     }));
   }, []);
 
@@ -477,12 +477,22 @@ const TravelDocument: React.FC = () => {
           
         // Call API to register travel document application
         const result = await registerPassport(travelDocData);
+
+        // Narrow result type to access applicationId
+        const applicationId =
+          typeof result === "object" &&
+          result !== null &&
+          "applicationId" in result
+            ? (result as { applicationId: string }).applicationId
+            : undefined;
         
         // Set success status
         setSubmitStatus({
           isSubmitting: false,
           success: true,
-          message: "تم تقديم طلب إصدار وثيقة السفر المؤقتة بنجاح. رقم الطلب: " + result.applicationId,
+          message: applicationId
+            ? "تم تقديم طلب إصدار وثيقة السفر المؤقتة بنجاح. رقم الطلب: " + applicationId
+            : "تم تقديم طلب إصدار وثيقة السفر المؤقتة بنجاح.",
         });
         
       } catch (error: unknown) {
