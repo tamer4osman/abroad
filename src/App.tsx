@@ -43,6 +43,7 @@ const MarriageRegistration = lazy(() => import("./components/MarriageRegistratio
 const BirthRegistration = lazy(() => import("./components/BirthRegistration"));
 const DivorceRegistration = lazy(() => import("./components/DivorceRegistration"));
 const DeathRegistration = lazy(() => import("./components/DeathRegistration"));
+const CitizenSearch = lazy(() => import("./components/CitizenSearch"));
 const Reports = lazy(() => import("./components/Reports"));
 const SettingsComponent = lazy(() => import("./components/SettingsComponent"));
 const IssuePassport = lazy(() => import("./components/IssuePassport"));
@@ -634,6 +635,12 @@ function App() {
           label: "تسجيل واقعة الوفاة",
           path: "/civil-registry/death",
         },
+        {
+          key: 17,
+          icon: <></>,
+          label: "بحث عن مواطن",
+          path: "/civil-registry/citizen-search",
+        },
       ],
     },
     {
@@ -796,6 +803,7 @@ function App() {
                           <Route path="civil-registry/birth" element={<BirthRegistration />} />
                           <Route path="civil-registry/divorce" element={<DivorceRegistration />} />
                           <Route path="civil-registry/death" element={<DeathRegistration />} />
+                          <Route path="civil-registry/citizen-search" element={<CitizenSearch />} />
                           
                           {/* Reports and Settings routes */}
                           <Route path="reports" element={<Reports />} />
