@@ -165,9 +165,8 @@ export const useVisaFormState = () => {
     }
   }, []);
 
-  // Validate current section
-  const validateSection = useCallback((section: FormSection) => {
-    // Get all fields relevant to the current section
+  // Helper function to get field list by section
+  const getSectionFields = (section: FormSection): (keyof VisaFormData)[] => {
     const sectionFields: Record<FormSection, (keyof VisaFormData)[]> = {
       personalInfo: ['firstName', 'surname', 'fatherName', 'nationality', 'dob', 'sex', 'placeOfBirth', 'maritalStatus', 'profession'],
       contactInfo: ['usAddress', 'city', 'state', 'zip', 'phone', 'email'],
@@ -179,7 +178,21 @@ export const useVisaFormState = () => {
       attachments: ['passportCopy', 'photoId', 'invitationLetter', 'additionalDocuments'],
       review: [], // Review doesn't have specific fields to validate
     };
+    return sectionFields[section];
+  };
+  
+  // Helper function to check if error is related to a specific field
+  const isErrorRelatedToField = (error: string, field: keyof VisaFormData): boolean => {
+    const fieldStr: string = field.toString();
+    const readableField = fieldStr
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (str: string) => str.toUpperCase());
     
+    return error.includes(readableField);
+  };
+
+  // Validate current section
+  const validateSection = useCallback((section: FormSection) => {
     // For the review section, validate the entire form
     if (section === 'review') {
       const validationResult = validationService.validateVisaForm(formData);
@@ -187,41 +200,37 @@ export const useVisaFormState = () => {
       return validationResult.isValid;
     }
     
-    // We only check required fields for this section
+    // Get all validation errors
     const validationResult = validationService.validateVisaForm(formData);
     
+    // Get fields for this section
+    const sectionFieldList = getSectionFields(section);
+    
     // Filter errors to only show those relevant to the current section
-    const sectionErrors = validationResult.errors.filter(error => {
-      // Check if error message contains any of the field names from this section
-      return sectionFields[section].some(field => {
-        // Convert the field name to a readable format with proper typing
-        const fieldStr: string = field.toString();
-        const readableField = fieldStr
-          .replace(/([A-Z])/g, ' $1')
-          .replace(/^./, (str: string) => str.toUpperCase());
-        
-        return error.includes(readableField);
-      });
-    });
+    const sectionErrors = validationResult.errors.filter(error => 
+      sectionFieldList.some(field => isErrorRelatedToField(error, field))
+    );
     
     setErrors(sectionErrors);
     return sectionErrors.length === 0;
   }, [formData]);
 
+  // Get ordered section array
+  const getSectionOrder = () => ([
+    'personalInfo',
+    'contactInfo',
+    'passportInfo',
+    'visaDetails',
+    'sponsorInfo',
+    'travelHistory',
+    'additionalInfo',
+    'attachments',
+    'review'
+  ] as FormSection[]);
+
   // Move to next section
   const nextSection = useCallback(() => {
-    const sectionOrder: FormSection[] = [
-      'personalInfo',
-      'contactInfo',
-      'passportInfo',
-      'visaDetails',
-      'sponsorInfo',
-      'travelHistory',
-      'additionalInfo',
-      'attachments',
-      'review'
-    ];
-    
+    const sectionOrder = getSectionOrder();
     const currentIndex = sectionOrder.indexOf(progress.currentStep);
     
     // Validate current section before proceeding
@@ -247,18 +256,7 @@ export const useVisaFormState = () => {
 
   // Move to previous section
   const prevSection = useCallback(() => {
-    const sectionOrder: FormSection[] = [
-      'personalInfo',
-      'contactInfo',
-      'passportInfo',
-      'visaDetails',
-      'sponsorInfo',
-      'travelHistory',
-      'additionalInfo',
-      'attachments',
-      'review'
-    ];
-    
+    const sectionOrder = getSectionOrder();
     const currentIndex = sectionOrder.indexOf(progress.currentStep);
     
     // If we're at the first step, there's no previous section
@@ -285,15 +283,34 @@ export const useVisaFormState = () => {
     setErrors([]);
   }, []);
 
+  // Handle form validation error
+  const handleValidationError = (validationErrors: string[]) => {
+    setErrors(validationErrors);
+    setProgress(prev => ({ ...prev, hasErrors: true }));
+    return false;
+  };
+  
+  // Handle successful form submission
+  const handleSubmitSuccess = () => {
+    setSubmitSuccess(true);
+    setReferenceNumber(`VISA-${Date.now().toString().slice(-8)}`);
+  };
+  
+  // Handle submission error
+  const handleSubmitError = (error: unknown) => {
+    console.error('Error submitting visa form:', error);
+    setSubmitSuccess(false);
+    setErrors(['حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى. / An error occurred while submitting your application. Please try again.']);
+  };
+
   // Submit form
   const submitForm = useCallback(async () => {
     // Validate entire form
     const validationResult = validationService.validateVisaForm(formData);
     
+    // Handle validation errors
     if (!validationResult.isValid) {
-      setErrors(validationResult.errors);
-      setProgress(prev => ({ ...prev, hasErrors: true }));
-      return;
+      return handleValidationError(validationResult.errors);
     }
     
     setIsSubmitting(true);
@@ -303,13 +320,13 @@ export const useVisaFormState = () => {
       // Simulating API call with timeout
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Simulating successful submission
-      setSubmitSuccess(true);
-      setReferenceNumber(`VISA-${Date.now().toString().slice(-8)}`);
+      // Handle successful submission
+      handleSubmitSuccess();
+      return true;
     } catch (error) {
-      console.error('Error submitting visa form:', error);
-      setSubmitSuccess(false);
-      setErrors(['حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى. / An error occurred while submitting your application. Please try again.']);
+      // Handle error
+      handleSubmitError(error);
+      return false;
     } finally {
       setIsSubmitting(false);
     }
