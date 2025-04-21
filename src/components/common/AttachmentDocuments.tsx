@@ -76,6 +76,15 @@ const AttachmentDocuments: React.FC<AttachmentDocumentsProps> = ({
   // State for tracking file preview URLs
   const [fileURLs, setFileURLs] = useState<Record<string, string>>({});
   
+  // Function to cleanup unused URL objects
+  const cleanupUnusedURLs = React.useCallback((currentURLs: Record<string, string>, currentAttachments: AttachmentData[]) => {
+    Object.entries(currentURLs).forEach(([id, url]) => {
+      if (!currentAttachments.find(att => att.id === id)) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  }, []);
+  
   // Update URLs when attachments change
   useEffect(() => {
     // Create object URLs for new attachments
@@ -94,21 +103,21 @@ const AttachmentDocuments: React.FC<AttachmentDocumentsProps> = ({
     
     // Cleanup function to revoke URLs when component unmounts or attachments change
     return () => {
-      // We only revoke URLs for attachments that no longer exist
-      Object.entries(fileURLs).forEach(([id, url]) => {
-        if (!uploadedAttachments.find(att => att.id === id)) {
-          URL.revokeObjectURL(url);
-        }
-      });
+      cleanupUnusedURLs(fileURLs, uploadedAttachments);
     };
-  }, [uploadedAttachments, fileURLs]);
+  }, [uploadedAttachments, fileURLs, cleanupUnusedURLs]);
+  
+  // Function to revoke all URL objects
+  const revokeAllURLs = React.useCallback((urls: Record<string, string>) => {
+    Object.values(urls).forEach(url => URL.revokeObjectURL(url));
+  }, []);
   
   // Cleanup all URLs when component unmounts
   useEffect(() => {
     return () => {
-      Object.values(fileURLs).forEach(url => URL.revokeObjectURL(url));
+      revokeAllURLs(fileURLs);
     };
-  }, [fileURLs]);
+  }, [fileURLs, revokeAllURLs]);
   
   // Safely remove an attachment with proper URL cleanup
   const handleRemoveAttachment = (id: string) => {
