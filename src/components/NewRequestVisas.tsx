@@ -386,6 +386,188 @@ const NewRequestVisas: React.FC = () => {
     isSubmitting: false,
   });
 
+  // Helper function to validate form data
+  const validateForm = useCallback(() => {
+    // Check for required fields
+    if (
+      !formData.firstName || 
+      !formData.surname || 
+      !formData.passportNumber || 
+      !formData.purposeOfVisit
+    ) {
+      return {
+        isValid: false,
+        errorMessage: "يرجى ملء جميع الحقول الإلزامية"
+      };
+    }
+
+    // Check for ID photo specifically
+    if (!formData.picture) {
+      return {
+        isValid: false,
+        errorMessage: "يرجى إرفاق صورة شخصية"
+      };
+    }
+
+    return { isValid: true };
+  }, [formData]);
+
+  // Helper function to prepare attachment data
+  const prepareAttachmentData = useCallback(() => {
+    // Create base attachment with photo ID
+    const photoAttachment = {
+      type: "photo_id",
+      filename: formData.picture?.name,
+      fileType: formData.picture?.type,
+      fileSize: formData.picture?.size
+    };
+    
+    // Process other attachments
+    const otherAttachments = attachments.map(attachment => ({
+      type: attachment.type,
+      filename: attachment.file.name,
+      fileType: attachment.file.type,
+      fileSize: attachment.file.size
+    }));
+    
+    return [photoAttachment, ...otherAttachments];
+  }, [formData.picture, attachments]);
+
+  // Helper function to prepare previous entries data
+  const preparePreviousEntriesData = useCallback(() => {
+    if (formData.everBeenToLibya !== 'yes') {
+      return undefined;
+    }
+    
+    return {
+      lastEntryDate: formData.lastEntryDate,
+      lastDepartureDate: formData.lastDepartureDate,
+      previousVisitPurpose: formData.previousVisitPurpose,
+      lastAddressInLibya: formData.lastAddressInLibya,
+      previousEntryNature: formData.previousEntryNature || undefined,
+      previousMeansOfTravel: formData.previousMeansOfTravel || undefined
+    };
+  }, [
+    formData.everBeenToLibya,
+    formData.lastEntryDate,
+    formData.lastDepartureDate,
+    formData.previousVisitPurpose,
+    formData.lastAddressInLibya,
+    formData.previousEntryNature,
+    formData.previousMeansOfTravel
+  ]);
+
+  // Helper function to build visa application data
+  const buildVisaApplicationData = useCallback(() => {
+    // Get attachments and previous entries data
+    const attachmentsData = prepareAttachmentData();
+    const previousEntriesData = preparePreviousEntriesData();
+    
+    return {
+      // Required fields from VisaRegistrationData type
+      citizenId: formData.passportNumber,
+      visaType: formData.purposeOfVisit,
+      country: formData.nationality,
+      applicationDate: new Date().toISOString(),
+      
+      // Applicant personal information
+      applicant: {
+        firstName: formData.firstName,
+        surname: formData.surname,
+        fatherName: formData.fatherName,
+        motherName: formData.motherName,
+        nationality: formData.nationality,
+        formerNationality: formData.formerNationality || undefined,
+        dob: formData.dob,
+        placeOfBirth: formData.placeOfBirth,
+        sex: formData.sex,
+        occupation: formData.occupation || undefined,
+        qualifications: formData.qualifications || undefined,
+        maritalStatus: formData.maritalStatus,
+        religion: formData.religion || undefined
+      },
+      
+      // Contact information
+      contactInfo: {
+        address: formData.address,
+        unitOrApt: formData.unitOrApt || undefined,
+        city: formData.city,
+        country: formData.country,
+        postalCode: formData.postalCode,
+        phone: formData.phone,
+        email: formData.email
+      },
+      
+      // Travel document information
+      travelDocument: {
+        passportNumber: formData.passportNumber,
+        documentType: formData.documentType,
+        issuedOn: formData.issuedOn,
+        validTo: formData.validTo
+      },
+      
+      // Visa request details
+      visaDetails: {
+        purposeOfVisit: formData.purposeOfVisit,
+        requiredPeriod: formData.requiredPeriod,
+        transitDestination: formData.purposeOfVisit === 'transit' ? formData.transitDestination : undefined
+      },
+      
+      // Sponsor information
+      sponsor: {
+        sponsorType: formData.sponsorType,
+        sponsorName: formData.sponsorName,
+        sponsorAddress: formData.sponsorAddressInLibya,
+        sponsorPhone: formData.sponsorPhone
+      },
+      
+      // Previous entries information
+      previousEntries: previousEntriesData,
+      
+      // Additional information
+      additionalInfo: {
+        referencesInLibya: formData.referencesInLibya || undefined
+      },
+      
+      // Attach prepared metadata
+      attachments: attachmentsData
+    };
+  }, [
+    formData,
+    prepareAttachmentData,
+    preparePreviousEntriesData
+  ]);
+
+  // Define the expected response type for visa registration
+  interface RegisterVisaResponse {
+    applicationId?: string;
+    id?: string;
+    [key: string]: unknown;
+  }
+  
+  // Helper function to handle submission success
+  const handleSubmitSuccess = useCallback((response: RegisterVisaResponse) => {
+    setSubmitStatus({
+      isSubmitting: false,
+      success: true,
+      message: `تم تقديم طلب التأشيرة بنجاح! رقم الطلب: ${response.applicationId || response.id}`
+    });
+    
+    // Reset form after successful submission
+    resetForm();
+  }, [resetForm]);
+
+  // Helper function to handle submission error
+  const handleSubmitError = useCallback((error: unknown) => {
+    console.error("Error submitting visa application:", error);
+    setSubmitStatus({
+      isSubmitting: false,
+      success: false,
+      message: error instanceof Error ? error.message : "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى."
+    });
+  }, []);
+
+  // Main submit handler with reduced nesting
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
@@ -396,147 +578,31 @@ const NewRequestVisas: React.FC = () => {
       success: undefined
     });
 
-    // Basic validation
-    if (
-      !formData.firstName || 
-      !formData.surname || 
-      !formData.passportNumber || 
-      !formData.purposeOfVisit
-    ) {
+    // Validate the form
+    const validationResult = validateForm();
+    if (!validationResult.isValid) {
       setSubmitStatus({
         isSubmitting: false,
         success: false,
-        message: "يرجى ملء جميع الحقول الإلزامية"
-      });
-      return;
-    }
-
-    // Check for ID photo specifically
-    if (!formData.picture) {
-      setSubmitStatus({
-        isSubmitting: false,
-        success: false,
-        message: "يرجى إرفاق صورة شخصية"
+        message: validationResult.errorMessage
       });
       return;
     }
 
     try {
-      // Create visa application data object
-      const visaApplication = {
-        // Required fields from VisaRegistrationData type
-        citizenId: formData.passportNumber, // Using passport number as citizen ID
-        visaType: formData.purposeOfVisit,
-        country: formData.nationality,
-        applicationDate: new Date().toISOString(),
-        
-        // Applicant personal information
-        applicant: {
-          firstName: formData.firstName,
-          surname: formData.surname,
-          fatherName: formData.fatherName,
-          motherName: formData.motherName,
-          nationality: formData.nationality,
-          formerNationality: formData.formerNationality || undefined,
-          dob: formData.dob,
-          placeOfBirth: formData.placeOfBirth,
-          sex: formData.sex,
-          occupation: formData.occupation || undefined,
-          qualifications: formData.qualifications || undefined,
-          maritalStatus: formData.maritalStatus,
-          religion: formData.religion || undefined
-        },
-        
-        // Contact information
-        contactInfo: {
-          address: formData.address,
-          unitOrApt: formData.unitOrApt || undefined,
-          city: formData.city,
-          country: formData.country,
-          postalCode: formData.postalCode,
-          phone: formData.phone,
-          email: formData.email
-        },
-        
-        // Travel document information
-        travelDocument: {
-          passportNumber: formData.passportNumber,
-          documentType: formData.documentType,
-          issuedOn: formData.issuedOn,
-          validTo: formData.validTo
-        },
-        
-        // Visa request details
-        visaDetails: {
-          purposeOfVisit: formData.purposeOfVisit,
-          requiredPeriod: formData.requiredPeriod,
-          transitDestination: formData.purposeOfVisit === 'transit' ? formData.transitDestination : undefined
-        },
-        
-        // Sponsor information
-        sponsor: {
-          sponsorType: formData.sponsorType,
-          sponsorName: formData.sponsorName,
-          sponsorAddress: formData.sponsorAddressInLibya,
-          sponsorPhone: formData.sponsorPhone
-        },
-        
-        // Previous entries information
-        previousEntries: formData.everBeenToLibya === 'yes' ? {
-          lastEntryDate: formData.lastEntryDate,
-          lastDepartureDate: formData.lastDepartureDate,
-          previousVisitPurpose: formData.previousVisitPurpose,
-          lastAddressInLibya: formData.lastAddressInLibya,
-          previousEntryNature: formData.previousEntryNature || undefined,
-          previousMeansOfTravel: formData.previousMeansOfTravel || undefined
-        } : undefined,
-        
-        // Additional information
-        additionalInfo: {
-          referencesInLibya: formData.referencesInLibya || undefined
-        },
-        
-        // Prepare attachments metadata
-        attachments: [
-          // Add ID photo as a primary attachment
-          {
-            type: "photo_id",
-            filename: formData.picture?.name,
-            fileType: formData.picture?.type,
-            fileSize: formData.picture?.size
-          },
-          // Add all other uploaded attachments
-          ...attachments.map(attachment => ({
-            type: attachment.type,
-            filename: attachment.file.name,
-            fileType: attachment.file.type,
-            fileSize: attachment.file.size
-          }))
-        ]
-      };
+      // Prepare visa application data
+      const visaApplication = buildVisaApplicationData();
       
-      const response = await registerVisa(visaApplication); // Use the correct function name
+      // Submit the application
+      const response = await registerVisa(visaApplication);
       
-      // Set success status
-      setSubmitStatus({
-        isSubmitting: false,
-        success: true,
-        message: `تم تقديم طلب التأشيرة بنجاح! رقم الطلب: ${response.applicationId || response.id}`
-      });
-      
-      // Reset form after successful submission
-      resetForm();
-      
+      // Handle success
+      handleSubmitSuccess(response);
     } catch (error: unknown) {
-      // Set error status
-      console.error("Error submitting visa application:", error);
-      setSubmitStatus({
-        isSubmitting: false,
-        success: false,
-        message: error instanceof Error ? error.message : "حدث خطأ أثناء تقديم الطلب. يرجى المحاولة مرة أخرى."
-      });
+      // Handle error
+      handleSubmitError(error);
     }
-  }, [formData, attachments, resetForm]);
+  }, [validateForm, buildVisaApplicationData, handleSubmitSuccess, handleSubmitError]);
 
   // Memoized form sections
   const personalInfoSection = useMemo(() => (
