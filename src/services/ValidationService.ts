@@ -115,9 +115,8 @@ export class ValidationService {
     };
   }
 
-  validateVisaForm(formData: VisaFormData) {
-    const errors: string[] = [];
-
+  // Helper function to get required fields including conditional ones
+  getRequiredVisaFields(formData: VisaFormData) {
     // Define required fields for visa application
     const requiredFields = [
       // Personal Information
@@ -161,7 +160,7 @@ export class ValidationService {
       { key: 'everBeenToLibya', label: 'Ever Been to Libya / هل سبق لك زيارة ليبيا' },
     ];
 
-    // Additional required fields based on conditions
+    // Add conditional required fields based on user responses
     if (formData.everBeenToLibya === 'yes') {
       requiredFields.push(
         { key: 'lastEntryDate', label: 'Last Entry Date / تاريخ آخر دخول' },
@@ -171,14 +170,27 @@ export class ValidationService {
       );
     }
 
-    // Check required fields
+    return requiredFields;
+  }
+
+  // Helper function to validate required fields
+  validateRequiredFields(formData: VisaFormData, requiredFields: Array<{key: string, label: string}>) {
+    const errors: string[] = [];
+    
     for (const field of requiredFields) {
       const value = formData[field.key as keyof VisaFormData];
       if (value === undefined || value === null || value === '') {
         errors.push(`${field.label} is required / مطلوب`);
       }
     }
+    
+    return errors;
+  }
 
+  // Helper function to validate email and phone formats
+  validateContactFields(formData: VisaFormData) {
+    const errors: string[] = [];
+    
     // Validate email format
     if (formData.email && !this.isValidEmail(formData.email)) {
       errors.push('Email is invalid / البريد الإلكتروني غير صالح');
@@ -192,8 +204,13 @@ export class ValidationService {
     if (formData.sponsorPhone && !this.isValidPhoneNumber(formData.sponsorPhone)) {
       errors.push('Sponsor Phone Number is invalid / رقم هاتف الكفيل غير صالح');
     }
+    
+    return errors;
+  }
 
-    // Validate dates
+  // Helper function to validate date fields
+  validateDateFields(formData: VisaFormData) {
+    const errors: string[] = [];
     const dateFields = [
       { key: 'dob', label: 'Date of Birth / تاريخ الميلاد' },
       { key: 'issuedOn', label: 'Issued On / تاريخ الإصدار' },
@@ -209,7 +226,13 @@ export class ValidationService {
       }
     }
     
-    // Check attachment requirements
+    return errors;
+  }
+
+  // Helper function to validate attachment fields
+  validateAttachments(formData: VisaFormData) {
+    const errors: string[] = [];
+    
     if (!formData.passportCopy) {
       errors.push('Passport Copy is required / نسخة من جواز السفر مطلوبة');
     }
@@ -217,6 +240,30 @@ export class ValidationService {
     if (!formData.photoId) {
       errors.push('Photo ID is required / صورة شخصية مطلوبة');
     }
+    
+    return errors;
+  }
+
+  validateVisaForm(formData: VisaFormData) {
+    // Initialize errors array
+    let errors: string[] = [];
+    
+    // Get required fields including conditional ones
+    const requiredFields = this.getRequiredVisaFields(formData);
+    
+    // Validate each category and combine all errors
+    const requiredFieldErrors = this.validateRequiredFields(formData, requiredFields);
+    const contactErrors = this.validateContactFields(formData);
+    const dateErrors = this.validateDateFields(formData);
+    const attachmentErrors = this.validateAttachments(formData);
+    
+    // Combine all validation errors
+    errors = [
+      ...requiredFieldErrors,
+      ...contactErrors,
+      ...dateErrors,
+      ...attachmentErrors
+    ];
 
     return {
       isValid: errors.length === 0,
