@@ -27,7 +27,7 @@ import { setupSwagger } from "./utils/swagger";
 // Get package.json version
 const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-const apiVersion = packageJson.version || '1.0.0';
+const apiVersion = packageJson.version ?? '1.0.0';
 const apiMajorVersion = apiVersion.split('.')[0];
 
 // Initialize Express app and environment variables
@@ -117,7 +117,7 @@ app.get(`/api/v${apiMajorVersion}/health`, (req, res) => {
     uptime: process.uptime(),
     serverInfo: {
       name: "Abroad API Server",
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env.NODE_ENV ?? 'development',
       version: apiVersion
     }
   });
@@ -153,7 +153,7 @@ app.use(notFoundHandler); // Handle 404 for undefined routes
 app.use(errorHandler); // Handle all other errors
 
 // --- Server Start ---
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT ?? 4000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   console.log(`API Documentation available at http://localhost:${PORT}/api-docs`);
