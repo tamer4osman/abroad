@@ -205,6 +205,12 @@ interface UserMenuProps {
   onClose: () => void;
 }
 
+// Extract menu item click handler to reduce nesting
+const handleMenuItemClick = (action: () => void, onClose: () => void) => {
+  action();
+  onClose();
+};
+
 const UserMenu = ({ isOpen, onClose }: UserMenuProps) => {
   const navigate = useNavigate();
   
@@ -235,10 +241,7 @@ const UserMenu = ({ isOpen, onClose }: UserMenuProps) => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full flex justify-end items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => {
-                  item.action();
-                  onClose();
-                }}
+                onClick={() => handleMenuItemClick(item.action, onClose)}
               >
                 <span className="ms-3">{item.label}</span>
                 {item.icon}
@@ -423,6 +426,22 @@ interface SidebarItem {
   subItems?: SubItem[];
 }
 
+// Extract sidebar item click handler to reduce nesting
+const handleSidebarItemClick = (item: SidebarItem, activeSubmenu: number | null, setActiveSubmenu: React.Dispatch<React.SetStateAction<number | null>>, navigate: (path: string) => void) => {
+  if (item.subItems) {
+    setActiveSubmenu(activeSubmenu === item.key ? null : item.key);
+  } else if (item.path) {
+    navigate(item.path);
+  }
+};
+
+// Extract sidebar sub-item click handler to reduce nesting
+const handleSubItemClick = (path: string | undefined, navigate: (path: string) => void) => {
+  if (path) {
+    navigate(path);
+  }
+};
+
 // Enhanced Sidebar with animations
 const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: SidebarProps) => {
   const [activeSubmenu, setActiveSubmenu] = useState<number | null>(null);
@@ -490,13 +509,7 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
                     ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-r-4 border-red-800 dark:border-red-600"
                     : "hover:bg-gray-100 dark:hover:bg-gray-700"
                 } transition-transform hover:translate-x-[-4px]`}
-                onClick={() => {
-                  if (item.subItems) {
-                    setActiveSubmenu(activeSubmenu === item.key ? null : item.key);
-                  } else if (item.path) {
-                    navigate(item.path);
-                  }
-                }}
+                onClick={() => handleSidebarItemClick(item, activeSubmenu, setActiveSubmenu, navigate)}
               >
                 <AnimatePresence>
                   {isSidebarOpen && (
@@ -539,11 +552,7 @@ const Sidebar = memo(({ isSidebarOpen, setIsSidebarOpen, sidebarItems }: Sidebar
                           ? "bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-r-2 border-red-800 dark:border-red-600"
                           : "hover:bg-gray-100 dark:hover:bg-gray-700"
                         } transition-transform hover:translate-x-[-4px]`}
-                        onClick={() => {
-                          if (subItem.path) {
-                            navigate(subItem.path);
-                          }
-                        }}
+                        onClick={() => handleSubItemClick(subItem.path, navigate)}
                       >
                         <span className="ml-3">{subItem.label}</span>
                       </div>
@@ -852,6 +861,61 @@ function App() {
   );
 }
 
+// Helper function to render stat cards
+const renderStatCard = (stat: { title: string, value: string, icon: React.ReactNode, change: string, color: string }, index: number) => (
+  <motion.div
+    key={index}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.1 }}
+    whileHover={{ 
+      y: -5, 
+      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" 
+    }}
+    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
+  >
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{stat.title}</p>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</h3>
+        <p className={`text-sm mt-2 ${stat.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+          {stat.change} من الشهر السابق
+        </p>
+      </div>
+      <div className={`p-3 rounded-full ${stat.color} bg-opacity-20 dark:bg-opacity-30`}>
+        {stat.icon}
+      </div>
+    </div>
+  </motion.div>
+);
+
+// Helper function to render activity item
+const renderActivityItem = (activity: { id: number, action: string, user: string, time: string }) => (
+  <div 
+    key={activity.id}
+    className="p-3 border-b border-gray-100 dark:border-gray-700 text-right transition-transform hover:-translate-x-1"
+  >
+    <p className="font-medium text-gray-800 dark:text-white">{activity.action}</p>
+    <div className="flex justify-end items-center mt-1">
+      <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{activity.time}</span>
+      <span className="text-sm text-gray-600 dark:text-gray-300">{activity.user}</span>
+    </div>
+  </div>
+);
+
+// Helper function to render quick access item
+const renderQuickAccessItem = (item: { icon: React.ReactNode, label: string, path: string }, index: number) => (
+  <div
+    key={index}
+    className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:-translate-y-1 transition-transform hover:shadow-md"
+  >
+    <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 mb-3">
+      {item.icon}
+    </div>
+    <p className="text-sm text-center text-gray-800 dark:text-white">{item.label}</p>
+  </div>
+);
+
 // Enhanced Dashboard placeholder component with modern UI widgets
 const DashboardPlaceholder = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -871,6 +935,14 @@ const DashboardPlaceholder = () => {
     { id: 3, action: "تسجيل واقعة زواج", user: "عمر حسن", time: "منذ ساعة" },
     { id: 4, action: "طلب تأشيرة جديد", user: "ليلى أحمد", time: "منذ 3 ساعات" },
     { id: 5, action: "تصديق دولي", user: "محمد علي", time: "منذ 5 ساعات" },
+  ];
+
+  const quickAccessItems = [
+    { icon: <Book />, label: "تسجيل مواطن", path: "/civil-registry/register-citizen" },
+    { icon: <FileArchive />, label: "إصدار جواز", path: "/passports/issue-passport" },
+    { icon: <FileCheck />, label: "طلب تأشيرة", path: "/visas/new-request" },
+    { icon: <FileText />, label: "تصديق محلي", path: "/attestations/local" },
+    { icon: <BarChart2 />, label: "التقارير", path: "/reports" }
   ];
 
   return (
@@ -907,32 +979,7 @@ const DashboardPlaceholder = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ 
-              y: -5, 
-              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" 
-            }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{stat.title}</p>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</h3>
-                <p className={`text-sm mt-2 ${stat.change.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-                  {stat.change} من الشهر السابق
-                </p>
-              </div>
-              <div className={`p-3 rounded-full ${stat.color} bg-opacity-20 dark:bg-opacity-30`}>
-                {stat.icon}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+        {stats.map((stat, index) => renderStatCard(stat, index))}
       </div>
 
       {/* Charts and Recent Activity */}
@@ -970,18 +1017,7 @@ const DashboardPlaceholder = () => {
             <h2 className="font-bold text-lg text-gray-800 dark:text-white">النشاطات الأخيرة</h2>
           </div>
           <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div 
-                key={activity.id}
-                className="p-3 border-b border-gray-100 dark:border-gray-700 text-right transition-transform hover:-translate-x-1"
-              >
-                <p className="font-medium text-gray-800 dark:text-white">{activity.action}</p>
-                <div className="flex justify-end items-center mt-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{activity.time}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">{activity.user}</span>
-                </div>
-              </div>
-            ))}
+            {recentActivities.map(activity => renderActivityItem(activity))}
           </div>
         </motion.div>
       </div>
@@ -998,23 +1034,7 @@ const DashboardPlaceholder = () => {
           <h2 className="font-bold text-lg text-gray-800 dark:text-white">الوصول السريع</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[
-            { icon: <Book />, label: "تسجيل مواطن", path: "/civil-registry/register-citizen" },
-            { icon: <FileArchive />, label: "إصدار جواز", path: "/passports/issue-passport" },
-            { icon: <FileCheck />, label: "طلب تأشيرة", path: "/visas/new-request" },
-            { icon: <FileText />, label: "تصديق محلي", path: "/attestations/local" },
-            { icon: <BarChart2 />, label: "التقارير", path: "/reports" }
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:-translate-y-1 transition-transform hover:shadow-md"
-            >
-              <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 mb-3">
-                {item.icon}
-              </div>
-              <p className="text-sm text-center text-gray-800 dark:text-white">{item.label}</p>
-            </div>
-          ))}
+          {quickAccessItems.map((item, index) => renderQuickAccessItem(item, index))}
         </div>
       </motion.div>
     </div>
