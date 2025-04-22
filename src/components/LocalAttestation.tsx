@@ -61,6 +61,7 @@ interface SectionProps {
 interface AttachmentData {
   file: File;
   type: string;
+  id: string; // Add a unique ID field
 }
 
 // --- Helper Components ---
@@ -116,7 +117,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
     >
       <option value="">-- اختر --</option>
       {options.map((option) => (
-        <option key={option.value} value={option.value}>
+        <option key={`${id}-${option.value}`} value={option.value}>
           {option.label}
         </option>
       ))}
@@ -161,8 +162,8 @@ const TextAreaField: React.FC<InputFieldProps> = ({
 const AttachmentsForm: React.FC<{
   uploadedAttachments: AttachmentData[];
   onAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onAttachmentTypeChange: (index: number, newType: string) => void;
-  onRemoveAttachment: (index: number) => void;
+  onAttachmentTypeChange: (id: string, newType: string) => void;
+  onRemoveAttachment: (id: string) => void;
 }> = ({
   uploadedAttachments,
   onAttachmentUpload,
@@ -218,8 +219,8 @@ const AttachmentsForm: React.FC<{
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
-              {uploadedAttachments.map((attachment, index) => (
-                <tr key={index}>
+              {uploadedAttachments.map((attachment) => (
+                <tr key={attachment.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                     <div className="flex items-center">
                       <File className="h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
@@ -230,12 +231,12 @@ const AttachmentsForm: React.FC<{
                     <select
                       value={attachment.type}
                       onChange={(e) =>
-                        onAttachmentTypeChange(index, e.target.value)
+                        onAttachmentTypeChange(attachment.id, e.target.value)
                       }
                       className="border p-1 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     >
                       {attachmentTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <option key={`attachment-type-${attachment.id}-${option.value}`} value={option.value}>
                           {option.label}
                         </option>
                       ))}
@@ -246,7 +247,7 @@ const AttachmentsForm: React.FC<{
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={() => onRemoveAttachment(index)}
+                      onClick={() => onRemoveAttachment(attachment.id)}
                       className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                     >
                       <XCircle className="h-5 w-5" />
@@ -300,10 +301,32 @@ const useLocalAttestationFormState = () => {
       if (!event.target.files?.length) return;
 
       const file = event.target.files[0];
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5MB
+
+      // Check file size
+      if (file.size > maxSizeInBytes) {
+        alert(`الملف ${file.name} يتجاوز الحد المسموح به (5 ميجا بايت). يرجى اختيار ملف أصغر.`);
+        // Clear input value
+        event.target.value = "";
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        alert(`نوع الملف ${file.name} غير مدعوم. الأنواع المدعومة هي: PDF, JPG, PNG.`);
+        // Clear input value
+        event.target.value = "";
+        return;
+      }
 
       setUploadedAttachments((prev) => [
         ...prev,
-        { file, type: "originalDocument" },
+        { 
+          file, 
+          type: "originalDocument", 
+          id: `${file.name}-${Date.now()}` // Generate a unique ID
+        },
       ]);
 
       // Clear input value to allow uploading the same file again if needed
@@ -313,18 +336,20 @@ const useLocalAttestationFormState = () => {
   );
 
   const handleAttachmentTypeChange = useCallback(
-    (index: number, newType: string) => {
+    (id: string, newType: string) => {
       setUploadedAttachments((prev) => {
-        const updated = [...prev];
-        updated[index] = { ...updated[index], type: newType };
-        return updated;
+        return prev.map(attachment => 
+          attachment.id === id 
+            ? { ...attachment, type: newType }
+            : attachment
+        );
       });
     },
     []
   );
 
-  const removeAttachment = useCallback((index: number) => {
-    setUploadedAttachments((prev) => prev.filter((_, i) => i !== index));
+  const removeAttachment = useCallback((id: string) => {
+    setUploadedAttachments((prev) => prev.filter(attachment => attachment.id !== id));
   }, []);
 
   return {
@@ -587,6 +612,8 @@ const LocalAttestation: React.FC = () => {
     ),
     [formData.notes, handleChange]
   );
+
+  // Check if an original document is included
 
   return (
     <div
