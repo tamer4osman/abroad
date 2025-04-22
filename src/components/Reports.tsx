@@ -246,31 +246,36 @@ interface StatCardProps {
   stat: DashboardStat;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ stat }) => (
-  <motion.div
-    whileHover={{ y: -4, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
-    className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
-  >
-    <div className="flex justify-between items-start">
-      <div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</h3>
-        {stat.change && (
-          <p className={`text-xs mt-1 ${
-            stat.trend === 'up' ? 'text-green-500' : 
-            stat.trend === 'down' ? 'text-red-500' : 
-            'text-gray-500'
-          }`}>
-            {stat.change}
-          </p>
-        )}
+const StatCard: React.FC<StatCardProps> = ({ stat }) => {
+  // Extract the nested ternary into a function that determines the trend color
+  const getTrendColorClass = (trend?: 'up' | 'down' | 'neutral') => {
+    if (trend === 'up') return 'text-green-500';
+    if (trend === 'down') return 'text-red-500';
+    return 'text-gray-500';
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -4, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" }}
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow"
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{stat.title}</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1">{stat.value}</h3>
+          {stat.change && (
+            <p className={`text-xs mt-1 ${getTrendColorClass(stat.trend)}`}>
+              {stat.change}
+            </p>
+          )}
+        </div>
+        <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+          {stat.icon}
+        </div>
       </div>
-      <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
-        {stat.icon}
-      </div>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 interface ReportCardProps {
   report: ReportData;
@@ -355,6 +360,7 @@ const ReportCard: React.FC<ReportCardProps> = ({ report, onDownload, onViewRepor
     </motion.div>
   );
 };
+
 
 // --- Custom Hook for Reports Logic ---
 const useReports = () => {
@@ -470,16 +476,16 @@ const Reports: React.FC = () => {
     <>
       <Section title="نظرة عامة على النظام" icon={<BarChart2 />}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {stats.map((stat, index) => (
-            <StatCard key={index} stat={stat} />
+          {stats.map((stat) => (
+            <StatCard key={`stat-${stat.title}`} stat={stat} />
           ))}
         </div>
         
         <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
           <h3 className="font-semibold text-right mb-4">حالة الخدمات (الشهر الحالي)</h3>
           <div className="space-y-4">
-            {serviceMetrics.map((service, index) => (
-              <div key={index} className="text-right">
+            {serviceMetrics.map((service) => (
+              <div key={`service-${service.name}`} className="text-right">
                 <div className="flex justify-between mb-1">
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     {service.completed + service.pending} طلب
@@ -512,15 +518,15 @@ const Reports: React.FC = () => {
         
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mt-4">
           {[
-            { label: 'توكيلات المحاكم', value: '24%', color: 'bg-blue-500' },
-            { label: 'توكيلات بنكية', value: '18%', color: 'bg-green-500' },
-            { label: 'توكيلات طلاق', value: '8%', color: 'bg-yellow-500' },
-            { label: 'توكيلات عقارية', value: '21%', color: 'bg-purple-500' },
-            { label: 'توكيلات ميراث', value: '12%', color: 'bg-pink-500' },
-            { label: 'إتمام مستندات', value: '9%', color: 'bg-indigo-500' },
-            { label: 'توكيلات عامة', value: '8%', color: 'bg-orange-500' },
-          ].map((item, index) => (
-            <div key={index} className="text-center p-2 rounded">
+            { id: 'proxy-court', label: 'توكيلات المحاكم', value: '24%', color: 'bg-blue-500' },
+            { id: 'proxy-bank', label: 'توكيلات بنكية', value: '18%', color: 'bg-green-500' },
+            { id: 'proxy-divorce', label: 'توكيلات طلاق', value: '8%', color: 'bg-yellow-500' },
+            { id: 'proxy-realestate', label: 'توكيلات عقارية', value: '21%', color: 'bg-purple-500' },
+            { id: 'proxy-inheritance', label: 'توكيلات ميراث', value: '12%', color: 'bg-pink-500' },
+            { id: 'proxy-documents', label: 'إتمام مستندات', value: '9%', color: 'bg-indigo-500' },
+            { id: 'proxy-general', label: 'توكيلات عامة', value: '8%', color: 'bg-orange-500' },
+          ].map((item) => (
+            <div key={item.id} className="text-center p-2 rounded">
               <div className={`w-3 h-3 ${item.color} rounded-full mx-auto mb-1`} />
               <div className="text-xs font-medium">{item.label}</div>
               <div className="text-sm font-bold">{item.value}</div>
@@ -756,12 +762,12 @@ const Reports: React.FC = () => {
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           {[
-            { title: 'إجمالي التوكيلات النشطة', value: '3,142' },
-            { title: 'التوكيلات المنتهية', value: '684' },
-            { title: 'توكيلات تنتهي خلال 30 يوم', value: '278' },
-            { title: 'متوسط مدة التوكيل', value: '13 شهر' }
-          ].map((item, i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+            { id: 'proxy-total', title: 'إجمالي التوكيلات النشطة', value: '3,142' },
+            { id: 'proxy-expired', title: 'التوكيلات المنتهية', value: '684' },
+            { id: 'proxy-expiring', title: 'توكيلات تنتهي خلال 30 يوم', value: '278' },
+            { id: 'proxy-avgduration', title: 'متوسط مدة التوكيل', value: '13 شهر' }
+          ].map((item) => (
+            <div key={item.id} className="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700">
               <div className="text-right">
                 <p className="text-sm text-gray-500 dark:text-gray-400">{item.title}</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{item.value}</p>
@@ -792,15 +798,15 @@ const Reports: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {[
-                { type: 'توكيلات المحاكم', status: 'نشط', avgDuration: 18, count: 754 },
-                { type: 'توكيلات بنكية', status: 'نشط', avgDuration: 12, count: 565 },
-                { type: 'توكيلات عقارية', status: 'نشط', avgDuration: 24, count: 659 },
-                { type: 'توكيلات الميراث', status: 'نشط', avgDuration: 8, count: 377 },
-                { type: 'توكيلات الطلاق', status: 'نشط', avgDuration: 6, count: 251 },
-                { type: 'توكيلات إتمام مستندات', status: 'نشط', avgDuration: 3, count: 283 },
-                { type: 'توكيلات عامة', status: 'نشط', avgDuration: 12, count: 253 },
-              ].map((item, i) => (
-                <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                { id: 'proxy-court', type: 'توكيلات المحاكم', status: 'نشط', avgDuration: 18, count: 754 },
+                { id: 'proxy-bank', type: 'توكيلات بنكية', status: 'نشط', avgDuration: 12, count: 565 },
+                { id: 'proxy-realestate', type: 'توكيلات عقارية', status: 'نشط', avgDuration: 24, count: 659 },
+                { id: 'proxy-inheritance', type: 'توكيلات الميراث', status: 'نشط', avgDuration: 8, count: 377 },
+                { id: 'proxy-divorce', type: 'توكيلات الطلاق', status: 'نشط', avgDuration: 6, count: 251 },
+                { id: 'proxy-docs', type: 'توكيلات إتمام مستندات', status: 'نشط', avgDuration: 3, count: 283 },
+                { id: 'proxy-general', type: 'توكيلات عامة', status: 'نشط', avgDuration: 12, count: 253 },
+              ].map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
                   <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
                     {item.count.toLocaleString('ar-LY')}
                   </td>
@@ -955,3 +961,4 @@ const Handshake = ({ size = 24 }: { size?: number }) => (
     <path d="M13 21H3v-9" />
   </svg>
 );
+
