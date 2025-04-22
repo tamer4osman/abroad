@@ -22,7 +22,7 @@ interface SelectFieldProps {
 const SelectField: React.FC<SelectFieldProps> = ({ label, id, name, value, onChange, options, required }) => {
   return (
     <div>
-      <label htmlFor={id}>{label}</label>
+      <label htmlFor={id}>{label}{required && <span className="text-red-500">*</span>}</label>
       <select
         id={id}
         name={name}
@@ -47,7 +47,7 @@ interface FormFieldProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
-  type?: 'text' | 'select' ;
+  type?: 'text' | 'select';
   options?: { value: string; label: string }[];
 }
 
