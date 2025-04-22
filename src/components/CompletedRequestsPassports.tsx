@@ -115,7 +115,6 @@ const CompletedRequestsPassports: React.FC = () => {
     key: 'application_date',
     direction: 'descending'
   });
-  // const [selectedApplication, setSelectedApplication] = useState<number | null>(null);
   const [expandedApplication, setExpandedApplication] = useState<number | null>(null);
 
   // Fetch completed passport applications
@@ -168,7 +167,7 @@ const CompletedRequestsPassports: React.FC = () => {
     return sortedApplications.filter(app => 
       app.applicant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.national_id.includes(searchTerm) ||
-      (app.passport_number && app.passport_number.includes(searchTerm))
+      (app.passport_number?.includes(searchTerm))
     );
   }, [sortedApplications, searchTerm]);
 
