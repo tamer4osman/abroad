@@ -12,19 +12,18 @@ interface EmailFieldProps {
 export const EmailField: React.FC<EmailFieldProps> = ({
   label,
   id,
-   name,
+  name,
   value,
   onChange,
   required = false,
 }) => (
-   <div>
-     <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
-       {label}{" "}
-       {required && <span className="text-red-500">*</span>}
-     </label>
-     <input
-       type="email"
-
+  <div>
+    <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
+      {label}{" "}
+      {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type="email"
       id={id}
       name={name}
       value={value}
