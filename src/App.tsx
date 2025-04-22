@@ -211,14 +211,15 @@ const handleMenuItemClick = (action: () => void, onClose: () => void) => {
   onClose();
 };
 
+// Enhanced UserMenu with accessibility improvements
 const UserMenu = ({ isOpen, onClose }: UserMenuProps) => {
   const navigate = useNavigate();
   
   const menuItems = [
-    { icon: <User size={16} />, label: "الملف الشخصي", action: () => navigate("/profile") },
-    { icon: <Settings size={16} />, label: "الإعدادات", action: () => navigate("/settings") },
-    { icon: <HelpCircle size={16} />, label: "المساعدة", action: () => navigate("/help") },
-    { icon: <LogOut size={16} />, label: "تسجيل الخروج", action: () => navigate("/logout") },
+    { id: 'profile', icon: <User size={16} />, label: "الملف الشخصي", action: () => navigate("/profile") },
+    { id: 'settings', icon: <Settings size={16} />, label: "الإعدادات", action: () => navigate("/settings") },
+    { id: 'help', icon: <HelpCircle size={16} />, label: "المساعدة", action: () => navigate("/help") },
+    { id: 'logout', icon: <LogOut size={16} />, label: "تسجيل الخروج", action: () => navigate("/logout") },
   ];
 
   return (
@@ -229,19 +230,31 @@ const UserMenu = ({ isOpen, onClose }: UserMenuProps) => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="absolute right-4 top-16 w-56 bg-white dark:bg-gray-800 shadow-xl rounded-lg z-50 overflow-hidden"
+          role="menu"
+          aria-orientation="vertical"
+          aria-labelledby="user-menu"
         >
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 text-right">
             <h3 className="font-semibold text-gray-800 dark:text-white">محمد أحمد</h3>
             <p className="text-sm text-gray-500 dark:text-gray-400">مسؤول النظام</p>
           </div>
           <div className="py-2">
-            {menuItems.map((item, index) => (
+            {menuItems.map((item) => (
               <motion.button
-                key={index}
+                key={item.id}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="w-full flex justify-end items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={() => handleMenuItemClick(item.action, onClose)}
+                role="menuitem"
+                tabIndex={0}
+                aria-label={item.label}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleMenuItemClick(item.action, onClose);
+                  }
+                }}
               >
                 <span className="ms-3">{item.label}</span>
                 {item.icon}
@@ -862,9 +875,9 @@ function App() {
 }
 
 // Helper function to render stat cards
-const renderStatCard = (stat: { title: string, value: string, icon: React.ReactNode, change: string, color: string }, index: number) => (
+const renderStatCard = (stat: { title: string, value: string, icon: React.ReactNode, change: string, color: string, id: string }, index: number) => (
   <motion.div
-    key={index}
+    key={stat.id}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.1 }}
@@ -904,9 +917,9 @@ const renderActivityItem = (activity: { id: number, action: string, user: string
 );
 
 // Helper function to render quick access item
-const renderQuickAccessItem = (item: { icon: React.ReactNode, label: string, path: string }, index: number) => (
+const renderQuickAccessItem = (item: { icon: React.ReactNode, label: string, path: string, id?: string }, index: number) => (
   <div
-    key={index}
+    key={item.path || `quick-access-${index}`} // Use path as key if available, fallback to index with prefix
     className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:-translate-y-1 transition-transform hover:shadow-md"
   >
     <div className="p-3 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 mb-3">
@@ -922,10 +935,10 @@ const DashboardPlaceholder = () => {
   
   // Sample stats data
   const stats = [
-    { title: "إجمالي المواطنين", value: "12,843", icon: <User />, change: "+12%", color: "bg-blue-500" },
-    { title: "طلبات الجوازات", value: "683", icon: <FileArchive />, change: "+5%", color: "bg-green-500" },
-    { title: "طلبات التأشيرات", value: "247", icon: <FileCheck />, change: "-3%", color: "bg-yellow-500" },
-    { title: "قيد المعالجة", value: "129", icon: <FileText />, change: "+2%", color: "bg-red-500" },
+    { title: "إجمالي المواطنين", value: "12,843", icon: <User />, change: "+12%", color: "bg-blue-500", id: "1" },
+    { title: "طلبات الجوازات", value: "683", icon: <FileArchive />, change: "+5%", color: "bg-green-500", id: "2" },
+    { title: "طلبات التأشيرات", value: "247", icon: <FileCheck />, change: "-3%", color: "bg-yellow-500", id: "3" },
+    { title: "قيد المعالجة", value: "129", icon: <FileText />, change: "+2%", color: "bg-red-500", id: "4" },
   ];
   
   // Sample recent activities
