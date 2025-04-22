@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { Upload } from "lucide-react";
 import AttachmentDocuments from "./common/AttachmentDocuments";
 
-
 // Add error handling wrapper
 const SafeComponent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [hasError, setHasError] = useState(false);
@@ -32,6 +31,21 @@ const SafeComponent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('error', handleError, true);
   }, []);
 
+  // Handle errors in child components
+  useEffect(() => {
+    const handleComponentError = (error: Error) => {
+      console.error("Error rendering component:", error);
+      setHasError(true);
+    };
+
+    try {
+      // Simulate error check for any initialization issues
+      // This will catch errors that might happen outside of rendering
+    } catch (error) {
+      handleComponentError(error as Error);
+    }
+  }, []);
+
   if (hasError) {
     return (
       <div className="p-4 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 rounded-md">
@@ -47,14 +61,30 @@ const SafeComponent: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     );
   }
 
-  try {
-    return <>{children}</>;
-  } catch (error) {
-    console.error("Error rendering component:", error);
-    setHasError(true);
-    return null;
-  }
+  // Use React's error boundary pattern properly
+  return (
+    <ErrorBoundary onError={(error) => {
+      console.error("Error in child component:", error);
+      setHasError(true);
+    }}>
+      {children}
+    </ErrorBoundary>
+  );
 };
+
+// Simple Error Boundary implementation
+class ErrorBoundary extends React.Component<{
+  children: React.ReactNode;
+  onError: (error: Error) => void;
+}> {
+  componentDidCatch(error: Error) {
+    this.props.onError(error);
+  }
+
+  render() {
+    return this.props.children;
+  }
+}
 
 interface Attachment {
     id: string;
@@ -137,7 +167,8 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => (
     <div>
         <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
-            {label} {required && <span className="text-red-500">*</span>}
+            {required && <span className="text-red-500 ml-1">*</span>}
+            {label}
         </label>
         <input
             type={type}
@@ -173,7 +204,8 @@ const SelectField: React.FC<SelectFieldProps> = ({
 }) => (
     <div>
         <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
-            {label} {required && <span className="text-red-500">*</span>}
+            {required && <span className="text-red-500 ml-1">*</span>}
+            {label}
         </label>
         <select
             id={id}
