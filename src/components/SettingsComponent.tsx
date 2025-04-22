@@ -79,32 +79,49 @@ const SettingsField: React.FC<{
   </div>
 );
 
-// Toggle switch component for Yes/No settings
-const ToggleSwitch: React.FC<{
-  label: string;
-  id: string;
+// Props for the Toggle component
+interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
-}> = ({ label, id, checked, onChange, disabled = false }) => (
-  <div className="flex justify-between items-center py-2">
-    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
-    <button
-      id={id}
-      onClick={() => !disabled && onChange(!checked)}
-      disabled={disabled}
-      className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
-        checked ? 'bg-red-800' : 'bg-gray-300 dark:bg-gray-600'
-      } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-    >
-      <span
-        className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${
-          checked ? 'translate-x-6 rtl:-translate-x-6' : 'translate-x-1 rtl:translate-x-1'
+  label?: string;
+  id?: string;
+}
+
+// Enhanced Toggle component with proper accessibility
+const Toggle = ({ checked, onChange, disabled = false, label, id }: ToggleProps) => {
+  return (
+    <div className="flex items-center justify-between">
+      {label && <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>}
+      <button
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
+        id={id}
+        disabled={disabled}
+        className={`${
+          checked ? 'bg-red-800 dark:bg-red-700' : 'bg-gray-200 dark:bg-gray-600'
+        } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
         }`}
-      />
-    </button>
-  </div>
-);
+        onClick={() => !disabled && onChange(!checked)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (!disabled) onChange(!checked);
+          }
+        }}
+        tabIndex={disabled ? -1 : 0}
+      >
+        <span
+          className={`${
+            checked ? 'translate-x-6' : 'translate-x-1'
+          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+        />
+      </button>
+    </div>
+  );
+};
 
 // Select component for dropdown settings
 const SettingsSelect: React.FC<{
@@ -313,21 +330,21 @@ const SettingsComponent: React.FC = () => {
           ]}
         />
         
-        <ToggleSwitch 
+        <Toggle 
           label="تفعيل الكتابة من اليمين إلى اليسار (RTL)"
           id="rtl-toggle"
           checked={rtlEnabled}
           onChange={setRtlEnabled}
         />
         
-        <ToggleSwitch 
+        <Toggle 
           label="وضع التباين العالي"
           id="contrast-toggle"
           checked={highContrast}
           onChange={setHighContrast}
         />
         
-        <ToggleSwitch 
+        <Toggle 
           label="تفعيل التحريكات (Animations)"
           id="animations-toggle"
           checked={animationsEnabled}
@@ -412,7 +429,7 @@ const SettingsComponent: React.FC = () => {
   const securitySettingsTab = useMemo(() => (
     <div>
       <Section title="إعدادات الأمان">
-        <ToggleSwitch 
+        <Toggle 
           label="تفعيل المصادقة الثنائية (2FA)"
           id="2fa-toggle"
           checked={twoFactorEnabled}
@@ -479,7 +496,7 @@ const SettingsComponent: React.FC = () => {
   const systemSettingsTab = useMemo(() => (
     <div>
       <Section title="إعدادات النظام">
-        <ToggleSwitch 
+        <Toggle 
           label="وضع الصيانة"
           id="maintenance-mode-toggle"
           checked={maintenanceMode}
@@ -490,7 +507,7 @@ const SettingsComponent: React.FC = () => {
           عند تفعيل وضع الصيانة، سيتم منع وصول المستخدمين إلى النظام باستثناء المسؤولين
         </p>
         
-        <ToggleSwitch 
+        <Toggle 
           label="وضع التصحيح (Debug Mode)"
           id="debug-mode-toggle"
           checked={debugMode}
@@ -535,21 +552,21 @@ const SettingsComponent: React.FC = () => {
   const notificationSettingsTab = useMemo(() => (
     <div>
       <Section title="إعدادات الإشعارات">
-        <ToggleSwitch 
+        <Toggle 
           label="إشعارات البريد الإلكتروني"
           id="email-notifications-toggle"
           checked={emailNotifications}
           onChange={setEmailNotifications}
         />
         
-        <ToggleSwitch 
+        <Toggle 
           label="إشعارات الرسائل القصيرة (SMS)"
           id="sms-notifications-toggle"
           checked={smsNotifications}
           onChange={setSmsNotifications}
         />
         
-        <ToggleSwitch 
+        <Toggle 
           label="إشعارات النظام"
           id="system-notifications-toggle"
           checked={systemNotifications}
