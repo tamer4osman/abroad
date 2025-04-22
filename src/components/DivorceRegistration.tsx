@@ -1,4 +1,3 @@
-// filepath: /abroad/abroad/src/components/DivorceRegistration.tsx
 import React, { useState, useCallback } from "react";
 import { Upload, File, XCircle } from "lucide-react";
 
@@ -89,9 +88,9 @@ const Section: React.FC<SectionProps> = ({ title, children }) => (
 
 // --- New Component: AttachmentTable (for SRP in AttachmentsForm) ---
 interface AttachmentTableProps {
-  uploadedAttachments: { file: File; type: string }[];
-  onAttachmentTypeChange: (index: number, newType: string) => void;
-  onRemoveAttachment: (index: number) => void;
+  uploadedAttachments: { id: string; file: File; type: string }[];
+  onAttachmentTypeChange: (id: string, newType: string) => void;
+  onRemoveAttachment: (id: string) => void;
 }
 
 const AttachmentTable: React.FC<AttachmentTableProps> = ({
@@ -124,8 +123,8 @@ const AttachmentTable: React.FC<AttachmentTableProps> = ({
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-          {uploadedAttachments.map((attachment, index) => (
-            <tr key={index}>
+          {uploadedAttachments.map((attachment) => (
+            <tr key={attachment.id}>
               <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
                 <div className="flex items-center">
                   <File className="mr-2" size={16} />
@@ -134,19 +133,20 @@ const AttachmentTable: React.FC<AttachmentTableProps> = ({
               </td>
               <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
                 <SelectField
-                  label=""
-                  id={`attachmentType-${index}`}
-                  name={`attachmentType-${index}`}
+                  label={`نوع المرفق للملف ${attachment.file.name}`}
+                  id={`attachmentType-${attachment.id}`}
+                  name={`attachmentType-${attachment.id}`}
                   value={attachment.type}
-                  onChange={(value) => onAttachmentTypeChange(index, value)}
+                  onChange={(value) => onAttachmentTypeChange(attachment.id, value)}
                   options={attachmentTypeOptions.map(opt => ({value: opt, label: opt}))}
                 />
               </td>
               <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
                 <button
                   type="button"
-                  onClick={() => onRemoveAttachment(index)}
-                  className="px-2 py-1  text-white rounded-md"
+                  onClick={() => onRemoveAttachment(attachment.id)}
+                  className="px-2 py-1 text-white rounded-md"
+                  aria-label={`إزالة الملف المرفق ${attachment.file.name}`}
                 >
                   <XCircle
                     className="text-red-500 hover:text-red-700"
@@ -164,10 +164,10 @@ const AttachmentTable: React.FC<AttachmentTableProps> = ({
 
 
 interface AttachmentsFormProps {
-  uploadedAttachments: { file: File; type: string }[];
+  uploadedAttachments: { id: string; file: File; type: string }[];
   onAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onAttachmentTypeChange: (index: number, newType: string) => void;
-  onRemoveAttachment: (index: number) => void;
+  onAttachmentTypeChange: (id: string, newType: string) => void;
+  onRemoveAttachment: (id: string) => void;
 }
 
 const AttachmentsForm: React.FC<AttachmentsFormProps> = ({
@@ -257,13 +257,13 @@ interface DivorceFormData {
 // --- Custom Hook for Form State Management (DIP & SRP) ---
 interface UseDivorceFormStateResult {
   formData: DivorceFormData;
-  uploadedAttachments: { file: File; type: string }[];
+  uploadedAttachments: { id: string; file: File; type: string }[];
   handleChange: (name: string, value: string) => void;
   handleAttachmentUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleAttachmentTypeChange: (index: number, newType: string) => void;
-  removeAttachment: (index: number) => void;
+  handleAttachmentTypeChange: (id: string, newType: string) => void;
+  removeAttachment: (id: string) => void;
   setFormData: React.Dispatch<React.SetStateAction<DivorceFormData>>; // Expose setter if needed
-  setUploadedAttachments: React.Dispatch<React.SetStateAction<{ file: File; type: string; }[]>>; // Expose setter if needed
+  setUploadedAttachments: React.Dispatch<React.SetStateAction<{ id: string; file: File; type: string; }[]>>; // Expose setter if needed
 }
 
 
@@ -313,7 +313,7 @@ const useDivorceFormState = (): UseDivorceFormStateResult => {
   });
 
   const [uploadedAttachments, setUploadedAttachments] = useState<
-    { file: File; type: string }[]
+    { id: string; file: File; type: string }[]
   >([]);
 
   const handleAttachmentUpload = useCallback(
@@ -321,6 +321,7 @@ const useDivorceFormState = (): UseDivorceFormStateResult => {
       const files = event.target.files;
       if (files) {
         const newAttachments = Array.from(files).map((file) => ({
+          id: `${file.name}-${file.size}-${file.lastModified}`,
           file: file,
           type: "صورة عن الهوية", // Default type
         }));
@@ -334,13 +335,16 @@ const useDivorceFormState = (): UseDivorceFormStateResult => {
   );
 
   const handleAttachmentTypeChange = useCallback(
-    (index: number, newType: string) => {
+    (id: string, newType: string) => {
       setUploadedAttachments((prevAttachments) => {
         const updatedAttachments = [...prevAttachments];
-        updatedAttachments[index] = {
-          ...updatedAttachments[index],
-          type: newType,
-        };
+        const index = updatedAttachments.findIndex(att => att.id === id);
+        if (index !== -1) {
+          updatedAttachments[index] = {
+            ...updatedAttachments[index],
+            type: newType,
+          };
+        }
         return updatedAttachments;
       });
     },
@@ -348,10 +352,9 @@ const useDivorceFormState = (): UseDivorceFormStateResult => {
   );
 
   const removeAttachment = useCallback(
-    (index: number) => {
+    (id: string) => {
       setUploadedAttachments((prevAttachments) => {
-        const updatedAttachments = [...prevAttachments];
-        updatedAttachments.splice(index, 1);
+        const updatedAttachments = prevAttachments.filter(att => att.id !== id);
         return updatedAttachments;
       });
     },
