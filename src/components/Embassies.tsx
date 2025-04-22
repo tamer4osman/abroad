@@ -128,16 +128,24 @@ const AddEmbassyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" onClick={onClose}>
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50" 
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <div 
         className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" 
         onClick={e => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">إضافة سفارة جديدة</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white" id="modal-title">إضافة سفارة جديدة</h2>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            aria-label="إغلاق"
+            tabIndex={0}
           >
             <X size={20} />
           </button>
@@ -264,12 +272,14 @@ const AddEmbassyModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave }) => {
               type="button"
               onClick={onClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+              aria-label="إلغاء الإضافة"
             >
               إلغاء
             </button>
             <button
               type="submit"
               className="px-4 py-2 bg-red-800 text-white rounded-md hover:bg-red-700 flex items-center"
+              aria-label="إضافة سفارة جديدة"
             >
               <Plus className="h-4 w-4 ml-2" />
               إضافة السفارة
@@ -355,6 +365,7 @@ const EmbassyControls = ({ onAddClick }: { onAddClick: () => void }) => (
       <button 
         onClick={onAddClick}
         className="px-3 py-1.5 bg-red-800 text-white rounded-md hover:bg-red-700 transition flex items-center"
+        aria-label="إضافة سفارة جديدة"
       >
         <Globe className="h-4 w-4 ml-2" />
         <span>إضافة سفارة جديدة</span>
@@ -365,6 +376,8 @@ const EmbassyControls = ({ onAddClick }: { onAddClick: () => void }) => (
         type="text"
         placeholder="بحث في السفارات..."
         className="px-3 py-1.5 border border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+        aria-label="بحث في السفارات"
+        role="searchbox"
       />
     </div>
   </div>
