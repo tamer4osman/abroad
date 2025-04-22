@@ -105,7 +105,8 @@ const SelectField: React.FC<{
   onChange: (value: string) => void;
   options: string[];
   required?: boolean;
-}> = ({ label, id, name, value, onChange, options, required }) => (
+  ariaLabel?: string;
+}> = ({ label, id, name, value, onChange, options, required, ariaLabel }) => (
   <div>
     <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
       {label}
@@ -117,6 +118,7 @@ const SelectField: React.FC<{
       onChange={(e) => onChange(e.target.value)}
       className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500"
       required={required}
+      aria-label={ariaLabel}
     >
       {options.map((option) => (
         <option key={option} value={option}>
@@ -462,13 +464,15 @@ const AttachmentsForm: React.FC<AttachmentsFormProps> = ({
                       onChange={(value) => onAttachmentTypeChange(index, value)}
                       options={attachmentTypeOptions}
                       required
+                      ariaLabel={`نوع المرفق للملف ${attachment.file.name}`}
                     />
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap text-right dark:text-white">
                     <button
                       type="button"
                       onClick={() => onRemoveAttachment(index)}
-                      className="px-2 py-1  text-white rounded-md"
+                      className="px-2 py-1 text-white rounded-md"
+                      aria-label={`إزالة الملف المرفق ${attachment.file.name}`}
                     >
                       <XCircle
                         className="text-red-500 hover:text-red-700"
