@@ -57,43 +57,45 @@ const InputField: React.FC<InputFieldProps> = ({
   icon,
   options,
   rows = 3, // For textarea inputs
-}) => (
-  <div>
-    <label
-      htmlFor={id}
-      className="flex justify-start items-center text-gray-700 dark:text-gray-300 text-right mb-1"
-    >
-      {label}
-      {icon && <span className="mr-2 text-gray-500">{icon}</span>}
-      {required && <span className="text-red-500 mr-1">*</span>}
-    </label>
-    {type === "select" && options ? (
-      <select
-        id={id}
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-        className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    ) : type === "textarea" ? (
-      <textarea
-        id={id}
-        name={name}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
-        placeholder={placeholder}
-        required={required}
-        rows={rows}
-      />
-    ) : (
+}) => {
+  // Extract field rendering logic into separate functions
+  const renderField = () => {
+    if (type === "select" && options) {
+      return (
+        <select
+          id={id}
+          name={name}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required={required}
+          className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
+        >
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    
+    if (type === "textarea") {
+      return (
+        <textarea
+          id={id}
+          name={name}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="border p-1 w-full text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 rounded-md shadow-sm focus:border-red-500 focus:ring-red-500"
+          placeholder={placeholder}
+          required={required}
+          rows={rows}
+        />
+      );
+    }
+    
+    // Default is input field
+    return (
       <input
         type={type}
         id={id}
@@ -104,9 +106,23 @@ const InputField: React.FC<InputFieldProps> = ({
         placeholder={placeholder}
         required={required}
       />
-    )}
-  </div>
-);
+    );
+  };
+
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="flex justify-start items-center text-gray-700 dark:text-gray-300 text-right mb-1"
+      >
+        {label}
+        {icon && <span className="mr-2 text-gray-500">{icon}</span>}
+        {required && <span className="text-red-500 mr-1">*</span>}
+      </label>
+      {renderField()}
+    </div>
+  );
+};
 
 const Section: React.FC<SectionProps> = ({ title, children }) => (
   <div className="border p-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-md shadow-md mb-4">
