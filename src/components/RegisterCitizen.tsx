@@ -305,13 +305,8 @@ const RegisterCitizen: React.FC = () => {
         setSubmitStatus({ type: 'success', message: 'تم حفظ البيانات بنجاح' });
       } catch (err: unknown) {
         console.error("Error registering citizen:", err);
-        const errorMessage = 
-          err && 
-          typeof err === 'object' && 
-          'message' in err && 
-          typeof err.message === 'string' 
-            ? err.message 
-            : 'حدث خطأ أثناء الحفظ';
+        // Use optional chaining for more concise error handling
+        const errorMessage = (err as { message?: string })?.message ?? 'حدث خطأ أثناء الحفظ';
         
         setSubmitStatus({ type: 'error', message: errorMessage });
       }
@@ -391,10 +386,10 @@ const RegisterCitizen: React.FC = () => {
             />
             <InputField
               label="الرقم الوطني:"
-              id="birthPlace"
-              name="birthPlace"
-              value={formData.birthPlace}
-              onChange={(value) => handleChange("birthPlace", value)}
+              id="nationalNumber"
+              name="nationalNumber"
+              value={formData.idNumber}
+              onChange={(value) => handleChange("idNumber", value)}
             />
             <InputField
               label="تاريخ الميلاد:"
@@ -656,13 +651,17 @@ const RegisterCitizen: React.FC = () => {
               </thead>
               <tbody>
                 {formData.familyMembers.map((member, index) => (
-                  <tr key={index}>
+                  <tr key={`family-member-${member.name}-${index}`}>
                     <td className="border border-black p-2 text-center">
                       {index + 1}
                     </td>
                     <td className="border border-black p-2">
+                      <label htmlFor={`family-member-name-${index}`} className="sr-only">
+                        اسم فرد العائلة {index + 1}
+                      </label>
                       <input
                         type="text"
+                        id={`family-member-name-${index}`}
                         value={member.name}
                         onChange={(e) =>
                           handleFamilyMemberChange(
@@ -675,7 +674,11 @@ const RegisterCitizen: React.FC = () => {
                       />
                     </td>
                     <td className="border border-black p-2">
+                      <label htmlFor={`family-member-relationship-${index}`} className="sr-only">
+                        صلة القرابة لفرد العائلة {index + 1}
+                      </label>
                       <select
+                        id={`family-member-relationship-${index}`}
                         value={member.relationship}
                         onChange={(e) =>
                           handleFamilyMemberChange(
@@ -694,7 +697,11 @@ const RegisterCitizen: React.FC = () => {
                       </select>
                     </td>
                     <td className="border border-black p-2">
+                      <label htmlFor={`family-member-gender-${index}`} className="sr-only">
+                        جنس فرد العائلة {index + 1}
+                      </label>
                       <select
+                        id={`family-member-gender-${index}`}
                         value={member.gender}
                         onChange={(e) =>
                           handleFamilyMemberChange(
@@ -713,8 +720,12 @@ const RegisterCitizen: React.FC = () => {
                       </select>
                     </td>
                     <td className="border border-black p-2">
+                      <label htmlFor={`family-member-nationality-${index}`} className="sr-only">
+                        جنسية فرد العائلة {index + 1}
+                      </label>
                       <input
                         type="text"
+                        id={`family-member-nationality-${index}`}
                         value={member.nationality}
                         onChange={(e) =>
                           handleFamilyMemberChange(
@@ -727,8 +738,12 @@ const RegisterCitizen: React.FC = () => {
                       />
                     </td>
                     <td className="border border-black p-2">
+                      <label htmlFor={`family-member-birthDate-${index}`} className="sr-only">
+                        تاريخ ميلاد فرد العائلة {index + 1}
+                      </label>
                       <input
                         type="date"
+                        id={`family-member-birthDate-${index}`}
                         value={member.birthDate}
                         onChange={(e) =>
                           handleFamilyMemberChange(
