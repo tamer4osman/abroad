@@ -740,16 +740,8 @@ const CitizenSearch: React.FC = () => {
                   <tr
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                     onClick={() => {
-                      // Only try to expand if we have a valid ID to work with
-                      if (citizen.nationalId || citizen.citizen_id) {
-                        // Try to use citizen_id first, then nationalId as backup
-                        const idToUse =
-                          citizen.citizen_id || Number(citizen.nationalId);
-                        // Make sure we're working with a valid number
-                        if (typeof idToUse === "number" && !isNaN(idToUse)) {
-                          toggleExpandCitizen(idToUse);
-                        }
-                      }
+                      const idToUse = citizen.citizen_id ?? Number(citizen.nationalId);
+                      toggleExpandCitizen(idToUse);
                     }}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -909,7 +901,7 @@ const CitizenSearch: React.FC = () => {
                               citizen.passports.length > 0 ? (
                                 citizen.passports.map(
                                   (passport: Passport, idx: number) => (
-                                    <div key={idx} className="mb-2">
+                                    <div key={`passport-${passport.passport_number}-${idx}`} className="mb-2">
                                       <div>
                                         <span className="text-gray-500 dark:text-gray-400">
                                           رقم الجواز:
@@ -949,7 +941,7 @@ const CitizenSearch: React.FC = () => {
                               citizen.contactInfo.length > 0 ? (
                                 citizen.contactInfo.map(
                                   (contact: ContactInfo, idx: number) => (
-                                    <div key={idx}>
+                                    <div key={`contact-${contact.type}-${contact.value}-${idx}`}>
                                       {contact.type === "PHONE" && (
                                         <div>
                                           <span className="text-gray-500 dark:text-gray-400">
