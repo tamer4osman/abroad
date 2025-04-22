@@ -130,8 +130,8 @@ const InputField: React.FC<InputFieldProps> = ({
 }) => (
   <div>
     <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
+      {required && <span className="text-red-500 ml-1">*</span>}
       {label}
-      {required && <span className="text-red-500 mr-1">*</span>}
     </label>
     <input
       type={type}
@@ -170,8 +170,8 @@ const SelectField: React.FC<SelectFieldProps> = ({
 }) => (
   <div>
     <label htmlFor={id} className="block text-gray-700 dark:text-gray-300">
+      {required && <span className="text-red-500 ml-1">*</span>}
       {label}
-      {required && <span className="text-red-500 mr-1">*</span>}
     </label>
     <select
       id={id}
@@ -223,8 +223,8 @@ const CheckboxField: React.FC<CheckboxFieldProps> = ({
       htmlFor={id}
       className="text-gray-700 dark:text-gray-300 cursor-pointer"
     >
+      {required && <span className="text-red-500 ml-1">*</span>}
       {label}
-      {required && <span className="text-red-500 mr-1">*</span>}
     </label>
   </div>
 );
@@ -478,13 +478,13 @@ const TravelDocument: React.FC = () => {
         // Call API to register travel document application
         const result = await registerPassport(travelDocData);
 
-        // Narrow result type to access applicationId
-        const applicationId =
-          typeof result === "object" &&
-          result !== null &&
-          "applicationId" in result
-            ? (result as { applicationId: string }).applicationId
-            : undefined;
+        // Define the expected API response type
+        interface RegisterPassportResponse {
+          applicationId?: string;
+          [key: string]: unknown;
+        }
+        // Extract applicationId using optional chaining
+        const applicationId = (result as RegisterPassportResponse)?.applicationId;
         
         // Set success status
         setSubmitStatus({
