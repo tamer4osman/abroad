@@ -12,21 +12,29 @@ interface DecodedToken {
   exp?: number;
 }
 
+// Extend Express Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    role: string;
+  };
+}
+
 /**
  * Authentication middleware to protect routes
  * Verifies JWT token from Authorization header
  */
-export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Get token from Authorization header
-    const authHeader = req.headers.authorization;
+    // Get token from Authorization header using optional chaining
+    const token = req.headers.authorization?.startsWith('Bearer ') 
+      ? req.headers.authorization.split(' ')[1]
+      : null;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       res.status(401).json({ error: 'Authentication required. No token provided.' });
       return;
     }
-    
-    const token = authHeader.split(' ')[1];
     
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
@@ -36,13 +44,13 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       where: { user_id: decoded.id },
     });
     
-    if (!user || !user.is_active) {
+    if (!user?.is_active) {
       res.status(401).json({ error: 'User not found or inactive.' });
       return;
     }
     
     // Add user info to request object for use in route handlers
-    (req as any).user = {
+    req.user = {
       id: decoded.id,
       role: decoded.role
     };
@@ -70,17 +78,14 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
  * @param roles Array of allowed roles
  */
 export const authorize = (roles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    // First ensure user is authenticated
-    if (!(req as any).user) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    // Check if user exists and their role is allowed using optional chaining
+    if (!req.user) {
       res.status(401).json({ error: 'Authentication required.' });
       return;
     }
     
-    // Check if user role is allowed
-    const userRole = (req as any).user.role;
-    
-    if (!roles.includes(userRole)) {
+    if (!roles.includes(req.user.role)) {
       res.status(403).json({ 
         error: 'Access denied. Insufficient permissions.' 
       });
