@@ -721,7 +721,7 @@ const RegisterForeign: React.FC = () => {
                 </thead>
                 <tbody>
                   {formData.attachments.map((attachment, index) => (
-                    <tr key={index}>
+                    <tr key={`family-member-${attachment.file.name}-${index}`}>
                       <td className="border border-gray-300 dark:border-gray-700 p-2 text-center">
                         {index + 1}
                       </td>
