@@ -143,14 +143,38 @@ model Citizen {
   last_name_en      String
   father_name_ar    String   @map("father_name_ar")
   father_name_en    String   @map("father_name_en")
+  grandfather_name_ar String?  // Added for grandfather's name in Arabic
+  grandfather_name_en String?  // Added for grandfather's name in English
   mother_name_ar    String   @map("mother_name_ar")
   mother_name_en    String   @map("mother_name_en")
   gender            String   // M/F/Other
   date_of_birth     DateTime @db.Date // Store only date
   date_of_birth_hijri String?
   place_of_birth    String // City, Country
+  
+  // Added father's birth information
+  father_birth_place String?
+  father_birth_date  DateTime? @db.Date
+  
+  // Added mother's birth information
+  mother_birth_place String?
+  mother_nationality String?
+  
   marital_status    String // SINGLE, MARRIED, DIVORCED, WIDOWED
+  
+  // Added education information
+  education_level   String?
+  education_place   String?
+  
   occupation        String?
+  
+  // Added work and delegation information
+  work_place        String?
+  delegation        String?
+  
+  // Added residence type
+  residence_type    String? // naturalization, permanent, temporary, withSpouse
+  
   nationality       String   @default("Libyan") // Default nationality?
   is_alive          Boolean  @default(true)
   registration_date DateTime @default(now())
@@ -652,7 +676,7 @@ model IssuedVisa {
   issued_by_id   Int
   notes          String? // Any conditions or remarks
   created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  updated_at     DateTime @default(now())
 
   @@index([visa_number])
   @@index([expiry_date])
@@ -840,7 +864,7 @@ model ProxyActivity {
   verification_date   DateTime?
   notes               String?
   created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
+  updated_at          DateTime @default(now())
 
   @@index([proxy_id])
   @@index([verified_by_id])
