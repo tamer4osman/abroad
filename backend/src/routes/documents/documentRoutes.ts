@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { documentController } from '../../controllers/documents/documentController';
+import { documentController } from '../../controllers/documents/documentController.js';
 
 const router = express.Router();
 
