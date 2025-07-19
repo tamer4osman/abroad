@@ -1,5 +1,5 @@
 import express from 'express';
-import { proxyController } from '../../controllers/proxies/proxyController';
+import { proxyController } from '../../controllers/proxies/proxyController.js';
 
 const router = express.Router();
 
