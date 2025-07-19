@@ -1,6 +1,6 @@
 import express from 'express';
-import { attestationController } from '../../controllers/attestations/attestationController';
-import { authenticate, authorize } from '../../middlewares/authMiddleware';
+import { attestationController } from '../../controllers/attestations/attestationController.js';
+import { authenticate, authorize } from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ const router = express.Router();
  */
 
 // Submit a new attestation request
-router.post('/requests', authenticate, authorize(['ADMIN', 'OFFICER', 'USER']), attestationController.submitAttestationRequest);
+router.post('/', authenticate, authorize(['ADMIN', 'OFFICER', 'USER']), attestationController.submitAttestationRequest);
 
 // Get all attestation requests with filtering
 router.get('/requests', authenticate, authorize(['ADMIN', 'OFFICER', 'MANAGER']), attestationController.getAllAttestationRequests);
