@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, z } from 'zod';
+import { z, ZodObject } from 'zod';
 
 /**
  * Middleware for validating request data against a Zod schema
  * @param schema Zod schema to validate against
  * @param source Where to look for data to validate ('body', 'query', 'params')
  */
-export const validate = (schema: AnyZodObject, source: 'body' | 'query' | 'params' = 'body') => {
+export const validate = <T extends ZodObject<z.ZodRawShape>>(schema: T, source: 'body' | 'query' | 'params' = 'body') => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Get data from the specified source
@@ -22,7 +22,7 @@ export const validate = (schema: AnyZodObject, source: 'body' | 'query' | 'param
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Validation failed',
-          details: error.errors.map(err => ({
+          details: error.issues.map((err: z.ZodIssue) => ({
             field: err.path.join('.'),
             message: err.message
           }))
