@@ -1,5 +1,5 @@
 import express from 'express';
-import { visaController } from '../../controllers/visas/visaController';
+import { visaController } from '../../controllers/visas/visaController.js';
 
 const router = express.Router();
 
