@@ -1,6 +1,6 @@
 import express from 'express';
-import { citizenController } from '../../controllers/citizens/citizenController';
-import { authenticate, authorize } from '../../middlewares/authMiddleware';
+import { citizenController } from '../../controllers/citizens/citizenController.js';
+import { authenticate, authorize } from '../../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -8,7 +8,7 @@ const router = express.Router();
  * @route   POST /api/citizens
  * @desc    Create a new citizen
  */
-router.post('/', authenticate, authorize(['admin', 'registrar']), citizenController.createCitizen);
+router.post('/', authenticate, authorize(['ADMIN', 'OFFICER']), citizenController.createCitizen);
 
 /**
  * @route   GET /api/citizens
