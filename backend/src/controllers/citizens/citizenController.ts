@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { z } from 'zod';
-import prisma from "../../utils/prisma";
+import prisma from "../../utils/prisma.js";
 import { Prisma } from '@prisma/client';
 
 // Define a schema for citizen creation
@@ -260,7 +260,7 @@ export const citizenController = {
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
-        res.status(400).json({ error: "Invalid input data.", details: error.errors });
+        res.status(400).json({ error: "Invalid input data.", details: error.issues });
         return;
       }
       console.error("Error creating citizen:", error);
@@ -628,7 +628,7 @@ export const citizenController = {
       if (!parsedQuery.success) {
         res.status(400).json({ 
           error: "Invalid search parameters", 
-          details: parsedQuery.error.errors 
+          details: parsedQuery.error.issues 
         });
         return;
       }
@@ -803,7 +803,11 @@ export const citizenController = {
       });
       
     } catch (error) {
-      console.error("Error searching citizens:", error);
+      if (error instanceof Error) {
+        console.error("Error searching citizens:", error.message);
+      } else {
+        console.error("Error searching citizens:", error);
+      }
       res.status(500).json({ error: "Failed to search citizens." });
     }
   }
