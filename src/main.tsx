@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import { AppWithErrorHandling } from './components/AppWithErrorHandling'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { store } from './store/store';
+import './index.css';
+import { AppWithErrorHandling } from './components/AppWithErrorHandling';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppWithErrorHandling />
+    <Provider store={store}>
+      <AppWithErrorHandling />
+    </Provider>
   </StrictMode>,
-)
+);
