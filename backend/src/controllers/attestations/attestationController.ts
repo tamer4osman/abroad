@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import prisma from "../../utils/prisma";
+import prisma from "../../utils/prisma.js";
 
 // Add type definitions at the top of the file
 interface StatusCount {
