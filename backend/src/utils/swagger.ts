@@ -3,8 +3,11 @@ import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Get version from package.json
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const packageJsonPath = path.resolve(__dirname, '../../package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const apiVersion = packageJson.version || '1.0.0';
