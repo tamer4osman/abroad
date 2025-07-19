@@ -1,4 +1,6 @@
 import React from "react";
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { increment, decrement } from '../store/slices/counterSlice';
 
 const Dashboard: React.FC = () => {
   // Create data structure with stable identifiers for cards
@@ -7,6 +9,9 @@ const Dashboard: React.FC = () => {
     { id: 'users', title: "المستخدمون", value: "1,234" },
     { id: 'revenue', title: "الإيرادات", value: "1,234" }
   ];
+
+  const count = useAppSelector((state) => state.counter.value);
+  const dispatch = useAppDispatch();
 
   return (
     <div className="dashboard">
@@ -21,6 +26,24 @@ const Dashboard: React.FC = () => {
               <p className="text-3xl font-bold">{card.value}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold mb-4">Counter</h2>
+          <div className="flex items-center justify-center">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => dispatch(increment())}
+            >
+              Increment
+            </button>
+            <span className="text-2xl mx-4">{count}</span>
+            <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => dispatch(decrement())}
+            >
+              Decrement
+            </button>
+          </div>
         </div>
       </div>
     </div>
