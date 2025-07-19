@@ -1,5 +1,5 @@
 import express from 'express';
-import { passportController } from '../../controllers/passports/passportController';
+import { passportController } from '../../controllers/passports/passportController.js';
 
 const router = express.Router();
 
