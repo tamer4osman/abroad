@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { citizenController } from '../../controllers/citizens/citizenController';
-import { authenticate } from '../../middlewares/authMiddleware';
+import { citizenController } from '../../controllers/citizens/citizenController.js';
+import { authenticate, authorize } from '../../middlewares/authMiddleware.js';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.use(authenticate);
 
 // Citizen routes
 router.post('/', citizenController.createCitizen);
-router.get('/', citizenController.getAllCitizens);
+router.get('/', authenticate, authorize(['ADMIN', 'OFFICER', 'MANAGER']), citizenController.getAllCitizens);
 router.get('/search', citizenController.searchCitizens); // Advanced search endpoint
 router.get('/:id', citizenController.getCitizenById);
 router.put('/:id', citizenController.updateCitizen);
