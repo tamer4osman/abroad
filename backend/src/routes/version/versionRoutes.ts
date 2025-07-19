@@ -1,5 +1,5 @@
 import express from "express";
-import { versionController } from "../../controllers/version/versionController";
+import { versionController } from '../../controllers/version/versionController.js';
 
 const router = express.Router();
 
