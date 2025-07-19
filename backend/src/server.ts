@@ -3,28 +3,31 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from 'url';
 
 // Import routes from modular structure
-import citizenRoutes from './routes/citizens';
-import passportRoutes from "./routes/passports/passportRoutes";
-import proxyRoutes from "./routes/proxies/proxyRoutes";
-import documentRoutes from "./routes/documents/documentRoutes";
-import visaRoutes from "./routes/visas/visaRoutes";
-import versionRoutes from "./routes/version/versionRoutes"; // Import version routes
-import attestationRoutes from "./routes/attestations/attestationRoutes"; // Import attestation routes
+import citizenRoutes from './routes/citizens/index.js';
+import passportRoutes from "./routes/passports/passportRoutes.js";
+import proxyRoutes from "./routes/proxies/proxyRoutes.js";
+import documentRoutes from "./routes/documents/documentRoutes.js";
+import visaRoutes from "./routes/visas/visaRoutes.js";
+import versionRoutes from "./routes/version/versionRoutes.js"; // Import version routes
+import attestationRoutes from "./routes/attestations/attestationRoutes.js"; // Import attestation routes
 
 // Import middleware
-import { requestLogger } from "./middlewares/loggingMiddleware";
+import { requestLogger } from "./middlewares/loggingMiddleware.js";
 import {
   apiRateLimit,
   uploadRateLimit,
-} from "./middlewares/rateLimitMiddleware";
-import { errorHandler, notFoundHandler } from "./middlewares/errorMiddleware";
+} from "./middlewares/rateLimitMiddleware.js";
+import { errorHandler, notFoundHandler } from "./middlewares/errorMiddleware.js";
 
 // Import Swagger setup
-import { setupSwagger } from "./utils/swagger";
+import { setupSwagger } from "./utils/swagger.js";
 
 // Get package.json version
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const apiVersion = packageJson.version ?? '1.0.0';
