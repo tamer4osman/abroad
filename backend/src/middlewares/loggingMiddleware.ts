@@ -28,7 +28,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
   
   // Capture response details
   const originalSend = res.send;
-  res.send = function (body?: any): Response {
+  res.send = function (body?: unknown): Response {
     // Calculate processing time
     const hrTime = process.hrtime(startHrTime);
     const processingTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
@@ -49,10 +49,10 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
  * Helper function to sanitize headers for logging
  * Removes sensitive data like authorization tokens
  */
-function sanitizeHeaders(headers: any): any {
+function sanitizeHeaders(headers: Record<string, unknown>): Record<string, unknown> {
   const sanitized = { ...headers };
   
-  if (sanitized.authorization) {
+  if (sanitized.authorization && typeof sanitized.authorization === 'string') {
     sanitized.authorization = sanitized.authorization.replace(/Bearer .+/, 'Bearer [REDACTED]');
   }
   
@@ -67,7 +67,7 @@ function sanitizeHeaders(headers: any): any {
  * Helper function to sanitize request body for logging
  * Removes sensitive fields like passwords
  */
-function sanitizeBody(body: any): any {
+function sanitizeBody(body: Record<string, unknown>): Record<string, unknown> {
   const sensitiveFields = ['password', 'password_confirmation', 'current_password', 'token', 'access_token', 'refresh_token'];
   const sanitized = { ...body };
   
